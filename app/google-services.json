@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "722559019049",
+    "project_id": "enot-86f48",
+    "storage_bucket": "enot-86f48.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722559019049:android:458c0846fc60152328d438",
+        "android_client_info": {
+          "package_name": "com.alekseykostyunin.enot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9Zi_-2TmQC0CIn9yrdaRVP6hF6Cu7KqA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
