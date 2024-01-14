@@ -1,6 +1,7 @@
 package com.alekseykostyunin.enot.presentation.menu
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -15,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -26,10 +28,11 @@ import com.alekseykostyunin.enot.presentation.view.AddOrder
 import com.alekseykostyunin.enot.presentation.view.Clients
 import com.alekseykostyunin.enot.presentation.view.Orders
 
+@Preview
 @Composable
 fun setMenu(){
     val navController: NavHostController = rememberNavController()
-    val bottomBarHeight = 56.dp
+    val bottomBarHeight = 40.dp
     val bottomBarOffsetHeightPx = remember { mutableStateOf(0f) }
 
     var buttonsVisible = remember { mutableStateOf(true) }
@@ -39,11 +42,14 @@ fun setMenu(){
             BottomBar(
                 navController = navController,
                 state = buttonsVisible,
-                modifier = Modifier
+                modifier = Modifier,
             )
-        }) { paddingValues ->
+        })
+        {
+        paddingValues ->
         Box(
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(paddingValues),
+
         ) {
             NavigationGraph(navController = navController)
         }
@@ -74,13 +80,12 @@ fun NavigationGraph(navController: NavHostController) {
 fun BottomBar(
     navController: NavHostController, state: MutableState<Boolean>, modifier: Modifier = Modifier
 ) {
-    val screens = listOf(
-        Destinations.Orders, Destinations.Clients, Destinations.Analytics
-    )
+    val screens = listOf(Destinations.Orders, Destinations.Clients, Destinations.Analytics)
 
     NavigationBar(
         modifier = modifier,
-        containerColor = Color.LightGray,
+//        containerColor = Color.LightGray,
+        containerColor = Color.White,
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
@@ -88,12 +93,8 @@ fun BottomBar(
         screens.forEach { screen ->
 
             NavigationBarItem(
-                label = {
-                    Text(text = screen.title!!)
-                },
-                icon = {
-                    Icon(imageVector = screen.icon!!, contentDescription = "")
-                },
+                label = {Text(text = screen.title!!)},
+                icon = {Icon(imageVector = screen.icon!!, contentDescription = "")},
                 selected = currentRoute == screen.route,
                 onClick = {
                     navController.navigate(screen.route) {
@@ -105,7 +106,7 @@ fun BottomBar(
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    unselectedTextColor = Color.Gray, selectedTextColor = Color.White
+                    unselectedTextColor = Color.Gray, selectedTextColor = Color.Black
                 ),
             )
         }

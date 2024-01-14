@@ -3,6 +3,8 @@ package com.alekseykostyunin.enot.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.alekseykostyunin.enot.presentation.auth.Auth
+import com.alekseykostyunin.enot.presentation.auth.Reg
 import com.alekseykostyunin.enot.presentation.menu.setMenu
 
 class MainActivity : ComponentActivity() {
@@ -10,6 +12,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             setMenu()
+            //Reg()
+            //Auth()
         }
     }
 }
