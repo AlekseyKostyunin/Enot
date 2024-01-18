@@ -1,4 +1,8 @@
 package com.alekseykostyunin.enot.domain
 
-class Client {
+data class Client(
+    val id: Int? = null,
+    var name: String? = null,
+) {
+
 }

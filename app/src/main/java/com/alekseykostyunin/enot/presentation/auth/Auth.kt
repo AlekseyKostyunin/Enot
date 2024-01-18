@@ -1,7 +1,7 @@
 package com.alekseykostyunin.enot.presentation.auth
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,15 +27,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.alekseykostyunin.enot.R
+import com.alekseykostyunin.enot.presentation.menu.SetMenu
+import com.alekseykostyunin.enot.presentation.view.Destinations
+import com.alekseykostyunin.enot.presentation.view.NavigationGraph
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
-@Preview
+//@Preview
 @Composable
-fun Auth() {
-
+fun Auth(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -49,13 +55,13 @@ fun Auth() {
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
         )
-        val login = remember { mutableStateOf("") }
+        val email = remember { mutableStateOf("") }
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = login.value,
-            label = { Text("Логин") },
+            value = email.value,
+            label = { Text("E-mail") },
             //placeholder = { Text("Введите логин") },
-            onValueChange = { newText -> login.value = newText },
+            onValueChange = { newText -> email.value = newText },
         )
         var password by rememberSaveable { mutableStateOf("")}
         var passwordVisibility by remember {mutableStateOf(false)}
@@ -84,21 +90,62 @@ fun Auth() {
             else PasswordVisualTransformation()
 
         )
-
+        //val navController2: NavHostController = rememberNavController()
         /* Кнопка "Войти" */
         Button(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
-            onClick = { }) {
+            onClick = {
+                //auth(email.value,password) // aaaa@aaaa.ru  1234567
+                navController.navigate(Destinations.SetMenu.route)
+            }
+        ) {
+
             Text(text = "Войти")
         }
         /* Кнопка "Регистрация" */
         Button(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
-            onClick = {  }) {
+            onClick = {
+                navController.navigate(Destinations.Registration.route)
+            }
+        ) {
             Text(text = "Регистрация")
         }
     }
+
+}
+
+private fun auth(email: String, password: String){
+    val auth = Firebase.auth
+    auth.signInWithEmailAndPassword(email, password)
+//        .addOnCompleteListener(this) { task ->
+        .addOnCompleteListener() { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d("TEST_sign", "signInWithEmail:success")
+                val user = auth.currentUser
+                //updateUI(user)
+            } else {
+                // If sign in fails, display a message to the user.
+                Log.w("TEST_sign", "signInWithEmail:failure", task.exception)
+//                Toast.makeText(
+//                    baseContext,
+//                    "Authentication failed.",
+//                    Toast.LENGTH_SHORT,
+//                ).show()
+                //updateUI(null)
+            }
+        }
+//        .addOnFailureListener(this){
+        .addOnFailureListener(){
+            Log.w("TEST_", it.toString())
+//            Toast.makeText(
+//                baseContext,
+//                it.toString(),
+//                Toast.LENGTH_SHORT,
+//            ).show()
+        }
 
 }
