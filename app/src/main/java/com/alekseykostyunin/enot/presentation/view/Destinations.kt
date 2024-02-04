@@ -5,6 +5,7 @@ import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Destinations(
@@ -12,16 +13,19 @@ sealed class Destinations(
     val title: String? = null,
     val icon: ImageVector? = null
 ) {
-    object User : Destinations(
-        route = "user_screen",
-        title = "Профиль",
-        icon = Icons.Outlined.Settings
+    data object Authorisation : Destinations(
+        route = "authorisation_screen"
     )
 
-    object SetMenu : Destinations(
-        route = "menu_screen"
+    data object Registration : Destinations(
+        route = "registration_screen"
     )
-    object Orders : Destinations(
+
+    data object ResetPassword : Destinations(
+        route = "reset_screen"
+    )
+
+    data object Orders : Destinations(
         route = "orders_screen",
         title = "Заказы",
         icon = Icons.Outlined.Home
@@ -33,20 +37,24 @@ sealed class Destinations(
         icon = Icons.Outlined.AccountCircle
     )
 
-    object Analytics : Destinations(
+    data object Analytics : Destinations(
         route = "analytics_screen",
         title = "Финансы",
-        icon = Icons.Outlined.Info
+        icon = Icons.Outlined.Star
     )
 
-    object Registration : Destinations(
-        route = "registration_screen"
+    data object User : Destinations(
+        route = "user_screen",
+        title = "Профиль",
+        icon = Icons.Outlined.Settings
     )
-    object Authorisation : Destinations(
-        route = "authorisation_screen"
+
+    data object AddOrder : Destinations(
+        route = "addOrder_screen"
     )
-    object ResetPassword : Destinations(
-        route = "reset_screen"
+
+    data object SetMenu : Destinations(
+        route = "menu_screen"
     )
 
 

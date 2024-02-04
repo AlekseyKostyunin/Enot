@@ -18,18 +18,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.alekseykostyunin.enot.presentation.auth.Auth
+import com.alekseykostyunin.enot.presentation.view.AddOrderScreen
+import com.alekseykostyunin.enot.presentation.view.AnalyticsScreen
+import com.alekseykostyunin.enot.presentation.view.Clients
 import com.alekseykostyunin.enot.presentation.view.Destinations
-import com.alekseykostyunin.enot.presentation.view.NavigationGraph
+import com.alekseykostyunin.enot.presentation.view.NavGraphWithMenu
+import com.alekseykostyunin.enot.presentation.view.OrdersScreen
+import com.alekseykostyunin.enot.presentation.view.UserScreen
 
 @Composable
-fun SetMenu(){
-    val navController: NavHostController = rememberNavController()
+fun SetMenu(
+) {
+    val navController : NavHostController = rememberNavController()
     val bottomBarHeight = 40.dp
     val bottomBarOffsetHeightPx = remember { mutableStateOf(0f) }
-
-    var buttonsVisible = remember { mutableStateOf(true) }
+    val buttonsVisible = remember { mutableStateOf(true) }
 
     Scaffold(
         bottomBar = {
@@ -38,15 +46,10 @@ fun SetMenu(){
                 state = buttonsVisible,
                 modifier = Modifier,
             )
-        })
-    {
-            paddingValues ->
-        Box(
-            modifier = Modifier.padding(paddingValues),
-
-            ) {
-            NavigationGraph(navController = navController)
-
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues), ) {
+            NavGraphWithMenu(navController)
         }
     }
 }
@@ -55,7 +58,8 @@ fun SetMenu(){
 fun BottomBar(
     navController: NavHostController, state: MutableState<Boolean>, modifier: Modifier = Modifier
 ) {
-    val screens = listOf(Destinations.Orders, Destinations.Clients, Destinations.Analytics, Destinations.User)
+    val screens =
+        listOf(Destinations.Orders, Destinations.Clients, Destinations.Analytics, Destinations.User)
 
     NavigationBar(
         modifier = modifier,
@@ -89,5 +93,5 @@ fun BottomBar(
             )
         }
     }
-
 }
+
