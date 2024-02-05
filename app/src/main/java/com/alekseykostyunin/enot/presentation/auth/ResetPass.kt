@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.firebase.MyFirebaseAuth
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
+import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
 import com.alekseykostyunin.enot.domain.usecase.users.ResetPasswordUseCase
 import com.alekseykostyunin.enot.presentation.view.Destinations
@@ -78,12 +79,14 @@ fun ResetPassword(navController: NavController) {
             .fillMaxWidth()
             .padding(vertical = 10.dp),
             onClick = {
+
                 if (email.value.isEmpty()){
                     isErrorEmail = true
                     sendToast("Поле e-mail не может быть пустым!", context)
                 }
                 else {
-                    if (!email.value.isEmailValid()) {
+                    val isValidEmail = Validate.isEmailValid(email.value)
+                    if (!isValidEmail){
                         isErrorEmail = true
                         sendToast("Некорректный e-mail. Повторите попытку!", context)
                     }
@@ -121,8 +124,4 @@ private fun sendToast(message: String, context: Context){
         message,
         Toast.LENGTH_LONG,
     ).show()
-}
-
-private fun String.isEmailValid(): Boolean {
-    return !TextUtils.isEmpty(this) && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }

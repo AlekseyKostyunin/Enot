@@ -23,6 +23,9 @@ import com.alekseykostyunin.enot.domain.usecase.users.AuthUserUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
 @Composable
@@ -101,19 +104,18 @@ fun UserScreen(
                 )
             }
 
-            //user.uid
             OutlinedButton(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = 10.dp),
                 onClick = {
                     singOutUserUseCase.singOutUser()
-                    //StartNavigation()
                     navController.navigate(Destinations.Authorisation.route)
                 }
             ) {
                 Text(text = "Выйти из приложения")
             }
+
         }
 
     }

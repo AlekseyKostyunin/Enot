@@ -39,11 +39,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
+import com.alekseykostyunin.enot.data.utils.DateUtil
+import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
 import com.alekseykostyunin.enot.domain.usecase.users.RegUserUseCase
 import com.alekseykostyunin.enot.presentation.view.Destinations
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
 @Composable
@@ -60,10 +63,10 @@ fun Reg(
         verticalArrangement = Arrangement.Center
     )
     {
-//        Image(
-//            painter = painterResource(id = R.drawable.ic_enot),
-//            contentDescription = null
-//        )
+        Image(
+            painter = painterResource(id = R.drawable.ic_enot),
+            contentDescription = null
+        )
         Text(
             text = "Регистрация",
             fontSize = 24.sp,
@@ -119,37 +122,41 @@ fun Reg(
                 if (email.value.isEmpty()) {
                     isErrorEmail = true
                     sendToast("Поле e-mail не может быть пустым!", context)
-                }
-                else {
-                    if (!email.value.isEmailValid()) {
+                } else {
+                    val isValidEmail = Validate.isEmailValid(email.value)
+                    if (!isValidEmail) {
                         isErrorEmail = true
                         sendToast("Некорректный e-mail. Повторите попытку", context)
-                    }
-                    else {
+                    } else {
                         if (password.isEmpty()) {
                             sendToast("Полe пароль не может быть пустым!", context)
                             isErrorEmail = false
                             isErrorPassword = true
-                        }
-                        else {
+                        } else {
                             if (password.length < 6) {
                                 isErrorPassword = true
-                                sendToast("Пароль слишком короткий (менее 6 символов). Повторите попытку!",context)
-                            }
-                            else {
+                                sendToast(
+                                    "Пароль слишком короткий (менее 6 символов). Повторите попытку!",
+                                    context
+                                )
+                            } else {
                                 isErrorPassword = false
+
                                 val auth: FirebaseAuth = Firebase.auth
+                                val database = Firebase.database.reference
+
                                 auth.createUserWithEmailAndPassword(email.value, password)
                                     .addOnCompleteListener() { task ->
                                         if (task.isSuccessful) {
                                             Log.d("TEST_1", "createUserWithEmail:success")
-                                            val user = auth.currentUser
+                                            val user =
+                                                auth.currentUser ?: return@addOnCompleteListener
                                             //updateUI(user)
-                                            sendToast(
-                                                "Регистрация прошла успешно!",
-                                                context
-                                            )
-                                            navController.navigate(Destinations.Authorisation.route)
+                                            val userId = user.uid
+                                            database.child("users").child(userId).child("email")
+                                                .setValue(email.value)
+                                            sendToast("Регистрация прошла успешно!", context)
+
                                         } else {
                                             Log.w(
                                                 "TEST_1",
@@ -161,18 +168,17 @@ fun Reg(
                                                 "Ошибка при регистрации. Обратитесь в техподдержку.",
                                                 context
                                             )
-                                            navController.navigate(Destinations.Authorisation.route)
+
                                         }
                                     }
+                                Log.d("TEST_email_reg", email.value)
+                                Log.d("TEST_password_reg", password)
+                                navController.navigate(Destinations.Authorisation.route)
                             }
                         }
                     }
                 }
-
 //                regUserUseCase.regUser(email.value,password)
-//                Log.d("TEST_email_reg", email.value)
-//                Log.d("TEST_password_reg", password)
-//                navController.navigate(Destinations.Authorisation.route)
             }
         ) {
             Text(text = "Отправить")
@@ -186,8 +192,4 @@ private fun sendToast(message: String, context: Context) {
         message,
         Toast.LENGTH_LONG,
     ).show()
-}
-
-private fun String.isEmailValid(): Boolean {
-    return !TextUtils.isEmpty(this) && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }
