@@ -6,16 +6,26 @@ import androidx.lifecycle.ViewModel
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
 import com.alekseykostyunin.enot.domain.usecase.users.CurrentUserUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 
 class UsersViewModel: ViewModel() {
 
-    private var _isUserAuth = MutableLiveData<Boolean>()
+    private var initial = isUserAuth() // не пустой!!!
+    private var _isUserAuth = MutableLiveData<Boolean>(initial)
     var isUserAuth: LiveData<Boolean> = _isUserAuth
 
-    fun isUserAuth() {
+    private fun isUserAuth() : Boolean {
         val repository: UsersRepository = UsersRepositoryImpl
         val currentUserUseCase = CurrentUserUseCase(repository)
-        _isUserAuth.value = currentUserUseCase.currentUser()
+        return currentUserUseCase.currentUser()
     }
+
+    fun signOutUser() {
+        val repository: UsersRepository = UsersRepositoryImpl
+        val singOutUserUseCase = SingOutUserUseCase(repository)
+        initial = singOutUserUseCase.singOutUser()
+    }
+
+
 
 }

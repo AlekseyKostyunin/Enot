@@ -1,20 +1,21 @@
 package com.alekseykostyunin.enot.presentation
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
-import com.alekseykostyunin.enot.presentation.view.StartNavigation
+import androidx.lifecycle.ViewModelProvider
+import com.alekseykostyunin.enot.presentation.navigation.StartNavigation
+import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.StartViewModel
+import com.alekseykostyunin.enot.ui.theme.EnotTheme
 
-class  MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            //EnotTheme {           }
             StartNavigation()
         }
     }
-
 }

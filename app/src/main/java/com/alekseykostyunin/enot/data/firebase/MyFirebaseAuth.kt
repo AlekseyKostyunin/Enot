@@ -54,9 +54,10 @@ object MyFirebaseAuth {
             }
     }
 
-    fun singOutUser() {
+    fun singOutUser(): Boolean {
         auth.signOut()
         Log.d("TEST_singOutUser", "ok")
+        return true
     }
 
     fun resetPassword(email: String) {

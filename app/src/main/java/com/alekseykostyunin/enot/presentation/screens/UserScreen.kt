@@ -1,6 +1,5 @@
-package com.alekseykostyunin.enot.presentation.view
+package com.alekseykostyunin.enot.presentation.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,23 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
-import com.alekseykostyunin.enot.domain.usecase.users.AuthUserUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
 @Composable
-fun UserScreen(
-    navController: NavHostController
-) {
+fun UserScreen(onClickButtonSighOut: () -> Unit) {
     val repository: UsersRepository = UsersRepositoryImpl
     val singOutUserUseCase = SingOutUserUseCase(repository)
     Box(
@@ -110,7 +101,7 @@ fun UserScreen(
                     .padding(top = 10.dp),
                 onClick = {
                     singOutUserUseCase.singOutUser()
-                    navController.navigate(Destinations.Authorisation.route)
+                    onClickButtonSighOut()
                 }
             ) {
                 Text(text = "Выйти из приложения")

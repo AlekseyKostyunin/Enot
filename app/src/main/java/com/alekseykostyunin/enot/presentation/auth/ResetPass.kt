@@ -1,7 +1,5 @@
 package com.alekseykostyunin.enot.presentation.auth
 
-import android.content.Context
-import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -32,12 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.alekseykostyunin.enot.R
-import com.alekseykostyunin.enot.data.firebase.MyFirebaseAuth
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
 import com.alekseykostyunin.enot.domain.usecase.users.ResetPasswordUseCase
-import com.alekseykostyunin.enot.presentation.view.Destinations
+import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -45,6 +42,9 @@ import com.google.firebase.ktx.Firebase
 @Composable
 fun ResetPassword(navController: NavController) {
     val context = LocalContext.current
+    fun sendToast(message: String){
+        Toast.makeText(context,message,Toast.LENGTH_LONG,).show()
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -79,16 +79,15 @@ fun ResetPassword(navController: NavController) {
             .fillMaxWidth()
             .padding(vertical = 10.dp),
             onClick = {
-
                 if (email.value.isEmpty()){
                     isErrorEmail = true
-                    sendToast("Поле e-mail не может быть пустым!", context)
+                    sendToast("Поле e-mail не может быть пустым!")
                 }
                 else {
                     val isValidEmail = Validate.isEmailValid(email.value)
                     if (!isValidEmail){
                         isErrorEmail = true
-                        sendToast("Некорректный e-mail. Повторите попытку!", context)
+                        sendToast("Некорректный e-mail. Повторите попытку!")
                     }
                     else {
                         isErrorEmail = false
@@ -96,32 +95,21 @@ fun ResetPassword(navController: NavController) {
                         auth.sendPasswordResetEmail(email.value)
                             .addOnSuccessListener {
                                 Log.d("TEST_1", "yes" + it.toString())
-                                sendToast("Письмо с инструкцией направлено на указанный e-mail.", context)
+                                sendToast("Письмо с инструкцией направлено на указанный e-mail.")
                                 navController.navigate(Destinations.Authorisation.route)
                             }.addOnFailureListener {
                                 Log.d("TEST_1", "not" + it.message)
-                                sendToast("Неизвестная ошибка. Обратитесь в техподдержку.", context)
+                                sendToast("Неизвестная ошибка. Обратитесь в техподдержку.")
                                 navController.navigate(Destinations.Authorisation.route)
                             }
                     }
                 }
-//                if (email.value.isEmpty()) sendToast("Поле e-mail не может быть пустым!",context)
-//                if(!email.value.isEmailValid()) sendToast("Некорректный e-mail. Повторите попытку",context)
 //                resetPasswordUseCase.resetPasswordUser(email.value)
-//                // проверка наличия почты в базе
-//                navController.navigate(Destinations.Authorisation.route)
+//                проверка наличия почты в базе
             }
         ) {
             Text(text = "Восстановить пароль")
         }
 
     }
-}
-
-private fun sendToast(message: String, context: Context){
-    Toast.makeText(
-        context,
-        message,
-        Toast.LENGTH_LONG,
-    ).show()
 }

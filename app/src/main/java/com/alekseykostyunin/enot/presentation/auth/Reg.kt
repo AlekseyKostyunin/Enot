@@ -1,7 +1,5 @@
 package com.alekseykostyunin.enot.presentation.auth
 
-import android.content.Context
-import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -37,23 +35,23 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
-import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
 import com.alekseykostyunin.enot.domain.usecase.users.RegUserUseCase
-import com.alekseykostyunin.enot.presentation.view.Destinations
+import com.alekseykostyunin.enot.presentation.navigation.Destinations
+import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
 @Composable
-fun Reg(
-    navController: NavController
-) {
+fun Reg(navController: NavHostController) {
     val context = LocalContext.current
+    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG,).show()}
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -89,6 +87,7 @@ fun Reg(
         val icon = if (passwordVisibility) painterResource(id = R.drawable.design_ic_visibility)
         else painterResource(id = R.drawable.design_ic_visibility_off)
         var isErrorPassword by rememberSaveable { mutableStateOf(false) }
+
         OutlinedTextField(
             colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
             isError = isErrorPassword,
@@ -121,24 +120,21 @@ fun Reg(
             onClick = {
                 if (email.value.isEmpty()) {
                     isErrorEmail = true
-                    sendToast("Поле e-mail не может быть пустым!", context)
+                    sendToast("Поле e-mail не может быть пустым!")
                 } else {
                     val isValidEmail = Validate.isEmailValid(email.value)
                     if (!isValidEmail) {
                         isErrorEmail = true
-                        sendToast("Некорректный e-mail. Повторите попытку", context)
+                        sendToast("Некорректный e-mail. Повторите попытку")
                     } else {
                         if (password.isEmpty()) {
-                            sendToast("Полe пароль не может быть пустым!", context)
+                            sendToast("Полe пароль не может быть пустым!")
                             isErrorEmail = false
                             isErrorPassword = true
                         } else {
                             if (password.length < 6) {
                                 isErrorPassword = true
-                                sendToast(
-                                    "Пароль слишком короткий (менее 6 символов). Повторите попытку!",
-                                    context
-                                )
+                                sendToast("Пароль слишком короткий (менее 6 символов). Повторите попытку!")
                             } else {
                                 isErrorPassword = false
 
@@ -155,7 +151,7 @@ fun Reg(
                                             val userId = user.uid
                                             database.child("users").child(userId).child("email")
                                                 .setValue(email.value)
-                                            sendToast("Регистрация прошла успешно!", context)
+                                            sendToast("Регистрация прошла успешно!")
 
                                         } else {
                                             Log.w(
@@ -164,11 +160,7 @@ fun Reg(
                                                 task.exception
                                             )
                                             //updateUI(null)
-                                            sendToast(
-                                                "Ошибка при регистрации. Обратитесь в техподдержку.",
-                                                context
-                                            )
-
+                                            sendToast("Ошибка при регистрации. Обратитесь в техподдержку.")
                                         }
                                     }
                                 Log.d("TEST_email_reg", email.value)
@@ -184,12 +176,4 @@ fun Reg(
             Text(text = "Отправить")
         }
     }
-}
-
-private fun sendToast(message: String, context: Context) {
-    Toast.makeText(
-        context,
-        message,
-        Toast.LENGTH_LONG,
-    ).show()
 }

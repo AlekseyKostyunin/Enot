@@ -10,8 +10,12 @@ class DateUtil {
         val dateOfUnit = System.currentTimeMillis().toString()
 
         @SuppressLint("SimpleDateFormat")
-        fun dateFormatter(milliseconds: String): String {
+        fun dateFormatterHH(milliseconds: String): String {
             return SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(milliseconds.toLong())).toString()
+        }
+        @SuppressLint("SimpleDateFormat")
+        fun dateFormatter(milliseconds: String): String {
+            return SimpleDateFormat("dd.MM.yyyy").format(Date(milliseconds.toLong())).toString()
         }
     }
 }

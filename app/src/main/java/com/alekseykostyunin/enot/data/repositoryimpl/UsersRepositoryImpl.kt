@@ -34,7 +34,7 @@ object UsersRepositoryImpl : UsersRepository {
         MyFirebaseAuth.resetPassword(email)
     }
 
-    override fun signOutUser() {
-        MyFirebaseAuth.singOutUser()
+    override fun signOutUser() : Boolean {
+        return MyFirebaseAuth.singOutUser()
     }
 }

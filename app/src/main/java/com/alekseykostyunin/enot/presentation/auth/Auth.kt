@@ -1,7 +1,5 @@
 package com.alekseykostyunin.enot.presentation.auth
 
-import android.content.Context
-import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -45,16 +43,21 @@ import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
 import com.alekseykostyunin.enot.domain.usecase.users.AuthUserUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.CurrentUserUseCase
-import com.alekseykostyunin.enot.presentation.view.Destinations
+import com.alekseykostyunin.enot.presentation.navigation.Destinations
+import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
+import com.alekseykostyunin.enot.presentation.navigation.StartScreenState
+import com.alekseykostyunin.enot.presentation.viewmodels.StartViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 @Composable
 fun Auth(
-    navController: NavController
+    navController: NavController,
+    startViewModel: StartViewModel
 ) {
     val context = LocalContext.current
+    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG,).show()}
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -88,7 +91,9 @@ fun Auth(
         else painterResource(id = R.drawable.design_ic_visibility_off)
         var isErrorPassword by rememberSaveable { mutableStateOf(false) }
         OutlinedTextField(
-            colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red, focusedTextColor = Color.Black),
+            colors = OutlinedTextFieldDefaults.colors(
+                errorTextColor = Color.Red,
+                focusedTextColor = Color.Black),
             isError = isErrorPassword,
             modifier = Modifier.fillMaxWidth(),
             value = password,
@@ -109,7 +114,6 @@ fun Auth(
             visualTransformation = if (passwordVisibility) VisualTransformation.None
             else PasswordVisualTransformation()
         )
-        /* Кнопка "Войти" */
         val repository: UsersRepository = UsersRepositoryImpl
         val authUserUseCase = AuthUserUseCase(repository)
         val currentUserUseCase = CurrentUserUseCase(repository)
@@ -129,17 +133,17 @@ fun Auth(
 //                }
                 if (email.value.isEmpty()) {
                     isErrorEmail = true
-                    sendToast("Поле e-mail не может быть пустым!", context)
+                    sendToast("Поле e-mail не может быть пустым!")
                 }
                 else {
                     val isValidEmail = Validate.isEmailValid(email.value)
                     if (!isValidEmail) {
                         isErrorEmail = true
-                        sendToast("Некорректный e-mail. Повторите попытку!",context)
+                        sendToast("Некорректный e-mail. Повторите попытку!")
                     }
                     else {
                         if (password.isEmpty()) {
-                            sendToast("Полe пароль не может быть пустым!",context)
+                            sendToast("Полe пароль не может быть пустым!")
                             isErrorEmail = false
                             isErrorPassword = true
                         }
@@ -147,8 +151,7 @@ fun Auth(
                             if (password.length < 6) {
                                 isErrorPassword = true
                                 sendToast(
-                                    "Пароль слишком короткий (менее 6 символов). Повторите попытку!",
-                                    context
+                                    "Пароль слишком короткий (менее 6 символов). Повторите попытку!"
                                 )
                             }
                             else {
@@ -158,10 +161,12 @@ fun Auth(
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
                                             Log.d("TEST_sign", "signInWithEmail:success")
-                                            sendToast("Удачная авторизация!", context)
+                                            sendToast("Удачная авторизация!")
                                             //val user = auth.currentUser
                                             //updateUI(user)
-                                            navController.navigate(Destinations.SetMenu.route)
+//                                            navController.navigate(Destinations.SetMenu.route)
+                                            //navController.navigate(NavigationItem.Orders.route)
+                                            startViewModel.successAuth()
                                         } else {
                                             Log.w(
                                                 "TEST_sign",
@@ -170,8 +175,7 @@ fun Auth(
                                             )
                                             //updateUI(null)
                                             sendToast(
-                                                "Неверный логин или пароль. Повторите попытку входа!",
-                                                context
+                                                "Неверный логин или пароль. Повторите попытку входа!"
                                             )
                                             navController.navigate((Destinations.Authorisation.route))
                                         }
@@ -208,12 +212,4 @@ fun Auth(
             )
         }
     }
-}
-
-private fun sendToast(message: String, context: Context) {
-    Toast.makeText(
-        context,
-        message,
-        Toast.LENGTH_LONG,
-    ).show()
 }

@@ -8,6 +8,6 @@ interface UsersRepository {
     fun getEmailUser(id: String)
     fun getIdUser()
     fun resetPasswordUser(id: String)
-    fun signOutUser()
+    fun signOutUser(): Boolean
 
 }
