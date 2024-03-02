@@ -36,11 +36,24 @@ sealed class NavigationItem(
         icon = Icons.Outlined.Settings
     )
 
+    data object AllOrders : NavigationItem(
+        route = ROUTE_ALL_ORDERS_SCREEN
+    )
+    data object AddOrder : NavigationItem(
+        route = ROUTE_ADD_ORDERS_SCREEN
+    )
+    data object OneOrder : NavigationItem(
+        route = ROUTE_ONE_ORDER_SCREEN
+    )
+
     private companion object{
         const val ROUTE_ORDERS_SCREEN = "orders_screen"
         const val ROUTE_CLIENTS_SCREEN = "clients_screen"
         const val ROUTE_ANALYTICS_SCREEN = "analytics_screen"
         const val ROUTE_USER_SCREEN = "user_screen"
+        const val ROUTE_ALL_ORDERS_SCREEN = "all_orders_screen"
+        const val ROUTE_ADD_ORDERS_SCREEN = "add_order_screen"
+        const val ROUTE_ONE_ORDER_SCREEN = "one_order_screen"
     }
 }
 

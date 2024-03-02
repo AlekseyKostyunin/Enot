@@ -1,12 +1,10 @@
 package com.alekseykostyunin.enot.presentation.viewmodels
 
 import android.util.Log
-import androidx.compose.runtime.key
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.alekseykostyunin.enot.domain.entities.Order
-import com.alekseykostyunin.enot.presentation.navigation.OrdersScreenState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -17,29 +15,15 @@ import com.google.firebase.ktx.Firebase
 
 class OrdersViewModel : ViewModel() {
 
-    // State
-    private val initialState = OrdersScreenState.OrdersState
-    private var _ordersScreenState = MutableLiveData<OrdersScreenState>(initialState)
-    var ordersState: LiveData<OrdersScreenState> = _ordersScreenState
+    // Orders
+    private var _orders = MutableLiveData<List<Order>>(listOf())
+    var orders: LiveData<List<Order>> = _orders
 
     init {
         getAllOrdersUser()
     }
-    fun setAddOrderState(){
-        _ordersScreenState.value = OrdersScreenState.AddOrderState
-    }
-    fun setOrdersState(){
-        _ordersScreenState.value = OrdersScreenState.OrdersState
-    }
-    fun setOneOrderState(){
-        _ordersScreenState.value = OrdersScreenState.OneOrderState
-    }
 
-    // Orders - all
-    private var _orders = MutableLiveData<List<Order>>(listOf())
-    var orders: LiveData<List<Order>> = _orders
-
-    fun getAllOrdersUser() {
+    private fun getAllOrdersUser() {
         val auth: FirebaseAuth = Firebase.auth
         val database = Firebase.database.reference
         val user = auth.currentUser
@@ -68,6 +52,7 @@ class OrdersViewModel : ViewModel() {
     private val initialOrder = Order() // пока пустой!!!
     private var _order = MutableLiveData<Order>(initialOrder)
     var order: LiveData<Order> = _order
+
     fun getOrderUser(order: Order) {
         _order.value = order
     }

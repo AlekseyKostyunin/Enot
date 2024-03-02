@@ -8,7 +8,6 @@ import com.alekseykostyunin.enot.presentation.navigation.StartScreenState
 
 class StartViewModel : ViewModel() {
 
-//    private val initialState = StartScreenState.NotAuthScreenState
     private val initialState = isUserAuth()
     private var _startScreenState = MutableLiveData<StartScreenState>(initialState)
     var startScreenState: LiveData<StartScreenState> = _startScreenState
@@ -18,10 +17,13 @@ class StartViewModel : ViewModel() {
             StartScreenState.AuthScreenState
         } else StartScreenState.NotAuthScreenState
     }
+
     fun successAuth(){
         _startScreenState.value = StartScreenState.AuthScreenState
     }
+
     fun signOut(){
         _startScreenState.value = StartScreenState.NotAuthScreenState
     }
+
 }

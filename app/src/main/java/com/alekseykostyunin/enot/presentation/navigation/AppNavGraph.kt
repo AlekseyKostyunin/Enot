@@ -6,22 +6,22 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 
-@Composable
+@Composable // готово
 fun NavGraphNotMenu(
     navController: NavHostController,
-    regScreenContent: @Composable () -> Unit,
     authScreenContent: @Composable () -> Unit,
+    regScreenContent: @Composable () -> Unit,
     resetScreenContent: @Composable () -> Unit,
 ){
     NavHost(
         navController = navController,
         startDestination = Destinations.Authorisation.route
     ){
-        composable(Destinations.Registration.route) {
-            regScreenContent()
-        }
         composable(Destinations.Authorisation.route) {
             authScreenContent()
+        }
+        composable(Destinations.Registration.route) {
+            regScreenContent()
         }
         composable(Destinations.ResetPassword.route) {
             resetScreenContent()
@@ -32,34 +32,11 @@ fun NavGraphNotMenu(
 @Composable
 fun NavGraphWithMenu(
     navController: NavHostController,
-    ordersScreenContent: @Composable () -> Unit,
-    clientsScreenContent: @Composable () -> Unit,
-    analyticsScreenContent: @Composable () -> Unit,
-    userScreenContent: @Composable () -> Unit,
-){
-    NavHost(
-        navController = navController,
-        startDestination = NavigationItem.Orders.route
-    ){
-        composable(NavigationItem.Orders.route) {
-            ordersScreenContent()
-        }
-        composable(NavigationItem.Clients.route) {
-            clientsScreenContent()
-        }
-        composable(NavigationItem.Analytics.route) {
-            analyticsScreenContent()
-        }
-        composable(NavigationItem.User.route) {
-            userScreenContent()
-        }
-    }
-}
 
-@Composable
-fun NavGraphWithMenu2(
-    navController: NavHostController,
-    ordersScreenContent: @Composable () -> Unit,
+    allOrdersScreenContent: @Composable () -> Unit,
+    addOrderScreenContent: @Composable () -> Unit,
+    oneOrdersScreenContent: @Composable () -> Unit,
+
     clientsScreenContent: @Composable () -> Unit,
     analyticsScreenContent: @Composable () -> Unit,
     userScreenContent: @Composable () -> Unit,
@@ -69,17 +46,17 @@ fun NavGraphWithMenu2(
         startDestination = NavigationItem.Orders.route
     ){
         navigation(
-            startDestination = OrdersScreenState2.OrdersState.route,
-            route = NavigationItem.Orders.route
+            route = NavigationItem.Orders.route,
+            startDestination = NavigationItem.AllOrders.route
         ){
-            composable(OrdersScreenState2.OrdersState.route){
-                ordersScreenContent()
+            composable(NavigationItem.AllOrders.route){
+                allOrdersScreenContent()
             }
-            composable(OrdersScreenState2.AddOrderState.route){
-                ordersScreenContent()
+            composable(NavigationItem.AddOrder.route){
+                addOrderScreenContent()
             }
-            composable(OrdersScreenState2.OrdersState.route){
-                ordersScreenContent()
+            composable(NavigationItem.OneOrder.route){
+                oneOrdersScreenContent()
             }
         }
         composable(NavigationItem.Clients.route) {

@@ -1,4 +1,4 @@
-package com.alekseykostyunin.enot.presentation.auth
+package com.alekseykostyunin.enot.presentation.screens
 
 import android.util.Log
 import android.widget.Toast
@@ -35,12 +35,16 @@ import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
 import com.alekseykostyunin.enot.domain.usecase.users.ResetPasswordUseCase
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
+import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 @Composable
-fun ResetPassword(navController: NavController) {
+fun ResetPasswordScreen(
+//    navController: NavController
+    navigationState: NavigationState
+) {
     val context = LocalContext.current
     fun sendToast(message: String){
         Toast.makeText(context,message,Toast.LENGTH_LONG,).show()
@@ -96,16 +100,14 @@ fun ResetPassword(navController: NavController) {
                             .addOnSuccessListener {
                                 Log.d("TEST_1", "yes" + it.toString())
                                 sendToast("Письмо с инструкцией направлено на указанный e-mail.")
-                                navController.navigate(Destinations.Authorisation.route)
+                                navigationState.navigateTo(Destinations.Authorisation.route)
                             }.addOnFailureListener {
                                 Log.d("TEST_1", "not" + it.message)
                                 sendToast("Неизвестная ошибка. Обратитесь в техподдержку.")
-                                navController.navigate(Destinations.Authorisation.route)
+                                navigationState.navigateTo(Destinations.Authorisation.route)
                             }
                     }
                 }
-//                resetPasswordUseCase.resetPasswordUser(email.value)
-//                проверка наличия почты в базе
             }
         ) {
             Text(text = "Восстановить пароль")

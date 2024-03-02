@@ -1,4 +1,4 @@
-package com.alekseykostyunin.enot.presentation.auth
+package com.alekseykostyunin.enot.presentation.screens
 
 import android.util.Log
 import android.widget.Toast
@@ -34,7 +34,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
@@ -49,7 +48,10 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
 @Composable
-fun Reg(navController: NavHostController) {
+fun RegScreen(
+//    navController: NavHostController
+    navigationState: NavigationState
+) {
     val context = LocalContext.current
     fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG,).show()}
     Column(
@@ -165,7 +167,7 @@ fun Reg(navController: NavHostController) {
                                     }
                                 Log.d("TEST_email_reg", email.value)
                                 Log.d("TEST_password_reg", password)
-                                navController.navigate(Destinations.Authorisation.route)
+                                navigationState.navigateTo(Destinations.Authorisation.route)
                             }
                         }
                     }

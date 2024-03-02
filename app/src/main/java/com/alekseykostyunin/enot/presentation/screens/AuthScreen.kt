@@ -1,4 +1,4 @@
-package com.alekseykostyunin.enot.presentation.auth
+package com.alekseykostyunin.enot.presentation.screens
 
 import android.util.Log
 import android.widget.Toast
@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.data.utils.Validate
@@ -44,16 +45,15 @@ import com.alekseykostyunin.enot.domain.repository.UsersRepository
 import com.alekseykostyunin.enot.domain.usecase.users.AuthUserUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.CurrentUserUseCase
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
-import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
-import com.alekseykostyunin.enot.presentation.navigation.StartScreenState
+import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.StartViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 @Composable
-fun Auth(
-    navController: NavController,
+fun AuthScreen(
+    navigationState: NavigationState,
     startViewModel: StartViewModel
 ) {
     val context = LocalContext.current
@@ -114,23 +114,11 @@ fun Auth(
             visualTransformation = if (passwordVisibility) VisualTransformation.None
             else PasswordVisualTransformation()
         )
-        val repository: UsersRepository = UsersRepositoryImpl
-        val authUserUseCase = AuthUserUseCase(repository)
-        val currentUserUseCase = CurrentUserUseCase(repository)
 
         ElevatedButton(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
             onClick = {
-//                authUserUseCase.authUser(email.value, password)
-//                val isUserAuth = currentUserUseCase.currentUser()
-//                val isUserAuth = MyFirebaseAuth.currentUser()
-//                Log.d("TEST_isUserAuth", isUserAuth.toString())
-//                if(isUserAuth) navController.navigate(Destinations.SetMenu.route)
-//                else {
-//                    sendToast("Неверный логин или пароль. Повторите попытку входа",context)
-//                    navController.navigate((Destinations.Authorisation.route))
-//                }
                 if (email.value.isEmpty()) {
                     isErrorEmail = true
                     sendToast("Поле e-mail не может быть пустым!")
@@ -162,10 +150,6 @@ fun Auth(
                                         if (task.isSuccessful) {
                                             Log.d("TEST_sign", "signInWithEmail:success")
                                             sendToast("Удачная авторизация!")
-                                            //val user = auth.currentUser
-                                            //updateUI(user)
-//                                            navController.navigate(Destinations.SetMenu.route)
-                                            //navController.navigate(NavigationItem.Orders.route)
                                             startViewModel.successAuth()
                                         } else {
                                             Log.w(
@@ -173,11 +157,11 @@ fun Auth(
                                                 "signInWithEmail:failure",
                                                 task.exception
                                             )
-                                            //updateUI(null)
                                             sendToast(
                                                 "Неверный логин или пароль. Повторите попытку входа!"
                                             )
-                                            navController.navigate((Destinations.Authorisation.route))
+//                                            navController.navigate((Destinations.Authorisation.route))
+                                            navigationState.navigateTo((Destinations.Authorisation.route))
                                         }
                                     }
                                     .addOnFailureListener {
@@ -201,13 +185,13 @@ fun Auth(
             Text(
                 text = "Восстановить пароль",
                 modifier = Modifier.clickable {
-                    navController.navigate(Destinations.ResetPassword.route)
+                    navigationState.navigateTo(Destinations.ResetPassword.route)
                 }
             )
             Text(
                 text = "Регистрация",
                 modifier = Modifier.clickable {
-                    navController.navigate(Destinations.Registration.route)
+                    navigationState.navigateTo(Destinations.Registration.route)
                 }
             )
         }

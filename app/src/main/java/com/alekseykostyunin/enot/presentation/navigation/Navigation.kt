@@ -11,8 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,15 +18,11 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.alekseykostyunin.enot.presentation.auth.Auth
-import com.alekseykostyunin.enot.presentation.auth.Reg
-import com.alekseykostyunin.enot.presentation.auth.ResetPassword
+import com.alekseykostyunin.enot.presentation.screens.AuthScreen
 import com.alekseykostyunin.enot.presentation.screens.AnalyticsScreen
 import com.alekseykostyunin.enot.presentation.screens.ClientsScreen
-import com.alekseykostyunin.enot.presentation.screens.OrdersScreenMenu
-import com.alekseykostyunin.enot.presentation.screens.ScreenAddOrder
-import com.alekseykostyunin.enot.presentation.screens.ScreenOneOrder
-import com.alekseykostyunin.enot.presentation.screens.ScreenOrders
+import com.alekseykostyunin.enot.presentation.screens.RegScreen
+import com.alekseykostyunin.enot.presentation.screens.ResetPasswordScreen
 import com.alekseykostyunin.enot.presentation.screens.UserScreen
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.StartViewModel
@@ -38,59 +32,67 @@ fun StartNavigation() {
     val startViewModel: StartViewModel = viewModel()
     val screenState = startViewModel.startScreenState.observeAsState()
     when(screenState.value){
-        is StartScreenState.NotAuthScreenState -> {
-            NotAuthScreen(startViewModel)
-        }
-        is StartScreenState.AuthScreenState -> {
-//            AuthScreen(startViewModel)
-            AuthScreen2(startViewModel)
-        }
-        else -> {
-            NotAuthScreen(startViewModel)
-        }
+        is StartScreenState.NotAuthScreenState -> { NotAuthUserState (startViewModel) }
+        is StartScreenState.AuthScreenState    -> { AuthUserState   (startViewModel) }
+        else                                   -> { NotAuthUserState (startViewModel) }
     }
 }
 
 @Composable
-fun NotAuthScreen(startViewModel: StartViewModel){
-    val navigationState = rememberNavigationState() // это моя функция
+fun NotAuthUserState(startViewModel: StartViewModel){
+    val navigationState = rememberNavigationState()
     Scaffold { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             NavGraphNotMenu(navigationState.navHostController,
-                regScreenContent = {
-                    Reg(navigationState.navHostController)
-                },
                 authScreenContent = {
-                    Auth(
-                        navigationState.navHostController,
+                    AuthScreen(
+                        navigationState,
                         startViewModel
                     )
                 },
-                resetScreenContent = {
-                    ResetPassword(navigationState.navHostController)
-                }
+                regScreenContent   = {RegScreen(navigationState)},
+                resetScreenContent = {ResetPasswordScreen(navigationState)}
             )
         }
     }
 }
-@Composable
-fun AuthScreen(startViewModel: StartViewModel){
-    val navigationState = rememberNavigationState() // это моя функция
-    val buttonsVisible = remember { mutableStateOf(false) }
 
+@Composable
+fun AuthUserState(startViewModel: StartViewModel){
+    val navigationState = rememberNavigationState() // это моя функция
+    val ordersViewModel: OrdersViewModel = viewModel()
     Scaffold(
         bottomBar = {
             BottomBar(
                 navController = navigationState.navHostController,
-                //state = buttonsVisible
             )
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             NavGraphWithMenu(
                 navigationState.navHostController,
-                ordersScreenContent = { OrdersScreenMenu() },
-                clientsScreenContent = { ClientsScreen() },
+
+                allOrdersScreenContent = {
+                    AllOrdersScreen(
+                        navigationState,
+                        ordersViewModel
+                    )
+
+                },
+                addOrderScreenContent  = {
+                    AddOrderScreen (
+                        navigationState
+
+                    )
+                },
+                oneOrdersScreenContent = {
+                    OneOrderScreen (
+                        navigationState,
+                        ordersViewModel
+                    )
+                },
+
+                clientsScreenContent   = { ClientsScreen()   },
                 analyticsScreenContent = { AnalyticsScreen() },
                 userScreenContent = {
                     UserScreen(
@@ -104,9 +106,7 @@ fun AuthScreen(startViewModel: StartViewModel){
 
 @Composable
 fun BottomBar(
-    navController: NavHostController,
-    //state: MutableState<Boolean>,
-    //modifier: Modifier = Modifier
+    navController: NavHostController
 ) {
     val screens = listOf(
         NavigationItem.Orders,
@@ -114,9 +114,7 @@ fun BottomBar(
         NavigationItem.Analytics,
         NavigationItem.User
     )
-
     NavigationBar(
-        // modifier = modifier,
         containerColor = Color.White
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -130,11 +128,12 @@ fun BottomBar(
             NavigationBarItem(
                 label = { Text(text = screen.title!!) },
                 icon = { Icon(imageVector = screen.icon!!, contentDescription = "") },
-//                selected = currentRoute == screen.route, // было
                 selected = selected,
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) {// будут удалены все экраны до стартового
+//                        popUpTo(navController.graph.startDestinationId) {// будут удалены все экраны до стартового
+
                             saveState = true // при удалении экранов из бекстека их стейт будет сохранен
                         }
                         launchSingleTop = true // хранить только верхний последний стейт экрана, не хранить дублирование
@@ -151,33 +150,3 @@ fun BottomBar(
         }
     }
 }
-
-@Composable
-fun AuthScreen2(startViewModel: StartViewModel){
-    val navigationState = rememberNavigationState() // это моя функция
-    val buttonsVisible = remember { mutableStateOf(false) }
-
-    Scaffold(
-        bottomBar = {
-            BottomBar(
-                navController = navigationState.navHostController,
-                //state = buttonsVisible
-            )
-        }
-    ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
-            NavGraphWithMenu2(
-                navigationState.navHostController,
-                ordersScreenContent = { OrdersScreenMenu() },
-                clientsScreenContent = { ClientsScreen() },
-                analyticsScreenContent = { AnalyticsScreen() },
-                userScreenContent = {
-                    UserScreen(
-                        onClickButtonSighOut = {startViewModel.signOut()}
-                    )
-                }
-            )
-        }
-    }
-}
-
