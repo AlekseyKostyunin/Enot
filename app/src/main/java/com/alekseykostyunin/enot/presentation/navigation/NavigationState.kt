@@ -11,8 +11,8 @@ class NavigationState(
 ){
     fun navigateTo(route: String){
         navHostController.navigate(route) {
-//            popUpTo(navHostController.graph.findStartDestination().id) {// будут удалены все экраны до стартового
-            popUpTo(navHostController.graph.startDestinationId) {// будут удалены все экраны до стартового
+            popUpTo(navHostController.graph.findStartDestination().id) {// будут удалены все экраны до стартового
+//            popUpTo(navHostController.graph.startDestinationId) {// будут удалены все экраны до стартового
                 saveState = true // при удалении экранов из бекстека их стейт будет сохранен
             }
             launchSingleTop = true // хранить только верхний последний стейт экрана, не хранить дублирование

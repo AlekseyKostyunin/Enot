@@ -1,6 +1,7 @@
-package com.alekseykostyunin.enot.presentation.navigation
+package com.alekseykostyunin.enot.presentation.screens
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,9 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
+import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
+import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 
 @Composable
@@ -63,6 +65,7 @@ fun AllOrdersScreen(
         content = { innerPadding ->
             Box(
                 modifier = Modifier
+                    .background(Color.White)
                     .fillMaxSize()
                     .padding(innerPadding)
                     .verticalScroll(rememberScrollState())

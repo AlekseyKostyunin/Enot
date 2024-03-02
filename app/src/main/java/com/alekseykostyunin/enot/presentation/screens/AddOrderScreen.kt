@@ -1,58 +1,50 @@
-package com.alekseykostyunin.enot.presentation.navigation
+package com.alekseykostyunin.enot.presentation.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults.contentColor
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.toSize
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
-import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
+import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
@@ -62,7 +54,6 @@ import com.google.firebase.ktx.Firebase
 @Composable
 fun AddOrderScreen(
     navigationState: NavigationState,
-    //onBackPressed: () -> Unit,
 ) {
     val context = LocalContext.current
     fun sendToast(message: String) {
@@ -73,11 +64,12 @@ fun AddOrderScreen(
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
+
     ) {
         Column {
             Row {
                 IconButton(onClick = {
-                    //onBackPressed()
+                        navigationState.navigateTo(NavigationItem.AllOrders.route)
                     }
                 ) {
                     Icon(
@@ -118,49 +110,6 @@ fun AddOrderScreen(
             )
 
             /* Тип заказа */
-//            var mExpanded by remember { mutableStateOf(false) }
-//            val list = listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор","планшет","иное")
-//            var mSelectedText by remember { mutableStateOf("") }
-//            //var mTextFieldSize by remember { mutableStateOf(Size.Zero)}
-//            val icon = if (mExpanded)
-//                Icons.Filled.KeyboardArrowUp
-//            else
-//                Icons.Filled.KeyboardArrowDown
-//            Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
-//                OutlinedTextField(
-//                    value = mSelectedText,
-//                    onValueChange = { mSelectedText = it },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-////                        .onGloballyPositioned { coordinates ->
-////                            mTextFieldSize = coordinates.size.toSize()
-////                        },
-//                            ,
-//                    label = {Text("Тип заказа")},
-//                    trailingIcon = {
-//                        Icon(icon,"contentDescription",
-//                            Modifier.clickable { mExpanded = !mExpanded })
-//                    }
-//                )
-//
-//                DropdownMenu(
-//                    expanded = mExpanded,
-//                    onDismissRequest = { mExpanded = false },
-//                    //modifier = Modifier.width(with(LocalDensity.current){mTextFieldSize.width.toDp()})
-//                ) {
-//                    list.forEach { label ->
-//                        DropdownMenuItem(
-//                            text = {
-//                                   Text(text = label)
-//                            },
-//                            onClick = {
-//                                mSelectedText = label
-//                                mExpanded = false
-//                            }
-//                        )
-//                    }
-//                }
-//            }
             val options = listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор","планшет","иное")
             var expanded by remember { mutableStateOf(false) }
             var selectedOptionText by remember { mutableStateOf(options[0]) }
@@ -168,7 +117,9 @@ fun AddOrderScreen(
             ExposedDropdownMenuBox(
                 modifier = Modifier
                     //.fillMaxWidth()
-                    .padding(top = 10.dp),
+                    .padding(top = 10.dp)
+
+                ,
                 expanded = expanded,
                 onExpandedChange = {
                     expanded = !expanded
@@ -188,7 +139,16 @@ fun AddOrderScreen(
                             expanded = expanded
                         )
                     },
-                    colors = ExposedDropdownMenuDefaults.textFieldColors()
+//                    colors = ExposedDropdownMenuDefaults.textFieldColors()
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        disabledContainerColor = Color.White,
+                    )
+
+
+
+
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,

@@ -1,5 +1,6 @@
 package com.alekseykostyunin.enot.presentation.navigation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -18,9 +19,12 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.alekseykostyunin.enot.presentation.screens.AddOrderScreen
+import com.alekseykostyunin.enot.presentation.screens.AllOrdersScreen
 import com.alekseykostyunin.enot.presentation.screens.AuthScreen
 import com.alekseykostyunin.enot.presentation.screens.AnalyticsScreen
 import com.alekseykostyunin.enot.presentation.screens.ClientsScreen
+import com.alekseykostyunin.enot.presentation.screens.OneOrderScreen
 import com.alekseykostyunin.enot.presentation.screens.RegScreen
 import com.alekseykostyunin.enot.presentation.screens.ResetPasswordScreen
 import com.alekseykostyunin.enot.presentation.screens.UserScreen
@@ -42,7 +46,11 @@ fun StartNavigation() {
 fun NotAuthUserState(startViewModel: StartViewModel){
     val navigationState = rememberNavigationState()
     Scaffold { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .background(Color.White),
+        ) {
             NavGraphNotMenu(navigationState.navHostController,
                 authScreenContent = {
                     AuthScreen(
@@ -62,13 +70,18 @@ fun AuthUserState(startViewModel: StartViewModel){
     val navigationState = rememberNavigationState() // это моя функция
     val ordersViewModel: OrdersViewModel = viewModel()
     Scaffold(
+
         bottomBar = {
             BottomBar(
                 navController = navigationState.navHostController,
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .background(Color.White),
+        ) {
             NavGraphWithMenu(
                 navigationState.navHostController,
 
