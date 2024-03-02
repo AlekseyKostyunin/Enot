@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -25,6 +26,9 @@ import com.alekseykostyunin.enot.presentation.auth.ResetPassword
 import com.alekseykostyunin.enot.presentation.screens.AnalyticsScreen
 import com.alekseykostyunin.enot.presentation.screens.ClientsScreen
 import com.alekseykostyunin.enot.presentation.screens.OrdersScreenMenu
+import com.alekseykostyunin.enot.presentation.screens.ScreenAddOrder
+import com.alekseykostyunin.enot.presentation.screens.ScreenOneOrder
+import com.alekseykostyunin.enot.presentation.screens.ScreenOrders
 import com.alekseykostyunin.enot.presentation.screens.UserScreen
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.StartViewModel
@@ -38,7 +42,8 @@ fun StartNavigation() {
             NotAuthScreen(startViewModel)
         }
         is StartScreenState.AuthScreenState -> {
-            AuthScreen(startViewModel)
+//            AuthScreen(startViewModel)
+            AuthScreen2(startViewModel)
         }
         else -> {
             NotAuthScreen(startViewModel)
@@ -84,7 +89,7 @@ fun AuthScreen(startViewModel: StartViewModel){
         Box(modifier = Modifier.padding(paddingValues)) {
             NavGraphWithMenu(
                 navigationState.navHostController,
-                ordersScreenContent = { OrdersScreenMenu()},
+                ordersScreenContent = { OrdersScreenMenu() },
                 clientsScreenContent = { ClientsScreen() },
                 analyticsScreenContent = { AnalyticsScreen() },
                 userScreenContent = {
@@ -115,12 +120,18 @@ fun BottomBar(
         containerColor = Color.White
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route // получаем ссылку на текущий экран
+        //val currentRoute = navBackStackEntry?.destination?.route // получаем ссылку на текущий экран
         screens.forEach { screen ->
+
+            val selected = navBackStackEntry?.destination?.hierarchy?.any {
+                it.route == screen.route
+            } ?: false
+
             NavigationBarItem(
                 label = { Text(text = screen.title!!) },
                 icon = { Icon(imageVector = screen.icon!!, contentDescription = "") },
-                selected = currentRoute == screen.route,
+//                selected = currentRoute == screen.route, // было
+                selected = selected,
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) {// будут удалены все экраны до стартового
@@ -140,3 +151,33 @@ fun BottomBar(
         }
     }
 }
+
+@Composable
+fun AuthScreen2(startViewModel: StartViewModel){
+    val navigationState = rememberNavigationState() // это моя функция
+    val buttonsVisible = remember { mutableStateOf(false) }
+
+    Scaffold(
+        bottomBar = {
+            BottomBar(
+                navController = navigationState.navHostController,
+                //state = buttonsVisible
+            )
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            NavGraphWithMenu2(
+                navigationState.navHostController,
+                ordersScreenContent = { OrdersScreenMenu() },
+                clientsScreenContent = { ClientsScreen() },
+                analyticsScreenContent = { AnalyticsScreen() },
+                userScreenContent = {
+                    UserScreen(
+                        onClickButtonSighOut = {startViewModel.signOut()}
+                    )
+                }
+            )
+        }
+    }
+}
+
