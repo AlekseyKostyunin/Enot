@@ -58,6 +58,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddOrderScreen(
     navigationState: NavigationState,
@@ -108,52 +109,101 @@ fun AddOrderScreen(
             OutlinedTextField(
                 colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                 isError = isErrorDesc,
-                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
                 value = desc,
                 label = { Text("Описание заказа") },
                 onValueChange = { newText -> desc = newText },
             )
 
             /* Тип заказа */
-            var mExpanded by remember { mutableStateOf(false) }
-            val mCities = listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор",
-                "планшет","иное")
-            var mSelectedText by remember { mutableStateOf("") }
-            var mTextFieldSize by remember { mutableStateOf(Size.Zero)}
-            val icon = if (mExpanded)
-                Icons.Filled.KeyboardArrowUp
-            else
-                Icons.Filled.KeyboardArrowDown
-            Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
-                OutlinedTextField(
-                    value = mSelectedText,
-                    onValueChange = { mSelectedText = it },
+//            var mExpanded by remember { mutableStateOf(false) }
+//            val list = listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор","планшет","иное")
+//            var mSelectedText by remember { mutableStateOf("") }
+//            //var mTextFieldSize by remember { mutableStateOf(Size.Zero)}
+//            val icon = if (mExpanded)
+//                Icons.Filled.KeyboardArrowUp
+//            else
+//                Icons.Filled.KeyboardArrowDown
+//            Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+//                OutlinedTextField(
+//                    value = mSelectedText,
+//                    onValueChange = { mSelectedText = it },
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+////                        .onGloballyPositioned { coordinates ->
+////                            mTextFieldSize = coordinates.size.toSize()
+////                        },
+//                            ,
+//                    label = {Text("Тип заказа")},
+//                    trailingIcon = {
+//                        Icon(icon,"contentDescription",
+//                            Modifier.clickable { mExpanded = !mExpanded })
+//                    }
+//                )
+//
+//                DropdownMenu(
+//                    expanded = mExpanded,
+//                    onDismissRequest = { mExpanded = false },
+//                    //modifier = Modifier.width(with(LocalDensity.current){mTextFieldSize.width.toDp()})
+//                ) {
+//                    list.forEach { label ->
+//                        DropdownMenuItem(
+//                            text = {
+//                                   Text(text = label)
+//                            },
+//                            onClick = {
+//                                mSelectedText = label
+//                                mExpanded = false
+//                            }
+//                        )
+//                    }
+//                }
+//            }
+            val options = listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор","планшет","иное")
+            var expanded by remember { mutableStateOf(false) }
+            var selectedOptionText by remember { mutableStateOf(options[0]) }
+
+            ExposedDropdownMenuBox(
+                modifier = Modifier
+                    //.fillMaxWidth()
+                    .padding(top = 10.dp),
+                expanded = expanded,
+                onExpandedChange = {
+                    expanded = !expanded
+                }
+            ) {
+                TextField(
                     modifier = Modifier
+                        .menuAnchor()
                         .fillMaxWidth()
-                        .onGloballyPositioned { coordinates ->
-                            mTextFieldSize = coordinates.size.toSize()
-                        },
-                    label = {Text("Тип заказа")},
+                    ,
+                    readOnly = true,
+                    value = selectedOptionText,
+                    onValueChange = { },
+                    label = { Text("Тип заказа:") },
                     trailingIcon = {
-                        Icon(icon,"contentDescription",
-                            Modifier.clickable { mExpanded = !mExpanded })
-                    }
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = expanded
+                        )
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors()
                 )
-                
-                DropdownMenu(
-                    expanded = mExpanded,
-                    onDismissRequest = { mExpanded = false },
-                    modifier = Modifier
-                        .width(with(LocalDensity.current){mTextFieldSize.width.toDp()})
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = {
+                        expanded = false
+                    }
                 ) {
-                    mCities.forEach { label ->
+                    options.forEach { selectionOption ->
                         DropdownMenuItem(
                             text = {
-                                   Text(text = label)
-                            }, 
+                                   Text(text = selectionOption)
+                            },
                             onClick = {
-                                mSelectedText = label
-                                mExpanded = false
+                                selectedOptionText = selectionOption
+                                expanded = false
                             }
                         )
                     }
@@ -247,7 +297,7 @@ fun AddOrderScreen(
                                                 dateAdd = DateUtil.dateOfUnit,
                                                 dateClose = "no",
                                                 description = desc,
-                                                type = mSelectedText,
+                                                type = selectedOptionText,
                                                 model = model,
                                                 priceZip = priceZ.toInt(),
                                                 priceWork = price.toInt(),
