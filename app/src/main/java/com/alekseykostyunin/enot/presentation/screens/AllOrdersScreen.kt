@@ -42,17 +42,15 @@ fun AllOrdersScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel
 ) {
-
     val orders = ordersViewModel.orders.observeAsState(listOf())
     Scaffold(
-        modifier = Modifier
-            .padding(),
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             ElevatedButton(
                 onClick = {
                     navigationState.navigateTo(NavigationItem.AddOrder.route)
                 },
+                elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
             ) {
                 Icon(
                     Icons.Filled.Add,

@@ -91,7 +91,7 @@ fun AddOrderScreen(
                 isError = isErrorClient,
                 modifier = Modifier.fillMaxWidth(),
                 value = client,
-                label = { Text("Введите клиента") },
+                label = { Text("Клиент") },
                 onValueChange = { newText -> client = newText },
             )
 
@@ -112,20 +112,16 @@ fun AddOrderScreen(
             /* Тип заказа */
             val options = listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор","планшет","иное")
             var expanded by remember { mutableStateOf(false) }
-            var selectedOptionText by remember { mutableStateOf(options[0]) }
+            var selectedOptionText by remember { mutableStateOf("") }
 
             ExposedDropdownMenuBox(
-                modifier = Modifier
-                    //.fillMaxWidth()
-                    .padding(top = 10.dp)
-
-                ,
+                modifier = Modifier.padding(top = 10.dp),
                 expanded = expanded,
                 onExpandedChange = {
                     expanded = !expanded
                 }
             ) {
-                TextField(
+                OutlinedTextField(
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth()
@@ -133,22 +129,17 @@ fun AddOrderScreen(
                     readOnly = true,
                     value = selectedOptionText,
                     onValueChange = { },
-                    label = { Text("Тип заказа:") },
+                    label = { Text("Тип заказа") },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = expanded
                         )
                     },
-//                    colors = ExposedDropdownMenuDefaults.textFieldColors()
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White,
                         disabledContainerColor = Color.White,
                     )
-
-
-
-
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,

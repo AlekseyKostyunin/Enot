@@ -24,6 +24,7 @@ import com.alekseykostyunin.enot.presentation.screens.AllOrdersScreen
 import com.alekseykostyunin.enot.presentation.screens.AuthScreen
 import com.alekseykostyunin.enot.presentation.screens.AnalyticsScreen
 import com.alekseykostyunin.enot.presentation.screens.ClientsScreen
+import com.alekseykostyunin.enot.presentation.screens.EditOrderScreen
 import com.alekseykostyunin.enot.presentation.screens.OneOrderScreen
 import com.alekseykostyunin.enot.presentation.screens.RegScreen
 import com.alekseykostyunin.enot.presentation.screens.ResetPasswordScreen
@@ -98,8 +99,14 @@ fun AuthUserState(startViewModel: StartViewModel){
 
                     )
                 },
-                oneOrdersScreenContent = {
+                oneOrderScreenContent = {
                     OneOrderScreen (
+                        navigationState,
+                        ordersViewModel
+                    )
+                },
+                editOrderScreenContent = {
+                    EditOrderScreen (
                         navigationState,
                         ordersViewModel
                     )

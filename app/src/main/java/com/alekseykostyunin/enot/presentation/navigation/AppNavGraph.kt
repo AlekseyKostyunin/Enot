@@ -35,7 +35,8 @@ fun NavGraphWithMenu(
 
     allOrdersScreenContent: @Composable () -> Unit,
     addOrderScreenContent: @Composable () -> Unit,
-    oneOrdersScreenContent: @Composable () -> Unit,
+    oneOrderScreenContent: @Composable () -> Unit,
+    editOrderScreenContent: @Composable () -> Unit,
 
     clientsScreenContent: @Composable () -> Unit,
     analyticsScreenContent: @Composable () -> Unit,
@@ -56,7 +57,10 @@ fun NavGraphWithMenu(
                 addOrderScreenContent()
             }
             composable(NavigationItem.OneOrder.route){
-                oneOrdersScreenContent()
+                oneOrderScreenContent()
+            }
+            composable(NavigationItem.EditOrder.route){
+                editOrderScreenContent()
             }
         }
         composable(NavigationItem.Clients.route) {

@@ -39,11 +39,17 @@ sealed class NavigationItem(
     data object AllOrders : NavigationItem(
         route = ROUTE_ALL_ORDERS_SCREEN
     )
+
     data object AddOrder : NavigationItem(
         route = ROUTE_ADD_ORDERS_SCREEN
     )
+
     data object OneOrder : NavigationItem(
         route = ROUTE_ONE_ORDER_SCREEN
+    )
+
+    data object EditOrder : NavigationItem(
+        route = ROUTE_EDIT_ORDER_SCREEN
     )
 
     private companion object{
@@ -54,6 +60,7 @@ sealed class NavigationItem(
         const val ROUTE_ALL_ORDERS_SCREEN = "all_orders_screen"
         const val ROUTE_ADD_ORDERS_SCREEN = "add_order_screen"
         const val ROUTE_ONE_ORDER_SCREEN = "one_order_screen"
+        const val ROUTE_EDIT_ORDER_SCREEN = "edit_order_screen"
     }
 }
 
