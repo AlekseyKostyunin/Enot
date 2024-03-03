@@ -48,6 +48,10 @@ class OrdersViewModel : ViewModel() {
         }
     }
 
+    fun updateOrders(){
+        getAllOrdersUser()
+    }
+
     // Order
     private val initialOrder = Order() // пока пустой!!!
     private var _order = MutableLiveData<Order>(initialOrder)

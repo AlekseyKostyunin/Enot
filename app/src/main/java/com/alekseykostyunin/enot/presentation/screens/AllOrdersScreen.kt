@@ -16,13 +16,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,9 +49,10 @@ fun AllOrdersScreen(
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            ElevatedButton(
+            Button(
                 onClick = {
                     navigationState.navigateTo(NavigationItem.AddOrder.route)
+//                    navigationState.navHostController.navigate(NavigationItem.AddOrder.route)
                 },
                 elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
             ) {
@@ -111,17 +115,12 @@ fun GetOneOrderListOrders(
     navigationState: NavigationState,
 )
 {
-    ElevatedCard(
+    ElevatedCard (
         modifier = Modifier
             .fillMaxWidth()
-//            .padding(vertical = 10.dp)
             .padding(10.dp)
             .clickable {
-                //val idOrder = order.id.toString()
-                //OrderOneScreen(idOrder)
-                //navController.navigate(Destinations.OneOrder.route)
                 viewModel.getOrderUser(order)
-                //viewModel.setOneOrderState()
                 navigationState.navigateTo(NavigationItem.OneOrder.route)
             },
         elevation = CardDefaults.elevatedCardElevation(4.dp),
@@ -130,7 +129,9 @@ fun GetOneOrderListOrders(
 //        )
     ) {
         Column(
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier
+
+                .padding(10.dp)
         ) {
 
             Row(

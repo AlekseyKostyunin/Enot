@@ -10,11 +10,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FabPosition
@@ -30,34 +36,53 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
+import com.alekseykostyunin.enot.presentation.viewmodels.HistoryOrderViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 
 @Composable
 fun OneOrderScreen(
     navigationState: NavigationState,
-    ordersViewModel: OrdersViewModel
+    ordersViewModel: OrdersViewModel,
 ){
+    val historyOrderViewModel: HistoryOrderViewModel = viewModel()
     val orderLD = ordersViewModel.order.observeAsState()
     val order = orderLD.value
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            ElevatedButton(
-                onClick = {
-                    //navigationState.navigateTo(NavigationItem.AddOrder.route)
-                },
-                elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
-            ) {
-                Icon(
-                    Icons.Filled.Add,
-                    contentDescription = null,
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(text = "Добавить шаг")
+            Column {
+                Button(
+                    onClick = {
+
+                    },
+                    elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = null,
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(text = "Добавить шаг")
+                }
+                Button(
+                    onClick = {
+
+                    },
+                    elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
+                ) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = null,
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(text = "Удалить шаг")
+                }
             }
+
         },
         content = { innerPadding ->
             Box(
@@ -66,6 +91,7 @@ fun OneOrderScreen(
                     .background(Color.White)
                     .padding(16.dp)
                     .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
                     ,
             ) {
                 Column {
@@ -74,6 +100,16 @@ fun OneOrderScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        IconButton(
+                            onClick = {
+                                navigationState.navigateTo(NavigationItem.AllOrders.route)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
                         Text(
                             text = "Заказ от $dt",
                             fontSize = 24.sp,
@@ -83,7 +119,9 @@ fun OneOrderScreen(
                         IconButton(
                             onClick = {
                                 navigationState.navigateTo(NavigationItem.EditOrder.route)
-                            }
+                            },
+                            modifier = Modifier.weight(1f)
+
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Create,

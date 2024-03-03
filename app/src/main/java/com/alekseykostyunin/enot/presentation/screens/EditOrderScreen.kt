@@ -163,7 +163,6 @@ fun EditOrderScreen(
                 }
             }
 
-
             /* Модель */
             var model by remember { mutableStateOf(order?.model) }
             var isErrorModel by rememberSaveable { mutableStateOf(false) }
@@ -218,25 +217,26 @@ fun EditOrderScreen(
                     val database = Firebase.database.reference
                     val user = auth.currentUser
                     if (user != null) {
-//                        val userId = user.uid
-//                        val idOrder = database.child("users").child(userId)
-//                            .child("orders").push().key.toString()
-//                        val order = Order(
-//                            id = idOrder,
-//                            client = client,
-//                            dateAdd = DateUtil.dateOfUnit,
-//                            dateClose = "no",
-//                            description = desc,
-//                            type = selectedOptionText,
-//                            model = model,
-//                            priceZip = priceZ.toInt(),
-//                            priceWork = price.toInt(),
-//                            isWork = true
-//                        )
-//                        database.child("users").child(userId).child("orders")
-//                            .child(idOrder).setValue(order)
+                        val userId = user.uid
+                        val idOrder = order?.id
+                        val orderUpdate = Order(
+                            id = idOrder,
+                            client = client,
+                            dateAdd = DateUtil.dateOfUnit,
+                            dateClose = "no",
+                            description = desc,
+                            type = selectedOptionText,
+                            model = model,
+                            priceZip = priceZ.toInt(),
+                            priceWork = price.toInt(),
+                            isWork = true
+                        )
+                        database.child("users").child(userId).child("orders")
+                            .child(idOrder!!).setValue(orderUpdate)
+
                     }
-                    navigationState.navigateTo(NavigationItem.OneOrder.route)
+                    ordersViewModel.updateOrders()
+                    navigationState.navigateTo(NavigationItem.AllOrders.route)
 
 
                 }

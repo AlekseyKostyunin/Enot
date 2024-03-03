@@ -45,6 +45,7 @@ import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
+import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
@@ -54,6 +55,7 @@ import com.google.firebase.ktx.Firebase
 @Composable
 fun AddOrderScreen(
     navigationState: NavigationState,
+    ordersViewModel: OrdersViewModel
 ) {
     val context = LocalContext.current
     fun sendToast(message: String) {
@@ -257,6 +259,7 @@ fun AddOrderScreen(
                                             database.child("users").child(userId).child("orders")
                                                 .child(idOrder).setValue(order)
                                         }
+                                        ordersViewModel.updateOrders()
                                         navigationState.navigateTo(NavigationItem.Orders.route)
                                     }
                                 }
