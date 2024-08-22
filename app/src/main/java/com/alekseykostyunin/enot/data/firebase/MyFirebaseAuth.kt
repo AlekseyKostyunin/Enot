@@ -1,6 +1,7 @@
 package com.alekseykostyunin.enot.data.firebase
 
 import android.util.Log
+import com.alekseykostyunin.enot.App
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -21,21 +22,6 @@ object MyFirebaseAuth {
             true
         }
     }
-
-//    fun currentUser2() : Boolean {
-//        val user: FirebaseUser? = auth.currentUser
-//
-//        auth.addAuthStateListener { // Слушатель состояния авторизации
-//            if (user == null) {
-//                Log.d("TEST_currentUser", it.toString())
-//
-//            } else {
-//                Log.d("TEST_currentUser", user.uid)
-//
-//            }
-//        }
-//        return true
-//    }
 
     fun auth(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)

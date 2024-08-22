@@ -1,6 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
-import android.util.Log
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,47 +12,83 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
+import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.State
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
+@SuppressLint("CoroutineCreationDuringComposition")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllOrdersScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel
 ) {
-    val orders = ordersViewModel.orders.observeAsState(listOf())
+    val scope = rememberCoroutineScope()
+    val state = ordersViewModel.state.observeAsState(State.Initial)
+    val orders0 = ordersViewModel.orders.observeAsState(listOf())
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val options = listOf("Активные", "Закрытые", "Все")
+    val orders = when (selectedIndex) {
+        0 -> {
+            orders0.value.filter { it.isWork }
+        }
+
+        1 -> {
+            orders0.value.filter { !it.isWork }
+        }
+
+        else -> {
+            orders0.value
+        }
+    }
+
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             Button(
                 onClick = {
+                    ordersViewModel.notShowBottomBar()
                     navigationState.navigateTo(NavigationItem.AddOrder.route)
-//                    navigationState.navHostController.navigate(NavigationItem.AddOrder.route)
                 },
                 elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
             ) {
@@ -70,37 +106,52 @@ fun AllOrdersScreen(
                     .background(Color.White)
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
             ) {
                 Column {
-                    Row(
-                        modifier = Modifier.padding(top = 10.dp)
-                    ) {
-                        OutlinedButton(
-                            modifier = Modifier.padding(horizontal = 10.dp),
-                            onClick = {
-
-                            }
-                        ) {
-                            Text(text = "В работе")
-                        }
-                        OutlinedButton(
-                            modifier = Modifier.padding(horizontal = 10.dp),
-                            onClick = {
-
-                            },
-
+                    if (state.value == State.Loading) {
+                        ProgressIndicator()
+                    } else {
+                        if (orders.isEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) { Text("Здесь будут отображаться все заказы") }
+                        } else {
+                            Row(
+                                modifier = Modifier.padding(top = 15.dp, start = 15.dp, end = 15.dp)
                             ) {
-                            Text(text = "Закрытые")
+                                SingleChoiceSegmentedButtonRow(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                ) {
+                                    options.forEachIndexed { index, label ->
+                                        SegmentedButton(
+                                            shape = SegmentedButtonDefaults.itemShape(
+                                                index = index,
+                                                count = options.size
+                                            ),
+                                            onClick = { selectedIndex = index },
+                                            selected = index == selectedIndex,
+                                        ) {
+                                            Text(label)
+                                        }
+                                    }
+                                }
+                            }
+                            LazyColumn {
+                                items(
+                                    items = orders,
+                                    key = { it.id.toString() }
+                                ) {
+                                    GetOneOrderListOrders(
+                                        it,
+                                        ordersViewModel,
+                                        navigationState
+                                    )
+                                }
+                            }
                         }
-                    }
-                    for (i in orders.value) {
-                        GetOneOrderListOrders(
-                            i,
-                            ordersViewModel,
-                            navigationState
-                        )
-                        Log.d("TEST_orders.value", i.toString())
                     }
                 }
             }
@@ -113,72 +164,101 @@ fun GetOneOrderListOrders(
     order: Order,
     viewModel: OrdersViewModel,
     navigationState: NavigationState,
-)
-{
-    ElevatedCard (
+) {
+    val gradient = Brush.horizontalGradient(
+        0.0f to Color(0xFF04293A),
+        1.0f to Color(0xFF781D42),
+        startX = 1000.0f,
+        endX = 0.0f
+    )
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .padding(top = 15.dp, start = 15.dp, end = 15.dp)
             .clickable {
                 viewModel.getOrderUser(order)
                 navigationState.navigateTo(NavigationItem.OneOrder.route)
             },
-        elevation = CardDefaults.elevatedCardElevation(4.dp),
-//        colors = CardDefaults.cardColors(
-//            containerColor = Color.White
-//        )
+        elevation = CardDefaults.elevatedCardElevation(6.dp),
     ) {
         Column(
             modifier = Modifier
-
-                .padding(10.dp)
+                .background(gradient)
+                .padding(15.dp)
         ) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 val dt = DateUtil.dateFormatter(order.dateAdd.toString())
                 Text(
-                    text = "Заказ: от $dt",
+                    text = "Заказ от: $dt",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "В работе",
-                    color = Color.Red
-                )
+                Circle(color = if (order.isWork) Color.Red else Color.Green)
             }
-
 
             Row {
                 Text(
                     text = "Клиент: ",
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
-                    text = order.client.toString()
+                    text = order.client.toString(),
+                    color = Color.White
                 )
-
             }
+
             Row {
                 Text(
                     text = "Описание: ",
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
                     text = order.description.toString(),
+                    color = Color.White
                 )
             }
 
             Row {
                 Text(
                     text = "Тип заказа: ",
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold, color = Color.White
                 )
                 Text(
                     text = order.type.toString(),
+                    color = Color.White
+                )
+            }
+            Row {
+                Text(
+                    text = "Стоимость заказа: ",
+                    fontWeight = FontWeight.Bold, color = Color.White
+                )
+                Text(
+                    text = order.priceWork.toString() + " руб.",
+                    color = Color.White
                 )
             }
         }
 
     }
+}
+
+@SuppressLint("UnnecessaryComposedModifier")
+@Composable
+fun Circle(
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.composed {
+            size(12.dp)
+                .clip(CircleShape)
+                .background(color)
+        }
+    )
 }

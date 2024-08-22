@@ -5,6 +5,10 @@ import com.alekseykostyunin.enot.domain.repository.OrdersRepository
 
 object OrdersRepositoryImpl : OrdersRepository {
 
+    override fun getAllOrders(): List<Order> {
+        TODO("Not yet implemented")
+    }
+
     override fun addOrder(order: Order) {
         TODO("Not yet implemented")
     }

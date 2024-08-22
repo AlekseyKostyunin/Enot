@@ -3,6 +3,8 @@ package com.alekseykostyunin.enot.presentation.navigation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -14,8 +16,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -29,23 +34,32 @@ import com.alekseykostyunin.enot.presentation.screens.OneOrderScreen
 import com.alekseykostyunin.enot.presentation.screens.RegScreen
 import com.alekseykostyunin.enot.presentation.screens.ResetPasswordScreen
 import com.alekseykostyunin.enot.presentation.screens.UserScreen
-import com.alekseykostyunin.enot.presentation.viewmodels.HistoryOrderViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.StartViewModel
 
 @Composable
-fun StartNavigation() {
+fun StartNavigation(
+    checkPermission: Unit
+) {
     val startViewModel: StartViewModel = viewModel()
     val screenState = startViewModel.startScreenState.observeAsState()
-    when(screenState.value){
-        is StartScreenState.NotAuthScreenState -> { NotAuthUserState (startViewModel) }
-        is StartScreenState.AuthScreenState    -> { AuthUserState   (startViewModel) }
-        else                                   -> { NotAuthUserState (startViewModel) }
+    when (screenState.value) {
+        is StartScreenState.NotAuthScreenState -> {
+            NotAuthUserState(startViewModel)
+        }
+
+        is StartScreenState.AuthScreenState -> {
+            AuthUserState(startViewModel)
+        }
+
+        else -> {
+            NotAuthUserState(startViewModel)
+        }
     }
 }
 
 @Composable
-fun NotAuthUserState(startViewModel: StartViewModel){
+fun NotAuthUserState(startViewModel: StartViewModel) {
     val navigationState = rememberNavigationState()
     Scaffold { paddingValues ->
         Box(
@@ -60,23 +74,30 @@ fun NotAuthUserState(startViewModel: StartViewModel){
                         startViewModel
                     )
                 },
-                regScreenContent   = {RegScreen(navigationState)},
-                resetScreenContent = {ResetPasswordScreen(navigationState)}
+                regScreenContent = {
+                    RegScreen(navigationState)
+                },
+                resetScreenContent = {
+                    ResetPasswordScreen(navigationState)
+                }
             )
         }
     }
 }
 
 @Composable
-fun AuthUserState(startViewModel: StartViewModel){
-    val navigationState = rememberNavigationState() // это моя функция
+fun AuthUserState(startViewModel: StartViewModel) {
+    val navigationState = rememberNavigationState()
     val ordersViewModel: OrdersViewModel = viewModel()
+    val isShowBottomBar = ordersViewModel.isShowBottomBar.observeAsState()
     Scaffold(
-
         bottomBar = {
-            BottomBar(
-                navController = navigationState.navHostController,
-            )
+            if (isShowBottomBar.value == true) {
+                BottomBar(
+                    navController = navigationState.navHostController,
+                    ordersViewModel
+                )
+            }
         }
     ) { paddingValues ->
         Box(
@@ -86,7 +107,6 @@ fun AuthUserState(startViewModel: StartViewModel){
         ) {
             NavGraphWithMenu(
                 navigationState.navHostController,
-
                 allOrdersScreenContent = {
                     AllOrdersScreen(
                         navigationState,
@@ -94,41 +114,47 @@ fun AuthUserState(startViewModel: StartViewModel){
                     )
 
                 },
-                addOrderScreenContent  = {
-                    AddOrderScreen (
+                addOrderScreenContent = {
+                    AddOrderScreen(
                         navigationState,
                         ordersViewModel
                     )
                 },
                 oneOrderScreenContent = {
-                    OneOrderScreen (
+                    OneOrderScreen(
                         navigationState,
                         ordersViewModel
                     )
                 },
                 editOrderScreenContent = {
-                    EditOrderScreen (
+                    EditOrderScreen(
                         navigationState,
                         ordersViewModel
                     )
                 },
-
-                clientsScreenContent   = { ClientsScreen()   },
-                analyticsScreenContent = { AnalyticsScreen() },
+                clientsScreenContent = { ClientsScreen() },
+                analyticsScreenContent = {
+                    AnalyticsScreen(
+                        ordersViewModel
+                    )
+                },
                 userScreenContent = {
                     UserScreen(
-                        onClickButtonSighOut = {startViewModel.signOut()}
+                        onClickButtonSighOut = { startViewModel.signOut() }
                     )
                 }
             )
+
         }
     }
 }
 
 @Composable
 fun BottomBar(
-    navController: NavHostController
+    navController: NavHostController,
+    ordersViewModel: OrdersViewModel
 ) {
+    val countActiveOrders = ordersViewModel.countActiveOrders.observeAsState()
     val screens = listOf(
         NavigationItem.Orders,
         NavigationItem.Clients,
@@ -141,24 +167,57 @@ fun BottomBar(
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         //val currentRoute = navBackStackEntry?.destination?.route // получаем ссылку на текущий экран
         screens.forEach { screen ->
-
             val selected = navBackStackEntry?.destination?.hierarchy?.any {
                 it.route == screen.route
             } ?: false
 
             NavigationBarItem(
                 label = { Text(text = screen.title!!) },
-                icon = { Icon(imageVector = screen.icon!!, contentDescription = "") },
+                icon = {
+
+                    if (screen.route == NavigationItem.Orders.route){
+                        BadgedBox(
+                            badge = {
+                                Badge(
+                                    containerColor = Color.Red,
+                                    contentColor = Color.White
+                                ) {
+                                    val badgeNumber = countActiveOrders.value.toString()
+                                    Text(
+                                        badgeNumber,
+                                        modifier = Modifier.semantics {
+                                            contentDescription = "$badgeNumber new notifications"
+                                        }
+
+                                    )
+
+                                }
+                            }) {
+                            Icon(
+                                imageVector = screen.icon!!,
+                                contentDescription = ""
+                            )
+                        }
+                    } else{
+                        Icon(
+                            imageVector = screen.icon!!,
+                            contentDescription = ""
+                        )
+                    }
+
+                },
                 selected = selected,
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) {// будут удалены все экраны до стартового
 //                        popUpTo(navController.graph.startDestinationId) {// будут удалены все экраны до стартового
-
-                            saveState = true // при удалении экранов из бекстека их стейт будет сохранен
+                            saveState =
+                                true // при удалении экранов из бекстека их стейт будет сохранен
                         }
-                        launchSingleTop = true // хранить только верхний последний стейт экрана, не хранить дублирование
-                        restoreState = true // при возрате на этот экран восстановить стейт этого экрана
+                        launchSingleTop =
+                            true // хранить только верхний последний стейт экрана, не хранить дублирование
+                        restoreState =
+                            true // при возрате на этот экран восстановить стейт этого экрана
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
@@ -167,7 +226,10 @@ fun BottomBar(
                     unselectedIconColor = Color.Gray,
                     selectedIconColor = Color.Black
                 ),
+
+                alwaysShowLabel = false
             )
+
         }
     }
 }

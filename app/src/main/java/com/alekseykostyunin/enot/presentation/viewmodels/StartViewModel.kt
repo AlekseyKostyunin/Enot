@@ -12,8 +12,8 @@ class StartViewModel : ViewModel() {
     private var _startScreenState = MutableLiveData<StartScreenState>(initialState)
     var startScreenState: LiveData<StartScreenState> = _startScreenState
 
-    private fun isUserAuth() : StartScreenState{
-        return if(MyFirebaseAuth.currentUser()){
+    private fun isUserAuth() : StartScreenState {
+        return if(MyFirebaseAuth.currentUser()) {
             StartScreenState.AuthScreenState
         } else StartScreenState.NotAuthScreenState
     }

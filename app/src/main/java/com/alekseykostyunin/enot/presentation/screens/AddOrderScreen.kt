@@ -1,7 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,16 +19,13 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItemDefaults.contentColor
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,6 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.data.utils.DateUtil
+import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
@@ -61,6 +58,7 @@ fun AddOrderScreen(
     fun sendToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -71,11 +69,12 @@ fun AddOrderScreen(
         Column {
             Row {
                 IconButton(onClick = {
+                        ordersViewModel.showBottomBar()
                         navigationState.navigateTo(NavigationItem.AllOrders.route)
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.Default.ArrowBack,
                         contentDescription = null
                     )
                 }
@@ -207,6 +206,7 @@ fun AddOrderScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
+
             /* Кнопка "Добавить" */
             Button(
                 modifier = Modifier
@@ -222,48 +222,68 @@ fun AddOrderScreen(
                             isErrorClient = false
                             sendToast("Поле описание не может быть пустым!")
                         } else {
-                            if (model.isEmpty()) {
-                                isErrorModel = true
-                                isErrorDesc = false
-                                sendToast("Поле модель не может быть пустым!")
+                            if(selectedOptionText.isEmpty()){
+                                sendToast("Поле типа заказа не может быть пустым!")
                             } else {
-                                if (priceZ.isEmpty()) {
-                                    isErrorPriceZ = true
-                                    isErrorModel = false
-                                    sendToast("Поле цена запчастей не может быть пустым!")
+                                if (model.isEmpty()) {
+                                    isErrorModel = true
+                                    isErrorDesc = false
+                                    sendToast("Поле модель не может быть пустым!")
                                 } else {
-                                    if (price.isEmpty()) {
-                                        isErrorPrice = true
-                                        isErrorPriceZ = false
-                                        sendToast("Поле стоимость заказа не может быть пустым!")
+                                    if (priceZ.isEmpty()) {
+                                        isErrorPriceZ = true
+                                        isErrorModel = false
+                                        sendToast("Поле цена запчастей не может быть пустым!")
                                     } else {
-                                        val auth: FirebaseAuth = Firebase.auth
-                                        val database = Firebase.database.reference
-                                        val user = auth.currentUser
-                                        if (user != null) {
-                                            val userId = user.uid
-                                            val idOrder = database.child("users").child(userId)
-                                                .child("orders").push().key.toString()
-                                            val order = Order(
-                                                id = idOrder,
-                                                client = client,
-                                                dateAdd = DateUtil.dateOfUnit,
-                                                dateClose = "no",
-                                                description = desc,
-                                                type = selectedOptionText,
-                                                model = model,
-                                                priceZip = priceZ.toInt(),
-                                                priceWork = price.toInt(),
-                                                isWork = true
-                                            )
-                                            database.child("users").child(userId).child("orders")
-                                                .child(idOrder).setValue(order)
+                                        if (!Validate.isNumericToX(priceZ)){
+                                            sendToast("Некорректное число! Повторите попытку.")
+                                        } else{
+                                            if (price.isEmpty()) {
+                                                isErrorPrice = true
+                                                isErrorPriceZ = false
+                                                sendToast("Поле стоимость заказа не может быть пустым!")
+                                            } else {
+                                                if(!Validate.isNumericToX(price)){
+                                                    sendToast("Некорректное число! Повторите попытку.")
+                                                } else {
+                                                    val auth: FirebaseAuth = Firebase.auth
+                                                    val database = Firebase.database.reference
+                                                    val user = auth.currentUser
+                                                    if (user != null) {
+                                                        val userId = user.uid
+                                                        val idOrder = database.child("users").child(userId)
+                                                            .child("orders").push().key.toString()
+                                                        val order = Order(
+                                                            id = idOrder,
+                                                            client = client,
+                                                            dateAdd = DateUtil.dateOfUnit,
+                                                            dateClose = "no",
+                                                            description = desc,
+                                                            type = selectedOptionText,
+                                                            model = model,
+                                                            priceZip = priceZ.toInt(),
+                                                            priceWork = price.toInt(),
+                                                            isWork = true
+                                                        )
+                                                        database.child("users").child(userId).child("orders")
+                                                            .child(idOrder).setValue(order)
+                                                    }
+
+                                                    ordersViewModel.updateOrders()
+                                                    ordersViewModel.showBottomBar()
+                                                    navigationState.navigateTo(NavigationItem.Orders.route)
+
+                                                }
+                                            }
+
                                         }
-                                        ordersViewModel.updateOrders()
-                                        navigationState.navigateTo(NavigationItem.Orders.route)
                                     }
                                 }
+
                             }
+
+
+
                         }
                     }
                 }
