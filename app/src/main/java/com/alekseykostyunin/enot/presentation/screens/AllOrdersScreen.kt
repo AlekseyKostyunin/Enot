@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -36,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,25 +42,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
-import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
+import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.State
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllOrdersScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel
 ) {
-    val scope = rememberCoroutineScope()
+    //val scope = rememberCoroutineScope()
     val state = ordersViewModel.state.observeAsState(State.Initial)
     val orders0 = ordersViewModel.orders.observeAsState(listOf())
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -88,7 +83,7 @@ fun AllOrdersScreen(
             Button(
                 onClick = {
                     ordersViewModel.notShowBottomBar()
-                    navigationState.navigateTo(NavigationItem.AddOrder.route)
+                    navigationState.navigateTo(Destinations.AddOrder.route)
                 },
                 elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
             ) {
@@ -116,7 +111,8 @@ fun AllOrdersScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
-                            ) { Text("Здесь будут отображаться все заказы") }
+                            ) { Text("Здесь будут отображаться все заказы",
+                                textAlign = TextAlign.Center ) }
                         } else {
                             Row(
                                 modifier = Modifier.padding(top = 15.dp, start = 15.dp, end = 15.dp)
@@ -177,7 +173,7 @@ fun GetOneOrderListOrders(
             .padding(top = 15.dp, start = 15.dp, end = 15.dp)
             .clickable {
                 viewModel.getOrderUser(order)
-                navigationState.navigateTo(NavigationItem.OneOrder.route)
+                navigationState.navigateTo(Destinations.OneOrder.route)
             },
         elevation = CardDefaults.elevatedCardElevation(6.dp),
     ) {

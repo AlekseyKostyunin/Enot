@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,7 +29,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.data.utils.Validate
@@ -42,12 +42,12 @@ import com.google.firebase.ktx.Firebase
 
 @Composable
 fun ResetPasswordScreen(
-//    navController: NavController
-    navigationState: NavigationState
+    navigationState: NavigationState,
+    snackBarHostState: SnackbarHostState
 ) {
     val context = LocalContext.current
     fun sendToast(message: String){
-        Toast.makeText(context,message,Toast.LENGTH_LONG,).show()
+        Toast.makeText(context,message,Toast.LENGTH_LONG).show()
     }
     Column(
         modifier = Modifier
@@ -98,7 +98,7 @@ fun ResetPasswordScreen(
                         val auth: FirebaseAuth = Firebase.auth
                         auth.sendPasswordResetEmail(email.value)
                             .addOnSuccessListener {
-                                Log.d("TEST_1", "yes" + it.toString())
+                                Log.d("TEST_1", "yes $it")
                                 sendToast("Письмо с инструкцией направлено на указанный e-mail.")
                                 navigationState.navigateTo(Destinations.Authorisation.route)
                             }.addOnFailureListener {
@@ -112,6 +112,5 @@ fun ResetPasswordScreen(
         ) {
             Text(text = "Восстановить пароль")
         }
-
     }
 }

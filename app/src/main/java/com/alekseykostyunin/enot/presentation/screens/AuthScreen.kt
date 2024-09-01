@@ -18,11 +18,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,28 +40,28 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import com.alekseykostyunin.enot.R
-import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.data.utils.Validate
-import com.alekseykostyunin.enot.domain.repository.UsersRepository
-import com.alekseykostyunin.enot.domain.usecase.users.AuthUserUseCase
-import com.alekseykostyunin.enot.domain.usecase.users.CurrentUserUseCase
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
-import com.alekseykostyunin.enot.presentation.viewmodels.StartViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(
     navigationState: NavigationState,
-    startViewModel: StartViewModel
+    mainViewModel: MainViewModel,
+    ordersViewModel: OrdersViewModel,
+    snackBarHostState: SnackbarHostState
 ) {
     val context = LocalContext.current
-    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG,).show()}
+    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG).show()}
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -77,6 +81,7 @@ fun AuthScreen(
         )
         val email = remember { mutableStateOf("") }
         var isErrorEmail by rememberSaveable { mutableStateOf(false) }
+
         OutlinedTextField(
             colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
             isError = isErrorEmail,
@@ -87,9 +92,10 @@ fun AuthScreen(
         )
         var password by rememberSaveable { mutableStateOf("") }
         var passwordVisibility by rememberSaveable { mutableStateOf(false) }
-        val icon = if (passwordVisibility) painterResource(id = R.drawable.design_ic_visibility)
-        else painterResource(id = R.drawable.design_ic_visibility_off)
+        val icon = if (passwordVisibility) painterResource(R.drawable.design_ic_visibility)
+        else painterResource(R.drawable.design_ic_visibility_off)
         var isErrorPassword by rememberSaveable { mutableStateOf(false) }
+
         OutlinedTextField(
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
@@ -114,85 +120,138 @@ fun AuthScreen(
             visualTransformation = if (passwordVisibility) VisualTransformation.None
             else PasswordVisualTransformation()
         )
-
+        //val enable = remember { mutableStateOf(false) }
         ElevatedButton(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
+            //enabled = enable.value,
             onClick = {
                 if (email.value.isEmpty()) {
                     isErrorEmail = true
-                    sendToast("Поле e-mail не может быть пустым!")
+                    scope.launch {
+                        val result = snackBarHostState.showSnackbar(
+                            message = "Поле e-mail не может быть пустым!",
+                            actionLabel = "Закрыть",
+                        )
+                        when (result) {
+                            SnackbarResult.Dismissed -> {
+                                isErrorEmail = false
+                                isErrorPassword = false
+                            }
+                            SnackbarResult.ActionPerformed -> {
+                                isErrorEmail = false
+                                isErrorPassword = false
+                            }
+                        }
+                    }
                 }
                 else {
                     val isValidEmail = Validate.isEmailValid(email.value)
                     if (!isValidEmail) {
                         isErrorEmail = true
-                        sendToast("Некорректный e-mail. Повторите попытку!")
+                        scope.launch {
+                            val result = snackBarHostState.showSnackbar(
+                                message = "Некорректный e-mail. Повторите попытку!",
+                                actionLabel = "Закрыть",
+                            )
+                            when (result) {
+                                SnackbarResult.Dismissed -> {
+                                    isErrorEmail = false
+                                    isErrorPassword = false
+                                }
+                                SnackbarResult.ActionPerformed -> {
+                                    isErrorEmail = false
+                                    isErrorPassword = false
+                                }
+                            }
+                        }
                     }
                     else {
                         if (password.isEmpty()) {
-                            sendToast("Полe пароль не может быть пустым!")
+                            scope.launch {
+                                val result = snackBarHostState.showSnackbar(
+                                    message = "Полe пароль не может быть пустым!",
+                                    actionLabel = "Закрыть",
+                                )
+                                when (result) {
+                                    SnackbarResult.Dismissed -> {
+                                        isErrorEmail = false
+                                        isErrorPassword = false
+                                    }
+                                    SnackbarResult.ActionPerformed -> {
+                                        isErrorEmail = false
+                                        isErrorPassword = false
+                                    }
+                                }
+                            }
                             isErrorEmail = false
                             isErrorPassword = true
                         }
                         else {
                             if (password.length < 6) {
                                 isErrorPassword = true
-                                sendToast(
-                                    "Пароль слишком короткий (менее 6 символов). Повторите попытку!"
-                                )
+                                scope.launch {
+                                    val result = snackBarHostState.showSnackbar(
+                                        message = "Пароль слишком короткий (менее 6 символов). Повторите попытку!",
+                                        actionLabel = "Закрыть",
+                                    )
+                                    when (result) {
+                                        SnackbarResult.Dismissed -> {
+                                            isErrorEmail = false
+                                            isErrorPassword = false
+                                        }
+                                        SnackbarResult.ActionPerformed -> {
+                                            isErrorEmail = false
+                                            isErrorPassword = false
+                                        }
+                                    }
+                                }
                             }
                             else {
                                 isErrorPassword = false
+                                //enable.value = true
                                 val auth: FirebaseAuth = Firebase.auth
                                 auth.signInWithEmailAndPassword(email.value, password)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
                                             Log.d("TEST_sign", "signInWithEmail:success")
                                             sendToast("Удачная авторизация!")
-                                            startViewModel.successAuth()
+                                            mainViewModel.successAuth()
+                                            ordersViewModel.updateOrders()
                                         } else {
                                             Log.w(
                                                 "TEST_sign",
                                                 "signInWithEmail:failure",
                                                 task.exception
                                             )
-                                            sendToast(
-                                                "Неверный логин или пароль. Повторите попытку входа!"
-                                            )
-//                                            navController.navigate((Destinations.Authorisation.route))
-                                            navigationState.navigateTo((Destinations.Authorisation.route))
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar(
+                                                    message = "Неверный логин или пароль. Повторите попытку входа!",
+                                                    actionLabel = "Закрыть",
+                                                )
+                                            }
                                         }
                                     }
                                     .addOnFailureListener {
-                                        Log.w("TEST_", it.toString())
+                                        Log.w("TEST_addOnFailureListener", it.toString())
                                     }
                             }
                         }
                     }
-
                 }
-
-
             }
         ) {
-            Text(text = "Войти")
+            Text("Войти")
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = "Восстановить пароль",
-                modifier = Modifier.clickable {
-                    navigationState.navigateTo(Destinations.ResetPassword.route)
-                }
+            Text("Восстановить пароль",
+                Modifier.clickable {navigationState.navigateTo(Destinations.ResetPassword.route)}
             )
-            Text(
-                text = "Регистрация",
-                modifier = Modifier.clickable {
-                    navigationState.navigateTo(Destinations.Registration.route)
-                }
+            Text("Регистрация",
+                Modifier.clickable {navigationState.navigateTo(Destinations.Registration.route)}
             )
         }
     }

@@ -1,11 +1,8 @@
 package com.alekseykostyunin.enot.domain.entities
 
 data class HistoryStep(
-    val id: Int,
-    val time: String,
-    val type: Int,
-    val text: String,
-    val foto: List<String?> = listOf("image_1", "image_2")
-) {
-
-}
+    val id: Int = 0,
+    val time: String? = null,
+    var type: Int = 0,
+    val text: String? = null
+)

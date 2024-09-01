@@ -1,5 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,11 +40,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
-import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
+import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
@@ -54,8 +58,8 @@ fun EditOrderScreen(
     ordersViewModel: OrdersViewModel
 ) {
     val context = LocalContext.current
-    val orderLD = ordersViewModel.order.observeAsState()
-    val order = orderLD.value
+    val order = ordersViewModel.order.observeAsState().value
+    //val order = orderLD.value
 
     fun sendToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
@@ -70,7 +74,7 @@ fun EditOrderScreen(
         Column {
             Row {
                 IconButton(onClick = {
-                    navigationState.navigateTo(NavigationItem.OneOrder.route)
+                    navigationState.navigateTo(Destinations.OneOrder.route)
                 }
                 ) {
                     Icon(
@@ -206,7 +210,23 @@ fun EditOrderScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
-            /* Кнопка "Добавить" */
+
+            /* Комментарий */
+            var comment by remember { mutableStateOf(order?.comment ?: "") }
+            var isErrorComment by rememberSaveable { mutableStateOf(false) }
+            Column(modifier = Modifier.padding(top = 10.dp)) {
+                OutlinedTextField(
+                    colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
+                    isError = isErrorComment,
+                    modifier = Modifier.fillMaxWidth(),
+                    value = comment,
+                    label = { Text("Коментарий") },
+                    onValueChange = { newText -> comment = newText },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+
+            /* Кнопка "Сохранить изменения" */
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -216,29 +236,57 @@ fun EditOrderScreen(
                     val auth: FirebaseAuth = Firebase.auth
                     val database = Firebase.database.reference
                     val user = auth.currentUser
+
                     if (user != null) {
                         val userId = user.uid
                         val idOrder = order?.id
-                        val orderUpdate = Order(
-                            id = idOrder,
-                            client = client,
-                            dateAdd = DateUtil.dateOfUnit,
-                            dateClose = "no",
-                            description = desc,
-                            type = selectedOptionText,
-                            model = model,
-                            priceZip = priceZ.toInt(),
-                            priceWork = price.toInt(),
-                            isWork = true
-                        )
-                        database.child("users").child(userId).child("orders")
-                            .child(idOrder!!).setValue(orderUpdate)
+                        idOrder?.let {
+                            val orderUpdate = Order(
+                                id = idOrder,
+                                client = client,
+                                dateAdd = order.dateAdd,
+                                dateClose = "no",
+                                description = desc,
+                                type = selectedOptionText,
+                                model = model,
+                                priceZip = priceZ.toInt(),
+                                priceWork = price.toInt(),
+                                isWork = true,
+                                history = order.history,
+                                photos = order.photos,
+                                comment = comment
+                            )
+
+                            database
+                                .child("users")
+                                .child(userId)
+                                .child("orders")
+                                .child(idOrder)
+                                .setValue(orderUpdate)
+
+                            val dbNewOrderUpdate = database
+                                .child("users")
+                                .child(userId)
+                                .child("orders")
+                                .child(idOrder)
+
+                            dbNewOrderUpdate.addValueEventListener(object : ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    val order2 = snapshot.getValue(Order::class.java)
+                                    if (order2 != null) {
+                                        Log.d("TEST_snapshot_EditOrderScreen", order2.toString())
+                                        ordersViewModel.getOrderUser(order2)
+                                    }
+                                }
+                                override fun onCancelled(error: DatabaseError) {
+                                    Log.d("TEST_snapshot_error", error.message)
+                                }
+                            })
+                            ordersViewModel.updateOrders()
+                            navigationState.navigateTo(Destinations.OneOrder.route)
+                        }
 
                     }
-                    ordersViewModel.updateOrders()
-                    navigationState.navigateTo(NavigationItem.AllOrders.route)
-
-
                 }
             ) {
                 Text(text = "Сохранить изменения")

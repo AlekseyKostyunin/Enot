@@ -11,7 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -39,8 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.data.utils.Validate
+import com.alekseykostyunin.enot.domain.entities.HistoryStep
 import com.alekseykostyunin.enot.domain.entities.Order
-import com.alekseykostyunin.enot.presentation.navigation.NavigationItem
+import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -55,26 +55,23 @@ fun AddOrderScreen(
     ordersViewModel: OrdersViewModel
 ) {
     val context = LocalContext.current
-    fun sendToast(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-    }
+    fun sendToast(message: String) { Toast.makeText(context, message, Toast.LENGTH_LONG).show() }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
-
     ) {
         Column {
             Row {
                 IconButton(onClick = {
                         ordersViewModel.showBottomBar()
-                        navigationState.navigateTo(NavigationItem.AllOrders.route)
+                        navigationState.navigateTo(Destinations.AllOrders.route)
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null
                     )
                 }
@@ -207,6 +204,20 @@ fun AddOrderScreen(
                 )
             }
 
+            /* Комментарий */
+            var comment by remember { mutableStateOf("") }
+            var isErrorComent by rememberSaveable { mutableStateOf(false) }
+            Column(modifier = Modifier.padding(top = 10.dp)) {
+                OutlinedTextField(
+                    colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
+                    isError = isErrorComent,
+                    modifier = Modifier.fillMaxWidth(),
+                    value = comment,
+                    label = { Text("Коментарий") },
+                    onValueChange = { newText -> comment = newText },
+                )
+            }
+
             /* Кнопка "Добавить" */
             Button(
                 modifier = Modifier
@@ -246,44 +257,49 @@ fun AddOrderScreen(
                                                 if(!Validate.isNumericToX(price)){
                                                     sendToast("Некорректное число! Повторите попытку.")
                                                 } else {
-                                                    val auth: FirebaseAuth = Firebase.auth
-                                                    val database = Firebase.database.reference
-                                                    val user = auth.currentUser
-                                                    if (user != null) {
-                                                        val userId = user.uid
-                                                        val idOrder = database.child("users").child(userId)
-                                                            .child("orders").push().key.toString()
-                                                        val order = Order(
-                                                            id = idOrder,
-                                                            client = client,
-                                                            dateAdd = DateUtil.dateOfUnit,
-                                                            dateClose = "no",
-                                                            description = desc,
-                                                            type = selectedOptionText,
-                                                            model = model,
-                                                            priceZip = priceZ.toInt(),
-                                                            priceWork = price.toInt(),
-                                                            isWork = true
-                                                        )
-                                                        database.child("users").child(userId).child("orders")
-                                                            .child(idOrder).setValue(order)
+                                                    if (comment.isEmpty()) {
+                                                        isErrorComent = true
+                                                        sendToast("Поле комментарий не может быть пустым!")
+                                                    } else {
+                                                        val auth: FirebaseAuth = Firebase.auth
+                                                        val database = Firebase.database.reference
+                                                        val user = auth.currentUser
+                                                        if (user != null) {
+                                                            val userId = user.uid
+                                                            val idOrder = database.child("users").child(userId)
+                                                                .child("orders").push().key.toString()
+                                                            val dateAdd = DateUtil.dateOfUnit
+                                                            val historyStep1 = HistoryStep(0, dateAdd, 2, "Заказ создан")
+                                                            val history = listOf(historyStep1)
+                                                            val order = Order(
+                                                                id = idOrder,
+                                                                client = client,
+                                                                dateAdd = dateAdd,
+                                                                dateClose = "no",
+                                                                description = desc,
+                                                                type = selectedOptionText,
+                                                                model = model,
+                                                                priceZip = priceZ.toInt(),
+                                                                priceWork = price.toInt(),
+                                                                isWork = true,
+                                                                history = history,
+                                                                comment = comment,
+                                                            )
+                                                            database.child("users").child(userId).child("orders")
+                                                                .child(idOrder).setValue(order)
+                                                        }
+
+                                                        ordersViewModel.updateOrders()
+                                                        ordersViewModel.showBottomBar()
+                                                        navigationState.navigateTo(Destinations.Orders.route)
                                                     }
-
-                                                    ordersViewModel.updateOrders()
-                                                    ordersViewModel.showBottomBar()
-                                                    navigationState.navigateTo(NavigationItem.Orders.route)
-
                                                 }
                                             }
 
                                         }
                                     }
                                 }
-
                             }
-
-
-
                         }
                     }
                 }

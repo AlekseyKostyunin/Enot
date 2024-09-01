@@ -11,5 +11,7 @@ data class Order(
     var priceZip: Int = 0,
     var priceWork: Int = 0,
     var isWork: Boolean = true,
-    var history: String? = null
+    var history: List<HistoryStep>? = null,
+    var photos: List<Photo>? = null,
+    var comment: String? = null
 )

@@ -5,18 +5,22 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +38,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.data.utils.Validate
@@ -49,11 +52,11 @@ import com.google.firebase.ktx.Firebase
 
 @Composable
 fun RegScreen(
-//    navController: NavHostController
-    navigationState: NavigationState
+    navigationState: NavigationState,
+    snackBarHostState: SnackbarHostState
 ) {
     val context = LocalContext.current
-    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG,).show()}
+    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG).show()}
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,8 +64,7 @@ fun RegScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
-    )
-    {
+    ) {
         Image(
             painter = painterResource(id = R.drawable.ic_enot),
             contentDescription = null
@@ -112,13 +114,33 @@ fun RegScreen(
             visualTransformation = if (passwordVisibility) VisualTransformation.None
             else PasswordVisualTransformation()
         )
+        var checked by remember { mutableStateOf(false) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+        ){
+            Checkbox(
+                checked = checked,
+                onCheckedChange = { checked = it }
+            )
+            TextButton(
+                onClick = {
+                    navigationState.navigateTo(Destinations.PrivacyPolicy.route)
+                },
+                content = { Text("Я принимаю условия пользовательского соглашения") }
+            )
+        }
 
         val repository: UsersRepository = UsersRepositoryImpl
         val regUserUseCase = RegUserUseCase(repository)
+       //val enable = remember { mutableStateOf(false) }
 
         ElevatedButton(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
+            //enabled = enable.value,
             onClick = {
                 if (email.value.isEmpty()) {
                     isErrorEmail = true
@@ -140,34 +162,42 @@ fun RegScreen(
                             } else {
                                 isErrorPassword = false
 
-                                val auth: FirebaseAuth = Firebase.auth
-                                val database = Firebase.database.reference
+                                if (!checked) {
+                                    sendToast("Нужно принимать условия пользовательского соглашения")
+                                } else {
+                                    //enable.value = true
+                                    val auth: FirebaseAuth = Firebase.auth
+                                    val database = Firebase.database.reference
 
-                                auth.createUserWithEmailAndPassword(email.value, password)
-                                    .addOnCompleteListener() { task ->
-                                        if (task.isSuccessful) {
-                                            Log.d("TEST_1", "createUserWithEmail:success")
-                                            val user =
-                                                auth.currentUser ?: return@addOnCompleteListener
-                                            //updateUI(user)
-                                            val userId = user.uid
-                                            database.child("users").child(userId).child("email")
-                                                .setValue(email.value)
-                                            sendToast("Регистрация прошла успешно!")
+                                    auth.createUserWithEmailAndPassword(email.value, password)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                Log.d("TEST_1", "createUserWithEmail:success")
+                                                val user =
+                                                    auth.currentUser ?: return@addOnCompleteListener
+                                                //updateUI(user)
+                                                val userId = user.uid
+                                                database.child("users").child(userId).child("email")
+                                                    .setValue(email.value)
+                                                sendToast("Регистрация прошла успешно!")
 
-                                        } else {
-                                            Log.w(
-                                                "TEST_1",
-                                                "createUserWithEmail:failure",
-                                                task.exception
-                                            )
-                                            //updateUI(null)
-                                            sendToast("Ошибка при регистрации. Обратитесь в техподдержку.")
+                                            } else {
+                                                Log.w(
+                                                    "TEST_1",
+                                                    "createUserWithEmail:failure",
+                                                    task.exception
+                                                )
+                                                //updateUI(null)
+                                                sendToast("Ошибка при регистрации. Обратитесь в техподдержку.")
+                                            }
                                         }
-                                    }
-                                Log.d("TEST_email_reg", email.value)
-                                Log.d("TEST_password_reg", password)
-                                navigationState.navigateTo(Destinations.Authorisation.route)
+                                    Log.d("TEST_email_reg", email.value)
+                                    Log.d("TEST_password_reg", password)
+                                    navigationState.navigateTo(Destinations.Authorisation.route)
+
+                                }
+
+
                             }
                         }
                     }

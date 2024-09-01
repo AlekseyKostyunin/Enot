@@ -1,144 +1,179 @@
 package com.alekseykostyunin.enot.presentation
 
 import android.Manifest
-import android.content.ContentValues
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.widget.Toast
+import android.provider.ContactsContract
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.alekseykostyunin.enot.presentation.navigation.StartNavigation
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.concurrent.Executor
+import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
-private const val FILENAME_FORMAT = "yyyy-MM-dd_HH-mm-ss"
-private const val DATE_FORMAT = "dd.MM.yyyy HH:mm"
 
 class MainActivity : ComponentActivity() {
 
-    private var imageCapture: ImageCapture? = null
-    private lateinit var executor: Executor
+    private val mainViewModel : MainViewModel by viewModels()
+    val ordersViewModel: OrdersViewModel by viewModels()
+    val clientsViewModel: ClientsViewModel by viewModels()
+    private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
-    private val name = SimpleDateFormat(FILENAME_FORMAT, Locale.UK)
-        .format(System.currentTimeMillis())
-
-    private val date = SimpleDateFormat(DATE_FORMAT, Locale.UK)
-        .format(System.currentTimeMillis())
-
-    private val launcher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { map ->
-        if (map.values.all { it }) {
-            //startCamera()
+    private val launcherCamera = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("TEST_camera_permission", "Permission granted")
         } else {
-            Toast.makeText(this, "Разрешения не получены!", Toast.LENGTH_SHORT).show()
+            Log.d("TEST_camera_permission", "Permission denied")
         }
     }
 
+    private val launcherContact = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("TEST_contacts_permission", "Permission granted")
+        } else {
+            Log.d("TEST_contacts_permission", "Permission denied")
+        }
+    }
+
+    private fun requestCameraPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                Log.i("TEST_camera_permission", "Permission camera previously granted")
+            }
+
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.CAMERA
+            ) -> Log.i("TEST_camera_permission", "Show camera permissions dialog")
+
+            else -> launcherCamera.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun requestContactsPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_CONTACTS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                Log.i("TEST_camera_permission", "Permission camera previously granted")
+            }
+
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.READ_CONTACTS
+            ) -> Log.i("TEST_camera_permission", "Show camera permissions dialog")
+
+            else -> launcherContact.launch(Manifest.permission.READ_CONTACTS)
+        }
+    }
+
+    private val getContact = registerForActivityResult(ActivityResultContracts.PickContact()) { uri: Uri? ->
+        if (uri != null) {
+            val contactProjection = arrayOf(
+                ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME,
+                ContactsContract.Contacts.HAS_PHONE_NUMBER
+            )
+            val phoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+            val phoneProjection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
+            val phoneSelection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=?"
+            var numbers = ""
+            contentResolver.query(uri, contactProjection, null, null, null)?.use {
+                    cursor ->
+                val idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID)
+                val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                val hasPhoneIndex = cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getString(idIndex)
+                    val name = cursor.getString(nameIndex)
+                    val hasPhone = cursor.getInt(hasPhoneIndex) > 0
+                    if (hasPhone) {
+                        val contactId = cursor.getString(idIndex)
+                        contentResolver.query(
+                            phoneUri,
+                            phoneProjection,
+                            phoneSelection,
+                            arrayOf(contactId),
+                            null
+                        )?.use { phoneCursor ->
+                            val numberIndex = phoneCursor.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.NUMBER
+                            )
+                            while (phoneCursor.moveToNext()) {
+                                numbers = numbers + phoneCursor.getString(numberIndex) + " "
+                            }
+                        }
+                    } else {
+                        numbers = "нет номера телефона"
+                    }
+                    Log.i("TEST_contact", "ID: $id, Name: $name, hasPhone: $hasPhoneIndex, Number: $numbers")
+                    clientsViewModel.addClient(id, name, numbers)
+                }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        executor = ContextCompat.getMainExecutor(this)
         setContent {
-            //EnotTheme {}
             StartNavigation(
-//                onTakePhoto = { takePhoto() },
-//                onStartCamera = { startCamera() },
-                 checkPermission()
+                mainViewModel,
+                ordersViewModel,
+                clientsViewModel,
+                { requestCameraPermission() },
+                { requestContactsPermission() },
+                cameraExecutor,
+                getContact = { getContact.launch(null) },
             )
-            checkPermission()
         }
-
     }
 
-    private fun takePhoto() {
-        val imageCapture = imageCapture ?: return
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
+    }
 
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-        }
+    @SuppressLint("Range")
+    fun getContactNameAndPhone(context: Context, contactUri: Uri) {
+        val cursor = context.contentResolver.query(contactUri, null, null, null, null)
 
-        val outputOption = ImageCapture.OutputFileOptions
-            .Builder(
-                this.contentResolver,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
-            ).build()
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val name = it.getString(it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+                val id = it.getString(it.getColumnIndex(ContactsContract.Contacts._ID))
 
-        imageCapture.takePicture(
-            outputOption,
-            executor,
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Photo failed: ${exc.message}", Toast.LENGTH_SHORT
-                    ).show()
-                }
+                val phones = context.contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + id, null, null)
 
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Saved: ${output.savedUri}", Toast.LENGTH_SHORT
-                    ).show()
-                    //viewModel.insertPhoto(output.savedUri.toString(), date)
-                    //findNavController().navigate(R.id.action_create_photo_to_list_photo)
+                phones?.use {
+                    while (it.moveToNext()) {
+                        val phoneNumber = it.getString(it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                        Log.d("Contact", "Name: $name, Phone: $phoneNumber")
+                    }
                 }
             }
-        )
-    }
-
-    fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider
-            .getInstance(this)
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder().build()
-            //preview.setSurfaceProvider(binding.viewFinder.surfaceProvider) // устанавливаем SurfaceView
-            imageCapture = ImageCapture.Builder().build()
-            cameraProvider.unbindAll() // отключаем камеру
-            cameraProvider.bindToLifecycle(
-                this,
-                CameraSelector.DEFAULT_BACK_CAMERA,
-                preview,
-                imageCapture
-            )
-        }, executor)
-    }
-
-    fun checkPermission() {
-        val isAllGranted = REQUEST_PERMISSIONS.all { permission ->
-            ContextCompat.checkSelfPermission(
-                this, permission
-            ) == PackageManager.PERMISSION_GRANTED
         }
-        if (isAllGranted) {
-            //startCamera()
-            //Toast.makeText(this, "Permission is Granted", Toast.LENGTH_SHORT).show()
-        } else {
-            launcher.launch(REQUEST_PERMISSIONS)
-        }
-    }
-
-    companion object {
-        private val REQUEST_PERMISSIONS = buildList {
-            add(Manifest.permission.CAMERA)
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            }
-        }.toTypedArray()
-
-
     }
 
 }

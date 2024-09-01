@@ -1,3 +1,31 @@
 <resources>
-    <string name="app_name">Enot</string>
+    <string name="app_name">E-note</string>
+    <string name="version">Версия: %1$s</string>
+    <string name="privacy_policy">Пользовательское соглашение</string>
+    <string name="click_here_to_view_our_privacy_policy">Нажмите здесь, чтобы прочитать пользовательское соглашение</string>
+    <string name="signOut">Выйти из приложения</string>
+    <string name="click_here_to_view_signOut">Нажмите здесь, чтобы выйти из приложения</string>
+    <string name="contact">Контакт</string>
+    <string name="contact_the_author_by_email">Связаться с автором по электронной почте</string>
+    <string name="privacy_intro_title">Введение</string>
+    <string name="privacy_intro_content">Добро пожаловать в %1$s!\n\nВ этом соглашении описывается,
+        как приложение собирает, использует и защищает вашу личную информацию, когда Вы используете это мобильное приложение.\n\nИспользуя %1$s, вы соглашаетесь с условиями, описанными в этом соглашении.</string>
+    <string name="privacy_data_collection_title">Сбор данных</string>
+    <string name="privacy_data_collection_content">Локальные файлы: %1$s получает доступ к фотографиям, хранящимся на вашем
+        устройстве и которые Вы добавляете к истории исполнения заказа. Мы не загружаем и не передаем эти файлы на внешние серверы.</string>
+    <string name="privacy_information_usage_title">Использование информации</string>
+    <string name="privacy_information_usage_content">Персональные данные: Мы не собираем и не храним какие-либо личные данные,
+        такие как имена, адреса электронной почты или номера телефонов.\nАналитика использования: %1$s отслеживает ваше
+        поведение при использовании и собирает только обезличенные аналитические данные.</string>
+    <string name="privacy_data_security_title">Безопасность данных</string>
+    <string name="privacy_data_security_content">Хранение на устройстве: все фотографии, используемые %1$s, остаются на вашем устройстве.
+        Приложение не передает и не хранит фотографии снаружи.</string>
+    <string name="privacy_third_party_services_title">Сторонние услуги</string>
+    <string name="privacy_third_party_services_content">Реклама: %1$s не отображает стороннюю рекламу.\nВнешние ссылки: риложение
+        может содержать ссылки на внешние веб-сайты. Обратите внимание, что автор не несем ответственности за политику конфиденциальности на этих сайтах.</string>
+    <string name="privacy_changes_notice_title">Изменения в этом уведомлении</string>
+    <string name="privacy_changes_notice_content">Автор время от времени может обновлять данное пользовательское соглашение.
+        Любые изменения будут отражены в приложении.</string>
+    <string name="privacy_contact_us_title">Связаться с автором</string>
+    <string name="privacy_contact_us_content">Если у вас есть какие-либо вопросы или сомнения по поводу настоящего соглашения, свяжитесь со мной по электронной почте %1$s.</string>
 </resources>

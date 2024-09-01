@@ -11,9 +11,10 @@ class NavigationState(
 ){
     fun navigateTo(route: String){
         navHostController.navigate(route) {
-            popUpTo(navHostController.graph.findStartDestination().id) {// будут удалены все экраны до стартового
-//            popUpTo(navHostController.graph.startDestinationId) {// будут удалены все экраны до стартового
-                saveState = true // при удалении экранов из бекстека их стейт будет сохранен
+            //popUpTo(navHostController.graph.findStartDestination().id) {// будут удалены все экраны до стартового
+            //popUpTo(navHostController.graph.startDestinationId) {// будут удалены все экраны до стартового
+            popUpTo(navHostController.graph.last().id){
+                saveState = false // было при удалении экранов из бекстека их стейт будет сохранен
             }
             launchSingleTop = true // хранить только верхний последний стейт экрана, не хранить дублирование
             restoreState = true // при возрате на этот экран восстановить стейт этого экрана
@@ -22,10 +23,5 @@ class NavigationState(
 }
 
 @Composable
-fun rememberNavigationState(
-    navHostController: NavHostController = rememberNavController()
-): NavigationState{
-    return remember{
-        NavigationState(navHostController)
-    }
-}
+fun rememberNavigationState(navHostController: NavHostController = rememberNavController())
+: NavigationState = remember { NavigationState(navHostController) }

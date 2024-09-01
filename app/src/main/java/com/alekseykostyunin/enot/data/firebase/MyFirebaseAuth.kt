@@ -13,12 +13,12 @@ object MyFirebaseAuth {
 
     fun currentUser(): Boolean {
         val user: FirebaseUser? = auth.currentUser
-        Log.d("TEST_currentUser", user.toString())
+        Log.d("TEST_currentUser_MyFirebaseAuth1", user.toString())
         return if (user == null) {
-            Log.d("TEST_currentUser", "not")
+            Log.d("TEST_currentUser_null", "not")
             false
         } else {
-            Log.d("TEST_currentUser", user.uid)
+            Log.d("TEST_currentUser_MyFirebaseAuth2", user.uid)
             true
         }
     }
