@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -90,6 +91,7 @@ fun OneOrderScreen(
     mainViewModel: MainViewModel,
     ordersViewModel: OrdersViewModel,
     requestCameraPermission: () -> Unit,
+    requestCallPhonePermission: () -> Unit,
     cameraExecutor: ExecutorService
 ) {
     val activity = LocalContext.current as Activity
@@ -181,7 +183,7 @@ fun OneOrderScreen(
                                             id = idOrder,
                                             client = order.client,
                                             dateAdd = order.dateAdd,
-                                            dateClose = "no",
+                                            dateClose = 0,
                                             description = order.description,
                                             type = order.type,
                                             model = order.model,
@@ -369,7 +371,24 @@ fun OneOrderScreen(
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            if (state == 1) {
+            if (state == 0) {
+                Column {
+                    Button(
+                        onClick = {
+                            requestCallPhonePermission()
+                        },
+                        elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
+                    ) {
+                        Icon(
+                            Icons.Filled.Phone,
+                            contentDescription = null,
+                        )
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(text = "Позвонить клиенту")
+                    }
+                }
+            }
+            else if (state == 1) {
                 if (order?.isWork == true) {
                     Column {
                         Button(
@@ -489,7 +508,7 @@ fun OneOrderScreen(
                                             Text(
                                                 text = title,
                                                 maxLines = 1,
-                                                fontSize = 16.sp
+                                                fontSize = 18.sp
                                             )
                                         }
                                     )
@@ -502,10 +521,7 @@ fun OneOrderScreen(
                                 } else if (state == 1) {
                                     HistoryOrder(order)
                                 } else if (state == 2) {
-                                    PhotosOrder(
-                                        order,
-                                        ordersViewModel
-                                    )
+                                    PhotosOrder(order, ordersViewModel)
                                 }
                             }
 
@@ -518,77 +534,9 @@ fun OneOrderScreen(
 }
 
 @Composable
-fun PhotosOrder(
-    order: Order,
-    ordersViewModel: OrdersViewModel
-) {
-    if(order.photos == null){
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                "Здесь будут отображаться фотографии исполнения заказа",
-                textAlign = TextAlign.Center
-            )
-        }
-    } else {
-
-        /* Full Photo */
-        val openDialogFullPhoto = remember { mutableStateOf(false) }
-        val uriFullPhoto = ordersViewModel.urlPhoto.observeAsState("").value
-        if (openDialogFullPhoto.value) {
-            Dialog(
-                onDismissRequest = {openDialogFullPhoto.value = false},
-                properties = DialogProperties(usePlatformDefaultWidth = false)
-            ) {
-                AsyncImage(
-                    model = uriFullPhoto,
-                    contentDescription = null,
-                    modifier = Modifier.clickable { openDialogFullPhoto.value = false }
-                )
-            }
-        }
-
-        val photos = order.photos!!
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 128.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                content = {
-                    items(
-                        items = photos,
-                        key = { it.url.toString()}
-                    ) { photo ->
-                        AsyncImage(
-                            model = photo.url,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .clickable {
-                                    ordersViewModel.insertUrlPhoto(photo.url.toString())
-                                    openDialogFullPhoto.value = true
-                                }
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    }
-}
-
-@Composable
 fun DescOrder(order: Order) {
     Column {
-        Row(modifier = Modifier.padding(top = 16.dp)) {
+        Row(modifier = Modifier.padding(top = 18.dp)) {
             Text(
                 text = "Статус: ",
                 fontWeight = FontWeight.Bold,
@@ -599,9 +547,7 @@ fun DescOrder(order: Order) {
                 fontSize = 18.sp
             )
         }
-        Row(
-            modifier = Modifier.padding(top = 12.dp),
-        ) {
+        Row(modifier = Modifier.padding(top = 18.dp)) {
             Text(
                 text = "Клиент: ",
                 fontWeight = FontWeight.Bold,
@@ -610,13 +556,9 @@ fun DescOrder(order: Order) {
             Text(
                 text = order.client.toString(),
                 fontSize = 18.sp
-
             )
-            Text(" Позвонить")
         }
-        Row(
-            modifier = Modifier.padding(top = 18.dp),
-        ) {
+        Row(modifier = Modifier.padding(top = 18.dp)) {
             Text(
                 text = "Описание: ",
                 fontWeight = FontWeight.Bold,
@@ -628,7 +570,7 @@ fun DescOrder(order: Order) {
             )
         }
         Row(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
                 text = "Тип заказа: ",
@@ -641,7 +583,7 @@ fun DescOrder(order: Order) {
             )
         }
         Row(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
                 text = "Модель: ",
@@ -654,7 +596,7 @@ fun DescOrder(order: Order) {
             )
         }
         Row(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
                 text = "Цена запчастей: ",
@@ -667,7 +609,7 @@ fun DescOrder(order: Order) {
             )
         }
         Row(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
                 text = "Стоимость заказа: ",
@@ -680,7 +622,7 @@ fun DescOrder(order: Order) {
             )
         }
         Row(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
                 text = "Комментарий: ",
@@ -763,5 +705,73 @@ fun VerticalEventContent(item: HistoryStep,  modifier: Modifier = Modifier) {
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+fun PhotosOrder(
+    order: Order,
+    ordersViewModel: OrdersViewModel
+) {
+    if(order.photos == null){
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                "Здесь будут отображаться фотографии исполнения заказа",
+                textAlign = TextAlign.Center
+            )
+        }
+    } else {
+
+        /* Full Photo */
+        val openDialogFullPhoto = remember { mutableStateOf(false) }
+        val uriFullPhoto = ordersViewModel.urlPhoto.observeAsState("").value
+        if (openDialogFullPhoto.value) {
+            Dialog(
+                onDismissRequest = {openDialogFullPhoto.value = false},
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                AsyncImage(
+                    model = uriFullPhoto,
+                    contentDescription = null,
+                    modifier = Modifier.clickable { openDialogFullPhoto.value = false }
+                )
+            }
+        }
+
+        val photos = order.photos!!
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 128.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                content = {
+                    items(
+                        items = photos,
+                        key = { it.url.toString()}
+                    ) { photo ->
+                        AsyncImage(
+                            model = photo.url,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .clickable {
+                                    ordersViewModel.insertUrlPhoto(photo.url.toString())
+                                    openDialogFullPhoto.value = true
+                                }
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }

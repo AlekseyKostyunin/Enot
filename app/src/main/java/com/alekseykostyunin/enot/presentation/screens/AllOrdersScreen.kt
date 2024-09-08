@@ -1,7 +1,9 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -102,11 +104,13 @@ fun AllOrdersScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                Column {
+                Column(
+                    
+                ) {
                     if (state.value == State.Loading) {
                         ProgressIndicator()
                     } else {
-                        if (orders.isEmpty()) {
+                        if (orders0.value.isEmpty()) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -115,7 +119,8 @@ fun AllOrdersScreen(
                                 textAlign = TextAlign.Center ) }
                         } else {
                             Row(
-                                modifier = Modifier.padding(top = 15.dp, start = 15.dp, end = 15.dp)
+                                modifier = Modifier
+                                    .padding(start = 15.dp, end = 15.dp)
                             ) {
                                 SingleChoiceSegmentedButtonRow(
                                     modifier = Modifier

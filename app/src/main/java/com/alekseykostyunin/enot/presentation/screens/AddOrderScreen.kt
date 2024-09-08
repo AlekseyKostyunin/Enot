@@ -52,7 +52,9 @@ import com.google.firebase.ktx.Firebase
 @Composable
 fun AddOrderScreen(
     navigationState: NavigationState,
-    ordersViewModel: OrdersViewModel
+    ordersViewModel: OrdersViewModel,
+    requestContactsPermission: () -> Unit,
+    requestCallPhonePermission: () -> Unit,
 ) {
     val context = LocalContext.current
     fun sendToast(message: String) { Toast.makeText(context, message, Toast.LENGTH_LONG).show() }
@@ -275,7 +277,7 @@ fun AddOrderScreen(
                                                                 id = idOrder,
                                                                 client = client,
                                                                 dateAdd = dateAdd,
-                                                                dateClose = "no",
+                                                                dateClose = 0,
                                                                 description = desc,
                                                                 type = selectedOptionText,
                                                                 model = model,

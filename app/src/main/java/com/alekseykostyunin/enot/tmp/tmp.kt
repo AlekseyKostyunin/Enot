@@ -740,3 +740,225 @@ package com.alekseykostyunin.enot.tmp
 //    }
 //    println(stringBuilder.toString())
 //}
+
+//            Row {
+//                var selectedIndex by remember { mutableStateOf(0) }
+//                val options = listOf("Заказы", "Клиенты")
+//                SingleChoiceSegmentedButtonRow(
+//                    modifier = Modifier.fillMaxSize()
+//                ) {
+//                    options.forEachIndexed { index, label ->
+//                        SegmentedButton(
+//                            shape = SegmentedButtonDefaults.itemShape(
+//                                index = index,
+//                                count = options.size
+//                            ),
+//                            onClick = { selectedIndex = index },
+//                            selected = index == selectedIndex
+//                        ) {
+//                            Text(text = label)
+//                        }
+//                    }
+//                }
+//            }
+
+//            Box(
+//                modifier = Modifier
+//                    .padding(top = 16.dp)
+//                    .height(250.dp)
+//                //.width(350.dp),
+//                ,
+//                contentAlignment = Alignment.Center,
+//
+//                ) {
+//                if(ordersSort.isEmpty()) {
+//                    Column(
+//                        modifier = Modifier.fillMaxSize(),
+//                        horizontalAlignment = Alignment.CenterHorizontally,
+//                        verticalArrangement = Arrangement.Center
+//                    ) { Text("Выберите период для отображения данных",
+//                        textAlign = TextAlign.Center ) }
+//                } else {
+//                    Chart(data)
+//                }
+//
+//            }
+//            Row(Modifier.padding(top = 18.dp).fillMaxWidth()) {
+//                HorizontalDivider(thickness = 1.dp, color = Color.Black)
+//            }
+
+//@Composable
+//fun Chart(data: List<LineChartData.Point>) {
+//
+//    LineChart(
+//        lineChartData = LineChartData(points = data),
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .border(BorderStroke(width = 1.dp, color = Color.Red)),
+//        animation = simpleChartAnimation(),
+//        pointDrawer = FilledCircularPointDrawer(color = MaterialTheme.colorScheme.primary),
+//        lineDrawer = SolidLineDrawer(color = PurpleGrey80),
+//        xAxisDrawer = SimpleXAxisDrawer(
+//            //axisLabelFormatter = { dateFormatterHHmm(it.toString()) }
+//            axisLabelFormatter = { it -> "1" }
+//        ),
+//        yAxisDrawer = SimpleYAxisDrawer(
+//            labelValueFormatter = { it.toInt().toString() }
+//        ),
+//        horizontalOffset = 3f,
+//    )
+//}
+//
+//private fun randomYValue(): Float = Random.Default.nextInt(500, 1000).toFloat()
+
+//            Row(
+//                modifier = Modifier
+//                    .padding(top = 18.dp)
+//                    .fillMaxWidth(),
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.SpaceAround,
+//            ) {
+//                Text(
+//                    text = "Начальная дата",
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 18.sp
+//                )
+//                Text(
+//                    text = "Конечная дата",
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 18.sp
+//                )
+//            }
+
+//            Row(
+//                Modifier
+//                    .padding(vertical = 18.dp)
+//                    .fillMaxWidth()
+//            ) {
+//                HorizontalDivider(thickness = 1.dp, color = Color.Black)
+//            }
+
+
+//            Row(Modifier.padding(vertical = 10.dp)) {
+//                SingleChoiceSegmentedButtonRow(Modifier.fillMaxSize()) {
+//                    options.forEachIndexed { index, label ->
+//                        SegmentedButton(
+//                            shape = SegmentedButtonDefaults.itemShape(
+//                                index = index,
+//                                count = options.size
+//                            ),
+//                            onClick = {
+//                                selectedIndex = index
+//                                when (index) {
+//                                    0 -> {
+//                                        dateStart.longValue =
+//                                            (currentDate / 1000 - (60 * 60 * 24)) * 1000
+//                                        dateEnd.longValue = currentDate
+//                                        Log.d(
+//                                            "TEST_dateS",
+//                                            "TEST_dateS: ${dateFormatterHHmm(dateStart.longValue.toString())}"
+//                                        )
+//                                        Log.d(
+//                                            "TEST_dateE",
+//                                            "TEST_dateE: ${dateFormatterHHmm(dateEnd.longValue.toString())}"
+//                                        )
+//                                    }
+//
+//                                    1 -> { // Месяц
+//                                        dateStart.longValue =
+//                                            (currentDate / 1000 - (60 * 60 * 24 * 30)) * 1000
+//                                        dateEnd.longValue = currentDate
+//                                        Log.d(
+//                                            "TEST_dateS",
+//                                            "TEST_dateS: ${dateFormatterHHmm(dateStart.longValue.toString())}"
+//                                        )
+//                                        Log.d(
+//                                            "TEST_dateE",
+//                                            "TEST_dateE: ${dateFormatterHHmm(dateEnd.longValue.toString())}"
+//                                        )
+//                                    }
+//
+//                                    2 -> { // Квартал
+//                                        dateStart.longValue =
+//                                            (currentDate / 1000 - (60 * 60 * 24 * 30 * 3)) * 1000
+//                                        dateEnd.longValue = currentDate
+//                                        Log.d(
+//                                            "TEST_dateS",
+//                                            "TEST_dateS: ${dateFormatterHHmm(dateStart.longValue.toString())}"
+//                                        )
+//                                        Log.d(
+//                                            "TEST_dateE",
+//                                            "TEST_dateE: ${dateFormatterHHmm(dateEnd.longValue.toString())}"
+//                                        )
+//                                    }
+//
+//                                    3 -> { // Полгода
+//                                        dateStart.longValue =
+//                                            (currentDate / 1000 - (60 * 60 * 24 * 30 * 6)) * 1000
+//                                        dateEnd.longValue = currentDate
+//                                        Log.d(
+//                                            "TEST_dateS",
+//                                            "TEST_dateS: ${dateFormatterHHmm(dateStart.longValue.toString())}"
+//                                        )
+//                                        Log.d(
+//                                            "TEST_dateE",
+//                                            "TEST_dateE: ${dateFormatterHHmm(dateEnd.longValue.toString())}"
+//                                        )
+//                                    }
+//
+//                                    4 -> { // Год
+//                                        dateStart.longValue =
+//                                            (currentDate / 1000 - (60 * 60 * 24 * 365)) * 1000
+//                                        dateEnd.longValue = currentDate
+//                                        Log.d(
+//                                            "TEST_dateS",
+//                                            "TEST_dateS: ${dateFormatterHHmm(dateStart.longValue.toString())}"
+//                                        )
+//                                        Log.d(
+//                                            "TEST_dateE",
+//                                            "TEST_dateE: ${dateFormatterHHmm(dateEnd.longValue.toString())}"
+//                                        )
+//                                    }
+//                                }
+//                            },
+//                            selected = index == selectedIndex
+//                        ) {
+//                            Text(
+//                                text = label,
+//                                fontSize = 10.sp
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//
+//var selectedIndex by remember { mutableIntStateOf(-1) }
+//val options = listOf("Сегодня", "Месяц", "Квартал", "Полгода", "Год")
+
+//        if (openDialogDateEnd.value) {
+////        val confirmEnabled = remember {
+////            derivedStateOf { datePickerStateEnd.selectedDateMillis != null }
+////        }
+//            DatePickerDialog(
+//                onDismissRequest = { openDialogDateEnd.value = false },
+//                confirmButton = {
+//                    TextButton(
+//                        onClick = {
+//                            openDialogDateEnd.value = false
+//                            Log.d(
+//                                "DatePickerDialogEnd",
+//                                "TEST_dateE: ${datePickerStateEnd.selectedDateMillis}"
+//                            )
+//                        },
+//                        //enabled = confirmEnabled.value
+//                    ) {
+//                        Text("OK")
+//                    }
+//                },
+//                dismissButton = {
+//                    TextButton(onClick = { openDialogDateEnd.value = false }) { Text("Отмена") }
+//                }
+//            ) {
+//                DatePicker(state = datePickerStateEnd)
+//            }
+//        }

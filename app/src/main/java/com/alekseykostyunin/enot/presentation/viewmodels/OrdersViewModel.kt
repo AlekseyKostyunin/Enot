@@ -79,7 +79,7 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
                     id = idOrder,
                     client = order.client,
                     dateAdd = order.dateAdd,
-                    dateClose = "no",
+                    dateClose = 0,
                     description = order.description,
                     type = order.type,
                     model = order.model,

@@ -3,13 +3,8 @@ package com.alekseykostyunin.enot.presentation.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-//noinspection UsingMaterialAndMaterial3Libraries
-import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
@@ -29,14 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -54,7 +46,6 @@ import com.alekseykostyunin.enot.presentation.screens.OneOrderScreen
 import com.alekseykostyunin.enot.presentation.screens.PrivacyPolicyScreen
 import com.alekseykostyunin.enot.presentation.screens.RegScreen
 import com.alekseykostyunin.enot.presentation.screens.ResetPasswordScreen
-import com.alekseykostyunin.enot.presentation.screens.UserScreen2
 import com.alekseykostyunin.enot.presentation.screens.UserScreen3
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
@@ -69,6 +60,7 @@ fun StartNavigation(
     clientsViewModel: ClientsViewModel,
     requestCameraPermission: () -> Unit,
     requestContactsPermission: () -> Unit,
+    requestCallPhonePermission: () -> Unit,
     cameraExecutor: ExecutorService,
     getContact: () -> Unit,
 ) {
@@ -128,7 +120,9 @@ fun StartNavigation(
                     ordersViewModel.notShowBottomBar()
                     AddOrderScreen(
                         navigationState,
-                        ordersViewModel
+                        ordersViewModel,
+                        requestContactsPermission,
+                        requestCallPhonePermission,
                     )
                 },
                 oneOrderScreenContent = {
@@ -138,6 +132,7 @@ fun StartNavigation(
                         mainViewModel,
                         ordersViewModel,
                         requestCameraPermission,
+                        requestCallPhonePermission,
                         cameraExecutor
                     )
                 },
@@ -155,11 +150,13 @@ fun StartNavigation(
                         clientsViewModel,
                         getContact,
                         requestContactsPermission,
+                        requestCallPhonePermission,
                     )
                 },
                 analyticsScreenContent = {
                     AnalyticsScreen(
-                        ordersViewModel
+                        ordersViewModel,
+                        clientsViewModel
                     )
                 },
                 userScreenContent = {
@@ -190,7 +187,10 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
         Destinations.Analytics,
         Destinations.User
     )
-    NavigationBar(containerColor = Color.White) {
+    NavigationBar(
+        containerColor = Color.White,
+
+    ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         screens.forEach { screen ->
             val selected = navBackStackEntry?.destination?.hierarchy?.any {
@@ -231,12 +231,12 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
                 selected = selected,
                 onClick = {
                     navController.navigate(screen.route) {
-                        //popUpTo(navController.graph.findStartDestination().id) {
-                        popUpTo(navController.graph.last().id){
+                        popUpTo(navController.graph.findStartDestination().id) {
+                        //popUpTo(navController.graph.last().id){
                             // будут удалены все экраны до стартового
                             // popUpTo(navController.graph.startDestinationId) {
                             // при удалении экранов из бекстека их стейт будет сохранен
-                            saveState = false
+                            saveState = true
                         }
 //                        // хранить только верхний последний стейт экрана, не хранить дублирование
                         launchSingleTop = true
@@ -250,7 +250,7 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
                     unselectedIconColor = Color.Gray,
                     selectedIconColor = Color(0xFF04293A)
                 ),
-                alwaysShowLabel = true
+                alwaysShowLabel = true // скрывает имя экрана
             )
         }
     }
@@ -260,40 +260,15 @@ sealed class Destinations(val route: String, val title: String? = null, val icon
     data object Authorisation : Destinations(ROUTE_AUTHORISATION_SCREEN)
     data object Registration :  Destinations(ROUTE_REGISTRATION_SCREEN)
     data object ResetPassword : Destinations(ROUTE_RESET_PASSWORD_SCREEN)
-
-    data object Orders : Destinations(
-        route = ROUTE_ORDERS_SCREEN,
-        title = "Заказы",
-        icon = Icons.Outlined.Home
-    )
-
-    data object AllOrders : Destinations(
-        route = ROUTE_ALL_ORDERS_SCREEN
-    )
-
-    data object Clients : Destinations(
-        route = ROUTE_CLIENTS_SCREEN,
-        title = "Клиенты",
-        icon = Icons.Sharp.People
-    )
-
-    data object Analytics : Destinations(
-        route = ROUTE_ANALYTICS_SCREEN,
-        title = "Финансы",
-        icon = Icons.Sharp.Insights
-    )
-
-    data object User : Destinations(
-        route = ROUTE_USER_SCREEN,
-        title = "Профиль",
-        icon = Icons.Outlined.Settings
-    )
-
+    data object Orders : Destinations(ROUTE_ORDERS_SCREEN, "Заказы",Icons.Outlined.Home)
+    data object AllOrders : Destinations(ROUTE_ALL_ORDERS_SCREEN)
+    data object Clients : Destinations(ROUTE_CLIENTS_SCREEN,"Клиенты", Icons.Sharp.People)
+    data object Analytics : Destinations(ROUTE_ANALYTICS_SCREEN, "Аналитика", Icons.Sharp.Insights)
+    data object User : Destinations(ROUTE_USER_SCREEN, "Профиль", Icons.Outlined.Settings)
     data object AddOrder : Destinations(ROUTE_ADD_ORDERS_SCREEN)
     data object OneOrder : Destinations(ROUTE_ONE_ORDER_SCREEN)
     data object EditOrder : Destinations(ROUTE_EDIT_ORDER_SCREEN)
     data object PrivacyPolicy : Destinations(ROUTE_PRIVACY_POLICY_SCREEN)
-
     private companion object{
         const val ROUTE_AUTHORISATION_SCREEN = "authorisation_screen"
         const val ROUTE_REGISTRATION_SCREEN  = "registration_screen"

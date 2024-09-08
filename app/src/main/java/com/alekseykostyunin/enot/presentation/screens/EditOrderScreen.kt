@@ -245,7 +245,7 @@ fun EditOrderScreen(
                                 id = idOrder,
                                 client = client,
                                 dateAdd = order.dateAdd,
-                                dateClose = "no",
+                                dateClose = 0,
                                 description = desc,
                                 type = selectedOptionText,
                                 model = model,

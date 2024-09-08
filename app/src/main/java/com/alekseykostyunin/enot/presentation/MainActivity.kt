@@ -11,6 +11,7 @@ import android.provider.ContactsContract
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -51,6 +52,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val launcherCallPhone = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("TEST_call_phone_permission", "Permission granted")
+        } else {
+            Log.d("TEST_call_phone_permission", "Permission denied")
+        }
+    }
+
     private fun requestCameraPermission() {
         when {
             ContextCompat.checkSelfPermission(
@@ -75,15 +86,33 @@ class MainActivity : ComponentActivity() {
                 this,
                 Manifest.permission.READ_CONTACTS
             ) == PackageManager.PERMISSION_GRANTED -> {
-                Log.i("TEST_camera_permission", "Permission camera previously granted")
+                Log.i("TEST_contact_permission", "Permission read contacts previously granted")
             }
 
             ActivityCompat.shouldShowRequestPermissionRationale(
                 this,
                 Manifest.permission.READ_CONTACTS
-            ) -> Log.i("TEST_camera_permission", "Show camera permissions dialog")
+            ) -> Log.i("TEST_contact_permission", "Permission read contacts previously not granted")
 
             else -> launcherContact.launch(Manifest.permission.READ_CONTACTS)
+        }
+    }
+
+    private fun requestCallPhonePermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CALL_PHONE
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                Log.i("TEST_call_phone_permission", "Permission call phone previously granted")
+            }
+
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.CALL_PHONE
+            ) -> Log.i("EST_call_phone_permission", "Permission call phone previously not granted")
+
+            else -> launcherContact.launch(Manifest.permission.CALL_PHONE)
         }
     }
 
@@ -136,6 +165,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //enableEdgeToEdge()
         setContent {
             StartNavigation(
                 mainViewModel,
@@ -143,6 +173,7 @@ class MainActivity : ComponentActivity() {
                 clientsViewModel,
                 { requestCameraPermission() },
                 { requestContactsPermission() },
+                { requestCallPhonePermission() },
                 cameraExecutor,
                 getContact = { getContact.launch(null) },
             )

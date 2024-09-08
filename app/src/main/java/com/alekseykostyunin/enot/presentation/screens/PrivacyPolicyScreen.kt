@@ -48,14 +48,12 @@ fun PrivacyPolicyScreen(
                         text = stringResource(R.string.privacy_policy),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary,
-                        //fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 },
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            //navigationState.navigateTo(Destinations.User.route)
                             navigationState.navHostController.popBackStack()
                         },
                         modifier = Modifier
@@ -102,9 +100,8 @@ fun SectionText(title: String, content: String) {
         text = title,
         style = MaterialTheme.typography.titleLarge,
         modifier = Modifier.padding(vertical = 8.dp),
-        color = MaterialTheme.colorScheme.primary,
-
-        )
+        color = MaterialTheme.colorScheme.primary
+    )
     Text(
         text = content,
         style = MaterialTheme.typography.bodyMedium,

@@ -300,7 +300,14 @@ fun UserScreen3(
                 ListItem(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .clickable { navigationState.navigateTo(Destinations.PrivacyPolicy.route)},
+                        .clickable {
+                            //navigationState.navigateTo(Destinations.PrivacyPolicy.route)
+                            navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route){
+                                popUpTo(Destinations.User.route){
+                                    saveState = true
+                                }
+                            }
+                        },
                     headlineContent = {
                         Text(
                             text = stringResource(R.string.privacy_policy),

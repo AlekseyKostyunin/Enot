@@ -127,7 +127,11 @@ fun RegScreen(
             )
             TextButton(
                 onClick = {
-                    navigationState.navigateTo(Destinations.PrivacyPolicy.route)
+                    navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route){
+                        popUpTo(Destinations.Registration.route){
+                            saveState = true
+                        }
+                    }
                 },
                 content = { Text("Я принимаю условия пользовательского соглашения") }
             )

@@ -80,7 +80,7 @@ dependencies {
     implementation("io.github.pushpalroy:jetlime:2.1.1")
 
     // Графики
-    implementation("io.github.bytebeats:compose-charts:0.1.2")
+    implementation("io.github.bytebeats:compose-charts:0.2.1")
 
     // Glide для работы с изображениями
     implementation("com.github.bumptech.glide:glide:5.0.0-rc01")
@@ -96,6 +96,10 @@ dependencies {
 
     implementation( "androidx.compose.material:material-icons-extended:1.6.8")
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.28")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
+    implementation("com.patrykandpatrick.vico:core:2.0.0-alpha.28")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

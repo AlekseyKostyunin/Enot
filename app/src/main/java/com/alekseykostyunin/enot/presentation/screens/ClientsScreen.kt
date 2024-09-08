@@ -85,6 +85,7 @@ fun ClientsScreen(
     clientsViewModel: ClientsViewModel,
     getContact: () -> Unit,
     requestContactsPermission: () -> Unit,
+    requestCallPhonePermission: () -> Unit,
 ) {
     val state = clientsViewModel.state.observeAsState(State.Initial)
     var contactName by mutableStateOf("")
