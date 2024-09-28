@@ -18,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -59,7 +58,10 @@ fun AuthScreen(
     snackBarHostState: SnackbarHostState
 ) {
     val context = LocalContext.current
-    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG).show()}
+    fun sendToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
+
     val scope = rememberCoroutineScope()
 
     Column(
@@ -99,7 +101,8 @@ fun AuthScreen(
         OutlinedTextField(
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
-                focusedTextColor = Color.Black),
+                focusedTextColor = Color.Black
+            ),
             isError = isErrorPassword,
             modifier = Modifier.fillMaxWidth(),
             value = password,
@@ -138,14 +141,14 @@ fun AuthScreen(
                                 isErrorEmail = false
                                 isErrorPassword = false
                             }
+
                             SnackbarResult.ActionPerformed -> {
                                 isErrorEmail = false
                                 isErrorPassword = false
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     val isValidEmail = Validate.isEmailValid(email.value)
                     if (!isValidEmail) {
                         isErrorEmail = true
@@ -159,14 +162,14 @@ fun AuthScreen(
                                     isErrorEmail = false
                                     isErrorPassword = false
                                 }
+
                                 SnackbarResult.ActionPerformed -> {
                                     isErrorEmail = false
                                     isErrorPassword = false
                                 }
                             }
                         }
-                    }
-                    else {
+                    } else {
                         if (password.isEmpty()) {
                             scope.launch {
                                 val result = snackBarHostState.showSnackbar(
@@ -178,6 +181,7 @@ fun AuthScreen(
                                         isErrorEmail = false
                                         isErrorPassword = false
                                     }
+
                                     SnackbarResult.ActionPerformed -> {
                                         isErrorEmail = false
                                         isErrorPassword = false
@@ -186,8 +190,7 @@ fun AuthScreen(
                             }
                             isErrorEmail = false
                             isErrorPassword = true
-                        }
-                        else {
+                        } else {
                             if (password.length < 6) {
                                 isErrorPassword = true
                                 scope.launch {
@@ -200,14 +203,14 @@ fun AuthScreen(
                                             isErrorEmail = false
                                             isErrorPassword = false
                                         }
+
                                         SnackbarResult.ActionPerformed -> {
                                             isErrorEmail = false
                                             isErrorPassword = false
                                         }
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 isErrorPassword = false
                                 //enable.value = true
                                 val auth: FirebaseAuth = Firebase.auth
@@ -248,10 +251,10 @@ fun AuthScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("Восстановить пароль",
-                Modifier.clickable {navigationState.navigateTo(Destinations.ResetPassword.route)}
+                Modifier.clickable { navigationState.navigateTo(Destinations.ResetPassword.route) }
             )
             Text("Регистрация",
-                Modifier.clickable {navigationState.navigateTo(Destinations.Registration.route)}
+                Modifier.clickable { navigationState.navigateTo(Destinations.Registration.route) }
             )
         }
     }

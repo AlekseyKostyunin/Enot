@@ -7,7 +7,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.alekseykostyunin.enot.data.repositoryimpl.ClientsRepositoryImpl
 import com.alekseykostyunin.enot.domain.entities.Client
-import com.alekseykostyunin.enot.domain.entities.Order
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -20,8 +19,8 @@ class ClientsViewModel(application: Application) : AndroidViewModel(application)
 
     private val repository = ClientsRepositoryImpl
 
-    private val _state = MutableLiveData<State>(State.Initial)
-    val state: LiveData<State> = _state
+    private var _state = MutableLiveData<State>(State.Initial)
+    var state: LiveData<State> = _state
 
     private var _clients = MutableLiveData<List<Client>>(listOf())
     var clients: LiveData<List<Client>> = _clients
@@ -33,7 +32,11 @@ class ClientsViewModel(application: Application) : AndroidViewModel(application)
         loadAllClients()
     }
 
-    private fun updateClients() {
+    fun resetState() {
+        _state.value = State.Initial
+    }
+
+    fun updateClients() {
         loadAllClients()
     }
 
@@ -56,7 +59,7 @@ class ClientsViewModel(application: Application) : AndroidViewModel(application)
                     }
                     _clients.value = clientsDB
                     _state.value = State.Success
-                    Log.d("TEST_snapshot_clientsDB", clientsDB.toString())
+                    Log.d("TEST_snapshot_clientsDB", _clients.value.toString())
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -67,35 +70,28 @@ class ClientsViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadClient(id: String) {
-
+        _client.value = _clients.value?.find { it.id == id }
     }
 
-    fun addClient(idOfContacts: String, name: String, phone: String) {
+    fun addClient(name: String, phone: List<String>) {
         val auth: FirebaseAuth = Firebase.auth
         val database = Firebase.database.reference
         val user = auth.currentUser
         if (user != null) {
-
             // Проверяем, есть ли такой клиент в базе
-//            val db = database.child("users").child(userId).child("clients")
-//            db.addValueEventListener(object : ValueEventListener {
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    for (i in snapshot.children) {
-//                        val client = i.getValue(Client::class.java)
-//                        if (client != null) {
-//                            if (client.idOfContacts == idOfContacts) {
-//                                _state.value = State.Error("Клиент с таким контактом уже существует")
-//                                return
-//                            }
-//                        }
-            
+            val client = _clients.value?.find { it.name == name }
+            if (client != null) {
+                _state.value = State.Error("Такой клиент уже есть")
+                return
+            }
+
             val userId = user.uid
             val idClient = database
                 .child("users")
                 .child(userId)
                 .child("clients")
                 .push().key.toString()
-            val clientNew = Client(idClient, idOfContacts, name, phone)
+            val clientNew = Client(idClient, name, phone)
             database
                 .child("users")
                 .child(userId)

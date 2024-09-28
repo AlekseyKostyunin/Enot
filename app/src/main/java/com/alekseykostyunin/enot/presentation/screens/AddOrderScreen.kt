@@ -1,6 +1,8 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,11 +22,13 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +36,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,10 +45,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.data.utils.Validate
+import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.domain.entities.HistoryStep
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
+import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -53,11 +62,15 @@ import com.google.firebase.ktx.Firebase
 fun AddOrderScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel,
-    requestContactsPermission: () -> Unit,
-    requestCallPhonePermission: () -> Unit,
+    clientsViewModel: ClientsViewModel
 ) {
+    clientsViewModel.updateClients()
+    val clientOfDb = remember { mutableStateOf(Client()) }
+
     val context = LocalContext.current
-    fun sendToast(message: String) { Toast.makeText(context, message, Toast.LENGTH_LONG).show() }
+    fun sendToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
 
     Box(
         modifier = Modifier
@@ -68,9 +81,9 @@ fun AddOrderScreen(
         Column {
             Row {
                 IconButton(onClick = {
-                        ordersViewModel.showBottomBar()
-                        navigationState.navigateTo(Destinations.AllOrders.route)
-                    }
+                    ordersViewModel.showBottomBar()
+                    navigationState.navigateTo(Destinations.AllOrders.route)
+                }
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -84,16 +97,96 @@ fun AddOrderScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-            var client by remember { mutableStateOf("") }
-            var isErrorClient by rememberSaveable { mutableStateOf(false) }
-            OutlinedTextField(
-                colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
-                isError = isErrorClient,
-                modifier = Modifier.fillMaxWidth(),
-                value = client,
-                label = { Text("Клиент") },
-                onValueChange = { newText -> client = newText },
-            )
+
+            /* Клиент */
+            var expandedClient = remember { mutableStateOf(false) }
+            val clients = clientsViewModel.clients
+            var selectedOptionTextClient = remember { mutableStateOf("") }
+            if (clients.value?.isEmpty() == true) {
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            navigationState.navigateTo(Destinations.AllClients.route)
+                        }
+                ) {
+                    Text(
+                        text = "Добавьте первого клиента",
+                        modifier = Modifier.padding(18.dp),
+                        fontSize = 16.sp,
+                    )
+                }
+
+            } else {
+                ExposedDropdownMenuBox(
+                    modifier = Modifier.padding(top = 10.dp),
+                    expanded = expandedClient.value,
+                    onExpandedChange = {
+                        expandedClient.value = !expandedClient.value
+                    }
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        readOnly = true,
+                        value = selectedOptionTextClient.value,
+                        onValueChange = { },
+                        label = { Text("Клиент") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = expandedClient.value
+                            )
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            disabledContainerColor = Color.White,
+                        )
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedClient.value,
+                        onDismissRequest = {
+                            expandedClient.value = false
+                        }
+                    ) {
+                        clients.value?.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(text = selectionOption.name.toString())
+                                },
+                                onClick = {
+                                    selectedOptionTextClient.value = selectionOption.name.toString()
+                                    expandedClient.value = false
+                                    clientOfDb.value = selectionOption
+                                }
+                            )
+                        }
+                    }
+                }
+
+
+            }
+
+//            var isErrorClient by rememberSaveable { mutableStateOf(false) }
+//            OutlinedTextField(
+//                colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
+//                isError = isErrorClient,
+//                modifier = Modifier.fillMaxWidth(),
+//                value = client,
+//                label = { Text("Клиент") },
+//                onValueChange = { newText -> client = newText },
+//                supportingText = null
+//            )
+
+
+//            fun validate(text: CharSequence) {
+//                isError = text.length > charLimit
+//            }
+            LaunchedEffect(Unit) {
+                // Run validation whenever text value changes
+                //snapshotFlow { state.text }.collect { validate(it) }
+            }
 
             /* Описание */
             var desc by remember { mutableStateOf("") }
@@ -110,9 +203,10 @@ fun AddOrderScreen(
             )
 
             /* Тип заказа */
-            val options = listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор","планшет","иное")
+            val options =
+                listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор", "планшет", "иное")
             var expanded by remember { mutableStateOf(false) }
-            var selectedOptionText by remember { mutableStateOf("") }
+            var selectedOptionTextTypeOrder by remember { mutableStateOf("") }
 
             ExposedDropdownMenuBox(
                 modifier = Modifier.padding(top = 10.dp),
@@ -124,10 +218,9 @@ fun AddOrderScreen(
                 OutlinedTextField(
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
-                    ,
+                        .fillMaxWidth(),
                     readOnly = true,
-                    value = selectedOptionText,
+                    value = selectedOptionTextTypeOrder,
                     onValueChange = { },
                     label = { Text("Тип заказа") },
                     trailingIcon = {
@@ -150,10 +243,10 @@ fun AddOrderScreen(
                     options.forEach { selectionOption ->
                         DropdownMenuItem(
                             text = {
-                                   Text(text = selectionOption)
+                                Text(text = selectionOption)
                             },
                             onClick = {
-                                selectedOptionText = selectionOption
+                                selectedOptionTextTypeOrder = selectionOption
                                 expanded = false
                             }
                         )
@@ -226,16 +319,14 @@ fun AddOrderScreen(
                     .fillMaxWidth()
                     .padding(top = 10.dp),
                 onClick = {
-                    if (client.isEmpty()) {
-                        isErrorClient = true
+                    if (selectedOptionTextClient.value.isEmpty()) {
                         sendToast("Поле клиент не может быть пустым!")
                     } else {
                         if (desc.isEmpty()) {
                             isErrorDesc = true
-                            isErrorClient = false
                             sendToast("Поле описание не может быть пустым!")
                         } else {
-                            if(selectedOptionText.isEmpty()){
+                            if (selectedOptionTextTypeOrder.isEmpty()) {
                                 sendToast("Поле типа заказа не может быть пустым!")
                             } else {
                                 if (model.isEmpty()) {
@@ -248,15 +339,15 @@ fun AddOrderScreen(
                                         isErrorModel = false
                                         sendToast("Поле цена запчастей не может быть пустым!")
                                     } else {
-                                        if (!Validate.isNumericToX(priceZ)){
+                                        if (!Validate.isNumericToX(priceZ)) {
                                             sendToast("Некорректное число! Повторите попытку.")
-                                        } else{
+                                        } else {
                                             if (price.isEmpty()) {
                                                 isErrorPrice = true
                                                 isErrorPriceZ = false
                                                 sendToast("Поле стоимость заказа не может быть пустым!")
                                             } else {
-                                                if(!Validate.isNumericToX(price)){
+                                                if (!Validate.isNumericToX(price)) {
                                                     sendToast("Некорректное число! Повторите попытку.")
                                                 } else {
                                                     if (comment.isEmpty()) {
@@ -268,18 +359,30 @@ fun AddOrderScreen(
                                                         val user = auth.currentUser
                                                         if (user != null) {
                                                             val userId = user.uid
-                                                            val idOrder = database.child("users").child(userId)
-                                                                .child("orders").push().key.toString()
+                                                            val idOrder = database.child("users")
+                                                                .child(userId)
+                                                                .child("orders")
+                                                                .push().key.toString()
                                                             val dateAdd = DateUtil.dateOfUnit
-                                                            val historyStep1 = HistoryStep(0, dateAdd, 2, "Заказ создан")
+                                                            val historyStep1 = HistoryStep(
+                                                                0,
+                                                                dateAdd,
+                                                                2,
+                                                                "Заказ создан"
+                                                            )
                                                             val history = listOf(historyStep1)
+                                                            val clientNew = Client(
+                                                                clientOfDb.value.id,
+                                                                clientOfDb.value.name,
+                                                                clientOfDb.value.phone
+                                                            )
                                                             val order = Order(
                                                                 id = idOrder,
-                                                                client = client,
+                                                                client = clientNew,
                                                                 dateAdd = dateAdd,
                                                                 dateClose = 0,
                                                                 description = desc,
-                                                                type = selectedOptionText,
+                                                                type = selectedOptionTextTypeOrder,
                                                                 model = model,
                                                                 priceZip = priceZ.toInt(),
                                                                 priceWork = price.toInt(),
@@ -287,7 +390,8 @@ fun AddOrderScreen(
                                                                 history = history,
                                                                 comment = comment,
                                                             )
-                                                            database.child("users").child(userId).child("orders")
+                                                            database.child("users").child(userId)
+                                                                .child("orders")
                                                                 .child(idOrder).setValue(order)
                                                         }
 

@@ -1,6 +1,7 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -30,10 +31,12 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -66,7 +69,6 @@ import com.alekseykostyunin.enot.domain.entities.HistoryStep
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
-import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -88,18 +90,15 @@ import java.util.concurrent.ExecutorService
 @Composable
 fun OneOrderScreen(
     navigationState: NavigationState,
-    mainViewModel: MainViewModel,
     ordersViewModel: OrdersViewModel,
     requestCameraPermission: () -> Unit,
     requestCallPhonePermission: () -> Unit,
-    cameraExecutor: ExecutorService
+    cameraExecutor: ExecutorService,
 ) {
     val activity = LocalContext.current as Activity
     var state by remember { mutableIntStateOf(0) }
     val order = ordersViewModel.order.observeAsState().value
-
     val shouldShowCamera = remember { mutableStateOf(false) }
-
     val outputDirectory: File = getOutputDirectory(activity)
 
     fun handleImageCapture(uri: Uri) {
@@ -112,13 +111,15 @@ fun OneOrderScreen(
     val openDialogStep = remember { mutableStateOf(false) }
     if (openDialogStep.value) {
         var descStep by remember { mutableStateOf("") }
-        var isErrorDescStep by rememberSaveable { mutableStateOf(false) }
-        Dialog(onDismissRequest = {openDialogStep.value = false }) {
+        val isErrorDescStep by rememberSaveable { mutableStateOf(false) }
+        Dialog(onDismissRequest = { openDialogStep.value = false }) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(26.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(26.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -260,106 +261,197 @@ fun OneOrderScreen(
                 ) {
                     Text(
                         text = "Закрыть заказ?",
+                        Modifier.padding(bottom = 12.dp),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Button(
+                        onClick = {
+                            val auth: FirebaseAuth = Firebase.auth
+                            val database = Firebase.database.reference
+                            val user = auth.currentUser
+                            if (user != null) {
+                                order?.let {
+                                    val userId = user.uid
+                                    val idOrder = order.id
+                                    val dateCloseOrder = DateUtil.dateOfUnit
+                                    val history = order.history?.toMutableList()
+                                    history?.let {
+                                        val oldHistoryStep = history.last().apply {
+                                            type = 1
+                                        }
+                                        val odlIdHistoryStep = oldHistoryStep.id
+
+                                        val newIdHistoryStep = odlIdHistoryStep.plus(1)
+                                        val newHistoryStep = HistoryStep(
+                                            newIdHistoryStep,
+                                            dateCloseOrder,
+                                            3,
+                                            "Заказ выполнен"
+                                        )
+                                        history.add(newHistoryStep)
+                                        Log.d("TEST_history", history.toString())
+                                    }
+
+                                    val orderUpdate = Order(
+                                        id = idOrder,
+                                        client = order.client,
+                                        dateAdd = order.dateAdd,
+                                        dateClose = dateCloseOrder,
+                                        description = order.description,
+                                        type = order.type,
+                                        model = order.model,
+                                        priceZip = order.priceZip,
+                                        priceWork = order.priceWork,
+                                        isWork = false,
+                                        history = history,
+                                        photos = order.photos,
+                                        comment = order.comment,
+                                    )
+
+                                    database
+                                        .child("users")
+                                        .child(userId)
+                                        .child("orders")
+                                        .child(idOrder!!)
+                                        .setValue(orderUpdate)
+
+                                    val dbNewOrderUpdate = database
+                                        .child("users")
+                                        .child(userId)
+                                        .child("orders")
+                                        .child(idOrder)
+
+                                    dbNewOrderUpdate.addValueEventListener(object :
+                                        ValueEventListener {
+                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                            val order2 = snapshot.getValue(Order::class.java)
+                                            if (order2 != null) {
+                                                Log.d(
+                                                    "TEST_snapshot_CloseOrder",
+                                                    order2.toString()
+                                                )
+                                                ordersViewModel.getOrderUser(order2)
+                                                openDialogCloseOrder.value = false
+                                            }
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                            Log.d("TEST_snapshot_error", error.message)
+                                        }
+                                    }
+                                    )
+                                    ordersViewModel.updateOrders()
+//                                        navigationState.navigateTo(Destinations.OneOrder.route)
+                                }
+
+                            }
+                        },
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                    ) {
+                        Text("Да")
+                    }
+                    Button(
+                        onClick = {
+                            openDialogCloseOrder.value = false
+                        },
+                        Modifier.fillMaxWidth()
+                    ) {
+                        Text("Нет")
+                    }
+                }
+            }
+        }
+    }
+
+    /* Окно об отсутствии номера телефона для звонка */
+    val openDialogNotNumberPhone = remember { mutableStateOf(false) }
+    if (openDialogNotNumberPhone.value) {
+        Dialog(
+            onDismissRequest = {
+                openDialogNotNumberPhone.value = false
+            }
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(22.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = "Отсутствует номер телефона",
                         fontSize = 18.sp, fontWeight = FontWeight.Bold,
                     )
-
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         Button(
                             onClick = {
-                                openDialogCloseOrder.value = false
+                                openDialogNotNumberPhone.value = false
                             },
-                            modifier = Modifier.padding(horizontal = 8.dp),
+                            modifier = Modifier.padding(end = 8.dp),
                         ) {
-                            Text("Нет")
+                            Text("Закрыть")
                         }
-                        Button(
-                            onClick = {
-                                val auth: FirebaseAuth = Firebase.auth
-                                val database = Firebase.database.reference
-                                val user = auth.currentUser
-                                if (user != null) {
-                                    order?.let {
-                                        val userId = user.uid
-                                        val idOrder = order.id
-                                        val dateCloseOrder = DateUtil.dateOfUnit
-                                        val history = order.history?.toMutableList()
-                                        history?.let {
-                                            val oldHistoryStep = history.last().apply {
-                                                type = 1
-                                            }
-                                            val odlIdHistoryStep = oldHistoryStep.id
+                    }
+                }
+            }
+        }
+    }
 
-                                            val newIdHistoryStep = odlIdHistoryStep.plus(1)
-                                            val newHistoryStep = HistoryStep(
-                                                newIdHistoryStep,
-                                                dateCloseOrder,
-                                                3,
-                                                "Заказ выполнен"
-                                            )
-                                            history.add(newHistoryStep)
-                                            Log.d("TEST_history", history.toString())
-                                        }
-
-                                        val orderUpdate = Order(
-                                            id = idOrder,
-                                            client = order.client,
-                                            dateAdd = order.dateAdd,
-                                            dateClose = dateCloseOrder,
-                                            description = order.description,
-                                            type = order.type,
-                                            model = order.model,
-                                            priceZip = order.priceZip,
-                                            priceWork = order.priceWork,
-                                            isWork = false,
-                                            history = history,
-                                            photos = order.photos,
-                                            comment = order.comment,
-                                        )
-
-                                        database
-                                            .child("users")
-                                            .child(userId)
-                                            .child("orders")
-                                            .child(idOrder!!)
-                                            .setValue(orderUpdate)
-
-                                        val dbNewOrderUpdate = database
-                                            .child("users")
-                                            .child(userId)
-                                            .child("orders")
-                                            .child(idOrder)
-
-                                        dbNewOrderUpdate.addValueEventListener(object :
-                                            ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                val order2 = snapshot.getValue(Order::class.java)
-                                                if (order2 != null) {
-                                                    Log.d(
-                                                        "TEST_snapshot_CloseOrder",
-                                                        order2.toString()
-                                                    )
-                                                    ordersViewModel.getOrderUser(order2)
-                                                    openDialogCloseOrder.value = false
-                                                }
-                                            }
-
-                                            override fun onCancelled(error: DatabaseError) {
-                                                Log.d("TEST_snapshot_error", error.message)
-                                            }
-                                        }
-                                        )
-                                        ordersViewModel.updateOrders()
-//                                        navigationState.navigateTo(Destinations.OneOrder.route)
-                                    }
-
+    /* Диалог выбор номера телефона */
+    val openDialogSelectNumberPhone = remember { mutableStateOf(false) }
+    if (openDialogSelectNumberPhone.value) {
+        Dialog(
+            onDismissRequest = {
+                openDialogSelectNumberPhone.value = false
+            }
+        ) {
+            OutlinedCard {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(26.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    if (order != null) {
+                        Text(
+                            text = "Позвонить по номеру",
+                            fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                        )
+                        for (oneNumberPhone in order.client?.phone!!) {
+                            ElevatedCard(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_CALL)
+                                    intent.data = Uri.parse("tel:$oneNumberPhone")
+                                    activity.startActivity(intent)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    Text(
+                                        oneNumberPhone,
+                                        Modifier.align(Alignment.Center),
+                                        fontSize = 18.sp
+                                    )
                                 }
-                            },
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                        ) {
-                            Text("Да")
+                            }
                         }
                     }
                 }
@@ -376,6 +468,15 @@ fun OneOrderScreen(
                     Button(
                         onClick = {
                             requestCallPhonePermission()
+                            if (order != null) {
+                                if (order.client?.phone != null) {
+                                    if (order.client.phone!![0] == "нет номера телефона") {
+                                        openDialogNotNumberPhone.value = true
+                                    } else {
+                                        openDialogSelectNumberPhone.value = true
+                                    }
+                                }
+                            }
                         },
                         elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
                     ) {
@@ -387,8 +488,7 @@ fun OneOrderScreen(
                         Text(text = "Позвонить клиенту")
                     }
                 }
-            }
-            else if (state == 1) {
+            } else if (state == 1) {
                 if (order?.isWork == true) {
                     Column {
                         Button(
@@ -408,7 +508,7 @@ fun OneOrderScreen(
                 }
             } else if (state == 2) {
                 Column {
-                    if (!shouldShowCamera.value && order?.isWork == true){
+                    if (!shouldShowCamera.value && order?.isWork == true) {
                         Button(
                             onClick = {
                                 requestCameraPermission()
@@ -428,7 +528,6 @@ fun OneOrderScreen(
                 }
             }
         },
-
         content = { innerPadding ->
             if (shouldShowCamera.value) {
                 CameraView(
@@ -487,7 +586,9 @@ fun OneOrderScreen(
                             else Color.Green
                             IconButton(
                                 onClick = {
-                                    if (order?.isWork == true) {openDialogCloseOrder.value = true}
+                                    if (order?.isWork == true) {
+                                        openDialogCloseOrder.value = true
+                                    }
                                 }
                             ) {
                                 Icon(
@@ -508,7 +609,7 @@ fun OneOrderScreen(
                                             Text(
                                                 text = title,
                                                 maxLines = 1,
-                                                fontSize = 18.sp
+                                                fontSize = 16.sp
                                             )
                                         }
                                     )
@@ -516,12 +617,16 @@ fun OneOrderScreen(
                             }
 
                             if (order != null) {
-                                if (state == 0) {
-                                    DescOrder(order)
-                                } else if (state == 1) {
-                                    HistoryOrder(order)
-                                } else if (state == 2) {
-                                    PhotosOrder(order, ordersViewModel)
+                                when (state) {
+                                    0 -> {
+                                        DescOrder(order)
+                                    }
+                                    1 -> {
+                                        HistoryOrder(order)
+                                    }
+                                    2 -> {
+                                        PhotosOrder(order, ordersViewModel)
+                                    }
                                 }
                             }
 
@@ -554,7 +659,7 @@ fun DescOrder(order: Order) {
                 fontSize = 18.sp
             )
             Text(
-                text = order.client.toString(),
+                text = order.client?.name.toString(),
                 fontSize = 18.sp
             )
         }
@@ -679,21 +784,19 @@ fun HistoryOrder(order: Order) {
 }
 
 @Composable
-fun VerticalEventContent(item: HistoryStep,  modifier: Modifier = Modifier) {
+fun VerticalEventContent(item: HistoryStep, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
     ) {
-        item.time?.let {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(12.dp),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                text = DateUtil.dateFormatterHHmm(it)
-            )
-        }
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(12.dp),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            text = DateUtil.dateFormatterHHmm(item.time)
+        )
         item.text?.let {
             Text(
                 modifier = Modifier
@@ -713,7 +816,7 @@ fun PhotosOrder(
     order: Order,
     ordersViewModel: OrdersViewModel
 ) {
-    if(order.photos == null){
+    if (order.photos == null) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -731,7 +834,7 @@ fun PhotosOrder(
         val uriFullPhoto = ordersViewModel.urlPhoto.observeAsState("").value
         if (openDialogFullPhoto.value) {
             Dialog(
-                onDismissRequest = {openDialogFullPhoto.value = false},
+                onDismissRequest = { openDialogFullPhoto.value = false },
                 properties = DialogProperties(usePlatformDefaultWidth = false)
             ) {
                 AsyncImage(
@@ -757,7 +860,7 @@ fun PhotosOrder(
                 content = {
                     items(
                         items = photos,
-                        key = { it.url.toString()}
+                        key = { it.url.toString() }
                     ) { photo ->
                         AsyncImage(
                             model = photo.url,

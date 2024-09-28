@@ -60,7 +60,6 @@ fun AllOrdersScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel
 ) {
-    //val scope = rememberCoroutineScope()
     val state = ordersViewModel.state.observeAsState(State.Initial)
     val orders0 = ordersViewModel.orders.observeAsState(listOf())
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -94,7 +93,7 @@ fun AllOrdersScreen(
                     contentDescription = null,
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(text = "Создать")
+                Text("Создать заказ")
             }
         },
         content = { innerPadding ->
@@ -104,9 +103,7 @@ fun AllOrdersScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                Column(
-                    
-                ) {
+                Column {
                     if (state.value == State.Loading) {
                         ProgressIndicator()
                     } else {
@@ -119,8 +116,7 @@ fun AllOrdersScreen(
                                 textAlign = TextAlign.Center ) }
                         } else {
                             Row(
-                                modifier = Modifier
-                                    .padding(start = 15.dp, end = 15.dp)
+                                modifier = Modifier.padding(16.dp)
                             ) {
                                 SingleChoiceSegmentedButtonRow(
                                     modifier = Modifier
@@ -175,7 +171,7 @@ fun GetOneOrderListOrders(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 15.dp, start = 15.dp, end = 15.dp)
+            .padding(start = 15.dp, end = 15.dp, bottom = 15.dp)
             .clickable {
                 viewModel.getOrderUser(order)
                 navigationState.navigateTo(Destinations.OneOrder.route)
@@ -207,7 +203,7 @@ fun GetOneOrderListOrders(
                     color = Color.White
                 )
                 Text(
-                    text = order.client.toString(),
+                    text = order.client?.name.toString(),
                     color = Color.White
                 )
             }

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,17 +24,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.Logout
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.PrivacyTip
-import androidx.compose.material.icons.sharp.Logout
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,9 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -60,135 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.startActivity
-import androidx.navigation.ActivityNavigator
 import com.alekseykostyunin.enot.R
-import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
-import com.alekseykostyunin.enot.data.utils.DateUtil
-import com.alekseykostyunin.enot.domain.entities.HistoryStep
-import com.alekseykostyunin.enot.domain.entities.Order
-import com.alekseykostyunin.enot.domain.repository.UsersRepository
-import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 
 @Composable
 fun UserScreen(
-    onClickButtonSighOut: () -> Unit
-) {
-    val repository: UsersRepository = UsersRepositoryImpl
-    val singOutUserUseCase = SingOutUserUseCase(repository)
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Column {
-            val auth: FirebaseAuth = Firebase.auth
-            val user = auth.currentUser
-            val email = user?.email.toString()
-            val useruid = user?.uid.toString()
-            Row {
-                Text(
-                    text = "E-mail: ",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = email,
-                    fontSize = 24.sp,
-                )
-            }
-            Row {
-                Text(
-                    text = "User uid: ",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = useruid,
-                    fontSize = 24.sp,
-                )
-            }
-
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
-                onClick = {
-                    singOutUserUseCase.singOutUser()
-                    onClickButtonSighOut()
-                }
-            ) {
-                Text(text = "Выйти из приложения")
-            }
-
-        }
-
-    }
-}
-
-@Composable
-fun UserScreen2(
-    onClickButtonSighOut: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Column {
-            val auth: FirebaseAuth = Firebase.auth
-            val user = auth.currentUser
-            val email = user?.email.toString()
-            val useruid = user?.uid.toString()
-            Row {
-                Text(
-                    text = "E-mail: ",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = email,
-                    fontSize = 24.sp,
-                )
-            }
-            Row {
-                Text(
-                    text = "User uid: ",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = useruid,
-                    fontSize = 24.sp,
-                )
-            }
-
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
-                onClick = {
-                    onClickButtonSighOut()
-                }
-            ) {
-                Text(text = "Выйти из приложения")
-            }
-
-        }
-
-    }
-}
-
-@Composable
-fun UserScreen3(
     navigationState: NavigationState,
     onClickButtonSighOut: () -> Unit,
 //    onGitHubClick: () -> Unit,
@@ -213,7 +81,7 @@ fun UserScreen3(
         toContact = false
     }
 
-    Box(Modifier.fillMaxSize()){
+    Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             Card(
                 modifier = Modifier
@@ -222,7 +90,7 @@ fun UserScreen3(
                     .padding(top = 16.dp, start = 16.dp, end = 16.dp),
                 //colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primaryContainer)
             ) {
-                Row (
+                Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(16.dp)
                 ) {
@@ -261,7 +129,7 @@ fun UserScreen3(
                         verticalArrangement = Arrangement.Center
                     ) {
                         IconButton(
-                            onClick = {  },
+                            onClick = { },
                             modifier = Modifier
                                 .size(70.dp)
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
@@ -278,7 +146,7 @@ fun UserScreen3(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         IconButton(
-                            onClick = {  },
+                            onClick = { },
                             modifier = Modifier
                                 .size(70.dp)
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
@@ -298,12 +166,13 @@ fun UserScreen3(
             // Политика конфиденциальности
             Row {
                 ListItem(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    modifier = Modifier
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
                             //navigationState.navigateTo(Destinations.PrivacyPolicy.route)
-                            navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route){
-                                popUpTo(Destinations.User.route){
+                            navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route) {
+                                popUpTo(Destinations.User.route) {
                                     saveState = true
                                 }
                             }
@@ -312,71 +181,82 @@ fun UserScreen3(
                         Text(
                             text = stringResource(R.string.privacy_policy),
                             style = MaterialTheme.typography.titleMedium
-                        ) },
+                        )
+                    },
                     supportingContent = {
                         Text(
                             text = stringResource(R.string.click_here_to_view_our_privacy_policy),
                             style = MaterialTheme.typography.bodySmall
-                        ) },
+                        )
+                    },
                     trailingContent = {},
                     leadingContent = {
                         Icon(
                             Icons.Outlined.PrivacyTip,
                             contentDescription = stringResource(R.string.privacy_policy),
                             tint = MaterialTheme.colorScheme.primary
-                        ) },
+                        )
+                    },
                     tonalElevation = 5.dp
                 )
             }
             // Контакт
             Row {
                 ListItem(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    modifier = Modifier
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .clickable { toContact = true},
+                        .clickable { toContact = true },
                     headlineContent = {
                         Text(
                             text = stringResource(R.string.contact),
                             style = MaterialTheme.typography.titleMedium
-                        ) },
+                        )
+                    },
                     supportingContent = {
                         Text(
                             text = stringResource(R.string.contact_the_author_by_email),
                             style = MaterialTheme.typography.bodySmall
-                        ) },
+                        )
+                    },
                     trailingContent = {},
                     leadingContent = {
                         Icon(
                             Icons.Outlined.Email,
                             contentDescription = stringResource(R.string.contact),
                             tint = MaterialTheme.colorScheme.primary
-                        ) },
+                        )
+                    },
                     tonalElevation = 5.dp
                 )
             }
             // Выход
             Row {
                 ListItem(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    modifier = Modifier
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .clickable { openDialogSignOut.value = true },
                     headlineContent = {
                         Text(
                             text = stringResource(R.string.signOut),
                             style = MaterialTheme.typography.titleMedium
-                        ) },
+                        )
+                    },
                     supportingContent = {
                         Text(
                             text = stringResource(R.string.click_here_to_view_signOut),
                             style = MaterialTheme.typography.bodySmall
-                        ) },
+                        )
+                    },
                     trailingContent = {},
                     leadingContent = {
                         Icon(
                             Icons.AutoMirrored.Sharp.Logout,
                             contentDescription = stringResource(R.string.privacy_policy),
                             tint = MaterialTheme.colorScheme.primary
-                        ) },
+                        )
+                    },
                     tonalElevation = 5.dp
                 )
             }
@@ -406,7 +286,8 @@ fun UserScreen3(
                     )
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth().padding(top = 16.dp),
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         Button(

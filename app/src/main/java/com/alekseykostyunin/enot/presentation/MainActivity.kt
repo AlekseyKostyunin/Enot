@@ -1,8 +1,7 @@
 package com.alekseykostyunin.enot.presentation
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -11,7 +10,6 @@ import android.provider.ContactsContract
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -24,12 +22,11 @@ import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-
 class MainActivity : ComponentActivity() {
 
-    private val mainViewModel : MainViewModel by viewModels()
-    val ordersViewModel: OrdersViewModel by viewModels()
-    val clientsViewModel: ClientsViewModel by viewModels()
+    private val mainViewModel: MainViewModel by viewModels()
+    private val ordersViewModel: OrdersViewModel by viewModels()
+    private val clientsViewModel: ClientsViewModel by viewModels()
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
     private val launcherCamera = registerForActivityResult(
@@ -112,54 +109,64 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.CALL_PHONE
             ) -> Log.i("EST_call_phone_permission", "Permission call phone previously not granted")
 
-            else -> launcherContact.launch(Manifest.permission.CALL_PHONE)
+            else -> launcherCallPhone.launch(Manifest.permission.CALL_PHONE)
         }
     }
 
-    private val getContact = registerForActivityResult(ActivityResultContracts.PickContact()) { uri: Uri? ->
-        if (uri != null) {
-            val contactProjection = arrayOf(
-                ContactsContract.Contacts._ID,
-                ContactsContract.Contacts.DISPLAY_NAME,
-                ContactsContract.Contacts.HAS_PHONE_NUMBER
-            )
-            val phoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
-            val phoneProjection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
-            val phoneSelection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=?"
-            var numbers = ""
-            contentResolver.query(uri, contactProjection, null, null, null)?.use {
-                    cursor ->
-                val idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID)
-                val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
-                val hasPhoneIndex = cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
-                if (cursor.moveToFirst()) {
-                    val id = cursor.getString(idIndex)
-                    val name = cursor.getString(nameIndex)
-                    val hasPhone = cursor.getInt(hasPhoneIndex) > 0
-                    if (hasPhone) {
-                        val contactId = cursor.getString(idIndex)
-                        contentResolver.query(
-                            phoneUri,
-                            phoneProjection,
-                            phoneSelection,
-                            arrayOf(contactId),
-                            null
-                        )?.use { phoneCursor ->
-                            val numberIndex = phoneCursor.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER
-                            )
-                            while (phoneCursor.moveToNext()) {
-                                numbers = numbers + phoneCursor.getString(numberIndex) + " "
+    private val getContact =
+        registerForActivityResult(ActivityResultContracts.PickContact()) { uri: Uri? ->
+            if (uri != null) {
+                val contactProjection = arrayOf(
+                    ContactsContract.Contacts._ID,
+                    ContactsContract.Contacts.DISPLAY_NAME,
+                    ContactsContract.Contacts.HAS_PHONE_NUMBER
+                )
+                val phoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+                val phoneProjection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val phoneSelection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=?"
+                val phone = mutableListOf<String>()
+                contentResolver.query(uri, contactProjection, null, null, null)?.use { cursor ->
+                    val idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID)
+                    val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                    val hasPhoneIndex =
+                        cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+                    if (cursor.moveToFirst()) {
+                        val id = cursor.getString(idIndex)
+                        val name = cursor.getString(nameIndex)
+                        val hasPhone = cursor.getInt(hasPhoneIndex) > 0
+                        if (hasPhone) {
+                            val contactId = cursor.getString(idIndex)
+                            contentResolver.query(
+                                phoneUri,
+                                phoneProjection,
+                                phoneSelection,
+                                arrayOf(contactId),
+                                null
+                            )?.use { phoneCursor ->
+                                val numberIndex = phoneCursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                                )
+                                while (phoneCursor.moveToNext()) {
+                                    phone.add(phoneCursor.getString(numberIndex))
+                                }
                             }
+                        } else {
+                            phone.add("нет номера телефона")
                         }
-                    } else {
-                        numbers = "нет номера телефона"
+                        Log.i(
+                            "TEST_contact",
+                            "ID: $id, Name: $name, hasPhone: $hasPhoneIndex, Number: $phone"
+                        )
+                        clientsViewModel.addClient(name, phone)
                     }
-                    Log.i("TEST_contact", "ID: $id, Name: $name, hasPhone: $hasPhoneIndex, Number: $numbers")
-                    clientsViewModel.addClient(id, name, numbers)
                 }
             }
         }
+
+    private fun callClient(phoneNumber: String) {
+        val intent = Intent(Intent.ACTION_CALL)
+        intent.data = Uri.parse("tel:$phoneNumber")
+        startActivity(intent)
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
@@ -176,6 +183,7 @@ class MainActivity : ComponentActivity() {
                 { requestCallPhonePermission() },
                 cameraExecutor,
                 getContact = { getContact.launch(null) },
+                //{ callClient(phoneNumber: String) }
             )
         }
     }
@@ -183,28 +191,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
-    }
-
-    @SuppressLint("Range")
-    fun getContactNameAndPhone(context: Context, contactUri: Uri) {
-        val cursor = context.contentResolver.query(contactUri, null, null, null, null)
-
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val name = it.getString(it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
-                val id = it.getString(it.getColumnIndex(ContactsContract.Contacts._ID))
-
-                val phones = context.contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
-                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + id, null, null)
-
-                phones?.use {
-                    while (it.moveToNext()) {
-                        val phoneNumber = it.getString(it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
-                        Log.d("Contact", "Name: $name, Phone: $phoneNumber")
-                    }
-                }
-            }
-        }
     }
 
 }

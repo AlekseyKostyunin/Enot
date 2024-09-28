@@ -137,7 +137,6 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun getAllOrdersUser() {
         _state.value = State.Loading
-        //delay(2000)
         val auth: FirebaseAuth = Firebase.auth
         val database = Firebase.database.reference
         val user = auth.currentUser
@@ -157,13 +156,9 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
                     _orders.value = ordersRevers
                     val countActiveOrders = ordersDB.filter { it.isWork }.size
                     _countActiveOrders.value = countActiveOrders
-//                    _countNotActiveOrders.value = ordersDB.filter {
-//                        !it.isWork
-//                    }.size
                     _state.value = State.Success
                     Log.d("TEST_snapshot_countActiveOrders", _countActiveOrders.value.toString())
                 }
-
                 override fun onCancelled(error: DatabaseError) {
                     Log.d("TEST_snapshot_error", error.message)
                 }
@@ -174,5 +169,69 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
     fun getOrderUser(order: Order) {
         _order.value = order
     }
+
+    // Раздел для экрана аналитики заказов
+    private var _ordersForAnalytics = MutableLiveData<List<Order>>(listOf())
+    var ordersForAnalytics: LiveData<List<Order>> = _ordersForAnalytics
+
+    private var _priceZip = MutableLiveData<Int>(0)
+    var priceZip: LiveData<Int> = _priceZip
+
+    private var _profit = MutableLiveData<Int>(0)
+    var profit: LiveData<Int> = _profit
+
+    private var _countAllOrdersAsPeriod = MutableLiveData<Int>(0)
+    var countAllOrdersAsPeriod: LiveData<Int> = _countAllOrdersAsPeriod
+
+    private var _countActiveOrdersForPeriod = MutableLiveData<Int>(0)
+    var countActiveOrdersForPeriod: LiveData<Int> = _countActiveOrdersForPeriod
+
+    private var _countClosedOrdersForPeriod = MutableLiveData<Int>(0)
+    var countClosedOrdersForPeriod: LiveData<Int> = _countClosedOrdersForPeriod
+
+    private var _dataPriceZip = MutableLiveData<List<Float>>(listOf())
+    var dataPriceZip: LiveData<List<Float>> = _dataPriceZip
+
+    private var _dataProfit = MutableLiveData<List<Float>>(listOf())
+    var dataProfit: LiveData<List<Float>> = _dataProfit
+
+    fun getOrdersForAnalytics(dateStart: Long, dateEnd: Long) {
+        _orders.value?.let {
+            val ordersSort: List<Order>? = _orders.value?.filter { order ->
+                order.dateAdd in dateStart..dateEnd
+            }?.reversed()
+            if (ordersSort == null){
+                _countAllOrdersAsPeriod.value = 0
+            } else {
+                _ordersForAnalytics.value = ordersSort.toMutableList()
+                _countAllOrdersAsPeriod.value = ordersSort.size
+                _countActiveOrdersForPeriod.value = ordersSort.filter { order -> order.isWork }.size
+                _countClosedOrdersForPeriod.value = ordersSort.filter { order ->!order.isWork }.size
+                _priceZip.value = ordersSort.sumOf { order -> order.priceZip }
+                _profit.value = ordersSort.sumOf { order -> order.priceWork }
+
+                val preDataPriceZip = mutableListOf<Float>()
+                val preDataProfit = mutableListOf<Float>()
+                for (order in ordersSort) {
+                    preDataPriceZip.add(order.priceZip.toFloat())
+                    preDataProfit.add(order.priceWork.toFloat())
+                }
+                _dataPriceZip.value = preDataPriceZip
+                _dataProfit.value = preDataProfit
+            }
+        }
+    }
+
+    // Заказы одного клиента
+    private var _oneClientAllOrders = MutableLiveData<List<Order>>(listOf())
+    var oneClientAllOrders: LiveData<List<Order>> = _oneClientAllOrders
+
+    fun getOneClientAllOrdersOnId(idClient: String) {
+        _orders.value?.let {
+            _oneClientAllOrders.value = it.filter { order -> order.client?.id == idClient }
+        }
+    }
+
+
 
 }

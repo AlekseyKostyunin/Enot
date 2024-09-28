@@ -3,7 +3,6 @@ package com.alekseykostyunin.enot.presentation.screens
 import android.annotation.SuppressLint
 import android.os.Build
 import android.text.Layout
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,9 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.alekseykostyunin.enot.data.utils.DateUtil.Companion.dateFormatter
-import com.alekseykostyunin.enot.domain.entities.Order
-import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.ui.theme.chartColorsChartPrize
+import com.alekseykostyunin.enot.ui.theme.columnColorsChartCountOrders
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisGuidelineComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
@@ -75,6 +74,7 @@ import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
 import com.patrykandpatrick.vico.core.cartesian.Insets
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
@@ -92,51 +92,44 @@ import com.patrykandpatrick.vico.core.common.copyColor
 import com.patrykandpatrick.vico.core.common.shape.Corner
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import me.bytebeats.views.charts.line.LineChartData
-import kotlin.random.Random
+
+private const val LABEL_BACKGROUND_SHADOW_RADIUS_DP = 4f
+private const val LABEL_BACKGROUND_SHADOW_DY_DP = 2f
+private const val CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER = 1.4f
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsScreen(
-    ordersViewModel: OrdersViewModel,
-    clientsViewModel: ClientsViewModel
+    ordersViewModel: OrdersViewModel
 ) {
+    ordersViewModel.updateOrders()
     val currentDate = System.currentTimeMillis()
     val weerAgo = (currentDate / 1000 - (60 * 60 * 24 * 7)) * 1000
-    val monthAgo = (currentDate / 1000 - (60 * 60 * 24 * 30)) * 1000
-    val sixMonthAgo = (currentDate / 1000 - (60 * 60 * 24 * 180)) * 1000
+    val monthAgo = (currentDate / 1000 - (60 * 60 * 24 * 31)) * 1000
+    val sixMonthAgo = (currentDate / 1000 - (60 * 60 * 24 * 184)) * 1000
     val yearAgo = (currentDate / 1000 - (60 * 60 * 24 * 365)) * 1000
+
+    val stateDateRangePicker = rememberDateRangePickerState()
+    val stateLabelPeriod = rememberSaveable { mutableStateOf("неделю") }
     val dateStart = rememberSaveable { mutableLongStateOf(weerAgo) }
     val dateEnd = rememberSaveable { mutableLongStateOf(currentDate) }
     val openDialogPeriod = rememberSaveable { mutableStateOf(false) }
     val openDialogDate = rememberSaveable { mutableStateOf(false) }
-    val stateDateRangePicker = rememberDateRangePickerState()
-    val stateLabelPeriod = rememberSaveable { mutableStateOf("неделю") }
-    val orders = ordersViewModel.orders.observeAsState(listOf())
-    val ordersSort: List<Order> = orders.value.filter { order ->
-        order.dateAdd >= dateStart.longValue && order.dateAdd <= dateEnd.longValue
-    }.reversed()
-    val countAllOrdersAsPeriod = ordersSort.size.toString()
-    val data = mutableListOf<LineChartData.Point>().apply {
-        if (ordersSort.isNotEmpty()) {
-            for (order in ordersSort) {
-                add(LineChartData.Point(order.priceWork.toFloat(), order.dateAdd.toString()))
-            }
-        }
-    }
-    val prizeZ = ordersSort.sumOf { it.priceZip   }
-    val profit = ordersSort.sumOf { it.priceWork  }
-    val countActiveOrders = ordersSort.count { it.isWork }
-    val countClosedOrders = ordersSort.count { !it.isWork }
 
-    Log.d("TEST_AnalyticsScreen", "Orders: $ordersSort")
-    Log.d("TEST_AnalyticsScreen", "countAllOrders: $countAllOrdersAsPeriod")
-    Log.d("TEST_AnalyticsScreen", "countActiveOrders: $countActiveOrders")
-    Log.d("TEST_AnalyticsScreen", "countClosedOrders: $countClosedOrders")
+    val ordersForAnalytics = ordersViewModel.ordersForAnalytics.observeAsState()
+    val priceZ = ordersViewModel.priceZip.observeAsState(0)
+    val profit = ordersViewModel.profit.observeAsState(0)
+    val countAllOrdersAsPeriod = ordersViewModel.countAllOrdersAsPeriod.observeAsState(0)
+    val countActiveOrdersForPeriod = ordersViewModel.countActiveOrdersForPeriod.observeAsState(0)
+    val countClosedOrdersForPeriod = ordersViewModel.countClosedOrdersForPeriod.observeAsState(0)
+    val dataPriceZip = ordersViewModel.dataPriceZip.observeAsState(listOf())
+    val dataProfit = ordersViewModel.dataProfit.observeAsState(listOf())
+
+    if (ordersForAnalytics.value.isNullOrEmpty()) {
+        ordersViewModel.getOrdersForAnalytics(dateStart.longValue, dateEnd.longValue)
+    }
 
     Box(
         modifier = Modifier
@@ -145,12 +138,11 @@ fun AnalyticsScreen(
     ) {
         Column {
             Row(
-                modifier = Modifier.padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     "Данные за",
-                    Modifier.padding(end = 6.dp),
+                    Modifier.padding(end = 8.dp),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -171,11 +163,13 @@ fun AnalyticsScreen(
             Row(modifier = Modifier.padding(bottom = 8.dp)) {
                 Text(
                     "${dateFormatter(dateStart.longValue)} - ${dateFormatter(dateEnd.longValue)}",
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
 
-            if (ordersSort.isEmpty()) {
+            if (countAllOrdersAsPeriod.value == 0) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -188,37 +182,30 @@ fun AnalyticsScreen(
                 }
             } else {
                 Column(
-                    modifier = Modifier.fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Text("Количество заказов: $countAllOrdersAsPeriod", fontSize = 16.sp)
-                    Text("Расходы на запчасти: $prizeZ руб.", fontSize = 16.sp)
-                    Text("Прибыль: $profit руб.", fontSize = 16.sp)
+                    Text("Количество заказов: ${countAllOrdersAsPeriod.value}", fontSize = 16.sp)
+                    Text("Расходы на запчасти: ${priceZ.value} руб.", fontSize = 16.sp)
+                    Text("Прибыль: ${profit.value} руб.", fontSize = 16.sp)
 
                     // График запчасти и стоимость
                     Row(modifier = Modifier.fillMaxSize()) {
                         val modelProducer = remember { CartesianChartModelProducer() }
                         LaunchedEffect(Unit) {
                             withContext(Dispatchers.Default) {
-                                while (isActive) {
-                                    modelProducer.runTransaction {
-                                        lineSeries {
-                                            repeat(Defaults.MULTI_SERIES_COUNT) {
-                                                series(
-                                                    List(Defaults.ENTRY_COUNT) {
-                                                        Defaults.COLUMN_LAYER_MIN_Y +
-                                                                Random.nextFloat() * Defaults.COLUMN_LAYER_RELATIVE_MAX_Y
-                                                    }
-                                                )
-                                            }
-                                        }
+                                modelProducer.runTransaction {
+                                    lineSeries {
+                                        series(dataPriceZip.value)
+                                        series(dataProfit.value)
                                     }
-                                    delay(Defaults.TRANSACTION_INTERVAL_MS)
                                 }
                             }
                         }
                         ChartPrize(modelProducer = modelProducer, modifier = Modifier)
                     }
+
                     Row(
                         Modifier
                             .padding(vertical = 18.dp)
@@ -232,21 +219,13 @@ fun AnalyticsScreen(
                         val modelProducer2 = remember { CartesianChartModelProducer() }
                         LaunchedEffect(Unit) {
                             withContext(Dispatchers.Default) {
-                                while (isActive) {
-                                    modelProducer2.runTransaction {
-                                        columnSeries {
-                                            repeat(3) {
-                                                series(
-                                                    List(1) {
-                                                        Defaults.COLUMN_LAYER_MIN_Y +
-                                                                Random.nextFloat() * Defaults.COLUMN_LAYER_RELATIVE_MAX_Y
-                                                    }
-                                                )
-                                            }
-                                        }
-                                        lineSeries { series(List(1) { Random.nextFloat() * Defaults.MAX_Y }) }
+
+                                modelProducer2.runTransaction {
+                                    columnSeries {
+                                        series(countAllOrdersAsPeriod.value.toLong())
+                                        series(countActiveOrdersForPeriod.value.toLong())
+                                        series(countClosedOrdersForPeriod.value.toLong())
                                     }
-                                    delay(Defaults.TRANSACTION_INTERVAL_MS)
                                 }
                             }
                         }
@@ -276,6 +255,11 @@ fun AnalyticsScreen(
                             openDialogPeriod.value = false
                             stateLabelPeriod.value = "неделю"
                             dateStart.longValue = weerAgo
+                            dateEnd.longValue = currentDate
+                            ordersViewModel.getOrdersForAnalytics(
+                                dateStart.longValue,
+                                dateEnd.longValue
+                            )
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -294,6 +278,11 @@ fun AnalyticsScreen(
                             openDialogPeriod.value = false
                             stateLabelPeriod.value = "месяц"
                             dateStart.longValue = monthAgo
+                            dateEnd.longValue = currentDate
+                            ordersViewModel.getOrdersForAnalytics(
+                                dateStart.longValue,
+                                dateEnd.longValue
+                            )
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -310,6 +299,11 @@ fun AnalyticsScreen(
                             openDialogPeriod.value = false
                             stateLabelPeriod.value = "полгода"
                             dateStart.longValue = sixMonthAgo
+                            dateEnd.longValue = currentDate
+                            ordersViewModel.getOrdersForAnalytics(
+                                dateStart.longValue,
+                                dateEnd.longValue
+                            )
                         },
                         Modifier
                             .fillMaxWidth()
@@ -328,6 +322,11 @@ fun AnalyticsScreen(
                             openDialogPeriod.value = false
                             stateLabelPeriod.value = "год"
                             dateStart.longValue = yearAgo
+                            dateEnd.longValue = currentDate
+                            ordersViewModel.getOrdersForAnalytics(
+                                dateStart.longValue,
+                                dateEnd.longValue
+                            )
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -379,6 +378,10 @@ fun AnalyticsScreen(
                             dateStart.longValue = stateDateRangePicker.selectedStartDateMillis!!
                             dateEnd.longValue = stateDateRangePicker.selectedEndDateMillis!!
                             stateLabelPeriod.value = "период:"
+                            ordersViewModel.getOrdersForAnalytics(
+                                dateStart.longValue,
+                                dateEnd.longValue
+                            )
                         } else {
                             stateLabelPeriod.value = "период не выбран"
                         }
@@ -400,7 +403,6 @@ fun AnalyticsScreen(
             )
         }
     }
-
 }
 
 @Composable
@@ -419,7 +421,14 @@ fun ChartPrize(modelProducer: CartesianChartModelProducer, modifier: Modifier) {
                 )
             ),
             startAxis = rememberStartAxis(),
-            bottomAxis = rememberBottomAxis(),
+            bottomAxis = rememberBottomAxis(
+                //valueFormatter = CartesianValueFormatter { x, chartValues, _ ->
+                //val xToDateMapKey = ExtraStore.Key<Map<Float, Long>>()
+                //hartValues.model.extraStore.
+                //dateFormatter(chartValues.model.extraStore[x])
+                //}
+
+            ),
             marker = rememberMarker(),
             legend = rememberLegendChartPrize(),
         ),
@@ -462,19 +471,20 @@ private fun ChartCountOrders(modelProducer: CartesianChartModelProducer, modifie
                 columnProvider =
                 ColumnCartesianLayer.ColumnProvider.series(
                     columnColorsChartCountOrders.map { color ->
-                        rememberLineComponent(color = color, thickness = 8.dp, shape = Shape.rounded(2.dp))
+                        rememberLineComponent(
+                            color = color,
+                            thickness = 8.dp,
+                            shape = Shape.rounded(2.dp)
+                        )
                     }
                 )
             ),
-            rememberLineCartesianLayer(
-                LineCartesianLayer.LineProvider.series(
-                    rememberLine(
-                        remember { LineCartesianLayer.LineFill.single(fill(Color(0xffa485e0))) }
-                    )
-                )
+            startAxis = rememberStartAxis(
+
             ),
-            startAxis = rememberStartAxis(),
-            bottomAxis = rememberBottomAxis(guideline = null),
+            bottomAxis = rememberBottomAxis(
+                valueFormatter = CartesianValueFormatter { x, _, _ -> "" }
+            ),
             marker = marker,
             legend = rememberLegendChartCountOrders()
         ),
@@ -506,9 +516,6 @@ private fun rememberLegendChartCountOrders(): Legend<CartesianMeasuringContext, 
         padding = Dimensions.of(top = 8.dp)
     )
 }
-
-private val chartColorsChartPrize = listOf(Color.Red, Color.Green)
-private val columnColorsChartCountOrders = listOf(Color(0xff916cda), Color(0xffd877d8), Color(0xfff094bb))
 
 @Composable
 internal fun rememberMarker(
@@ -604,17 +611,4 @@ internal fun rememberMarker(
             }
         }
     }
-}
-
-private const val LABEL_BACKGROUND_SHADOW_RADIUS_DP = 4f
-private const val LABEL_BACKGROUND_SHADOW_DY_DP = 2f
-private const val CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER = 1.4f
-
-object Defaults {
-    const val TRANSACTION_INTERVAL_MS = 3_000L
-    const val MULTI_SERIES_COUNT = 2
-    const val ENTRY_COUNT = 30
-    const val MAX_Y = 5_000
-    const val COLUMN_LAYER_MIN_Y = 100
-    const val COLUMN_LAYER_RELATIVE_MAX_Y = MAX_Y - COLUMN_LAYER_MIN_Y
 }

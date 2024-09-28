@@ -1,7 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,12 +32,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alekseykostyunin.enot.data.utils.DateUtil
+import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
@@ -57,19 +55,12 @@ fun EditOrderScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel
 ) {
-    val context = LocalContext.current
     val order = ordersViewModel.order.observeAsState().value
-    //val order = orderLD.value
-
-    fun sendToast(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-    }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
-
     ) {
         Column {
             Row {
@@ -89,16 +80,17 @@ fun EditOrderScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-//            var client by remember { mutableStateOf("") }
-            var client by remember { mutableStateOf(order?.client) }
+            /* Имя клиента */
+            //var client by remember { mutableStateOf("") }
+            var nameClient by remember { mutableStateOf(order?.client?.name) }
             var isErrorClient by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                 isError = isErrorClient,
                 modifier = Modifier.fillMaxWidth(),
-                value = client ?: "",
+                value = nameClient ?: "",
                 label = { Text("Клиент") },
-                onValueChange = { newText -> client = newText },
+                onValueChange = { newText -> nameClient = newText },
             )
 
             /* Описание */
@@ -120,7 +112,6 @@ fun EditOrderScreen(
                 listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор", "планшет", "иное")
             var expanded by remember { mutableStateOf(false) }
             var selectedOptionText by remember { mutableStateOf(order?.type) }
-
             ExposedDropdownMenuBox(
                 modifier = Modifier.padding(top = 10.dp),
                 expanded = expanded,
@@ -236,14 +227,18 @@ fun EditOrderScreen(
                     val auth: FirebaseAuth = Firebase.auth
                     val database = Firebase.database.reference
                     val user = auth.currentUser
-
+                    val editClient = Client(
+                        id = order?.client?.id,
+                        name = nameClient,
+                        phone = order?.client?.phone
+                    )
                     if (user != null) {
                         val userId = user.uid
                         val idOrder = order?.id
                         idOrder?.let {
                             val orderUpdate = Order(
                                 id = idOrder,
-                                client = client,
+                                client = editClient,
                                 dateAdd = order.dateAdd,
                                 dateClose = 0,
                                 description = desc,
@@ -278,6 +273,7 @@ fun EditOrderScreen(
                                         ordersViewModel.getOrderUser(order2)
                                     }
                                 }
+
                                 override fun onCancelled(error: DatabaseError) {
                                     Log.d("TEST_snapshot_error", error.message)
                                 }
