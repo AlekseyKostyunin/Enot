@@ -5,9 +5,8 @@ import com.alekseykostyunin.enot.domain.repository.UsersRepository
 
 object UsersRepositoryImpl : UsersRepository {
 
-
-    override fun authUser(email: String, password: String) {
-        MyFirebaseAuth.auth(email,password)
+    override fun signInWithEmailAndPassword(email: String, password: String) {
+        MyFirebaseAuth.signInWithEmailAndPassword(email,password)
     }
 
     override fun currentUser() : Boolean {

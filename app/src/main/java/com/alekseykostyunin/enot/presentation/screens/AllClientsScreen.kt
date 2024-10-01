@@ -20,36 +20,28 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.domain.entities.Client
-import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.State
+import com.alekseykostyunin.enot.ui.theme.Purple40
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllClientsScreen(
     navigationState: NavigationState,
@@ -61,7 +53,8 @@ fun AllClientsScreen(
     val clients = clientsViewModel.clients.observeAsState(listOf())
     val context = LocalContext.current
     fun sendToast(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()}
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
     if (state.value is State.Error) {
         sendToast((state.value as State.Error).textError)
         clientsViewModel.resetState()
@@ -82,43 +75,42 @@ fun AllClientsScreen(
                     contentDescription = null,
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(text = "Добавить клиента")
+                Text(text = stringResource(R.string.add_client))
             }
         },
         content = { innerPadding ->
-            Box(Modifier
-                .background(Color.White)
-                .fillMaxSize()
-                .padding(innerPadding)
+            Box(
+                Modifier
+                    .background(Color.White)
+                    .fillMaxSize()
+                    .padding(innerPadding)
             ) {
                 Column {
-//                    if (state.value == State.Loading) {
-//                        ProgressIndicator()
-//                    } else {
-                        Column {
-                            if (clients.value.isEmpty()) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) { Text("Здесь будут отображаться все клиенты",
-                                    textAlign = TextAlign.Center ) }
-                            } else {
-                                LazyColumn {
-                                    items(
-                                        items = clients.value,
-                                        key = { it.id.toString()},
-                                    ) {
-                                        GetOneClient(
-                                            it,
-                                            navigationState,
-                                            clientsViewModel
-                                        )
-                                    }
-                                }
+                    if (clients.value.isEmpty()) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                stringResource(R.string.here_all_clients),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        LazyColumn {
+                            items(
+                                items = clients.value,
+                                key = { it.id.toString() },
+                            ) {
+                                GetOneClient(
+                                    it,
+                                    navigationState,
+                                    clientsViewModel
+                                )
                             }
                         }
-                    //}
+                    }
                 }
             }
         }
@@ -131,12 +123,6 @@ fun GetOneClient(
     navigationState: NavigationState,
     clientsViewModel: ClientsViewModel,
 ) {
-    val gradient = Brush.horizontalGradient(
-        0.0f to Color(0xFF04293A),
-        1.0f to Color(0xFF781D42),
-        startX = 1000.0f,
-        endX = 0.0f
-    )
     client?.let {
         ElevatedCard(
             modifier = Modifier
@@ -152,7 +138,7 @@ fun GetOneClient(
         ) {
             Column(
                 modifier = Modifier
-                    .background(gradient)
+                    .background(Purple40)
                     .padding(15.dp)
             ) {
                 Row(

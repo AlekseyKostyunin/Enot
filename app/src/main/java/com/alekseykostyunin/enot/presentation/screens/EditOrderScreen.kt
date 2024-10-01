@@ -32,10 +32,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
@@ -74,28 +76,26 @@ fun EditOrderScreen(
                     )
                 }
                 Text(
-                    text = "Редактирование заказа:",
+                    text = stringResource(R.string.edit_order),
                     fontSize = 20.sp,
                     modifier = Modifier.padding(vertical = 10.dp),
                     fontWeight = FontWeight.Bold
                 )
             }
-            /* Имя клиента */
-            //var client by remember { mutableStateOf("") }
+
             var nameClient by remember { mutableStateOf(order?.client?.name) }
-            var isErrorClient by rememberSaveable { mutableStateOf(false) }
+            val isErrorClient by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                 isError = isErrorClient,
                 modifier = Modifier.fillMaxWidth(),
                 value = nameClient ?: "",
-                label = { Text("Клиент") },
+                label = { Text(stringResource(R.string.client)) },
                 onValueChange = { newText -> nameClient = newText },
             )
 
-            /* Описание */
             var desc by remember { mutableStateOf(order?.description) }
-            var isErrorDesc by rememberSaveable { mutableStateOf(false) }
+            val isErrorDesc by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                 isError = isErrorDesc,
@@ -103,13 +103,17 @@ fun EditOrderScreen(
                     .fillMaxWidth()
                     .padding(top = 10.dp),
                 value = desc ?: "",
-                label = { Text("Описание заказа") },
+                label = { Text(stringResource(R.string.desc_order)) },
                 onValueChange = { newText -> desc = newText },
             )
 
-            /* Тип заказа */
             val options =
-                listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор", "планшет", "иное")
+                listOf(stringResource(R.string.mobile_phone),
+                    stringResource(R.string.computer),
+                    stringResource(R.string.nootbook),
+                    stringResource(R.string.television),
+                    stringResource(R.string.tablet),
+                    stringResource(R.string.other))
             var expanded by remember { mutableStateOf(false) }
             var selectedOptionText by remember { mutableStateOf(order?.type) }
             ExposedDropdownMenuBox(
@@ -126,7 +130,7 @@ fun EditOrderScreen(
                     readOnly = true,
                     value = selectedOptionText ?: "",
                     onValueChange = { },
-                    label = { Text("Тип заказа") },
+                    label = { Text(stringResource(R.string.type_order)) },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = expanded
@@ -158,66 +162,61 @@ fun EditOrderScreen(
                 }
             }
 
-            /* Модель */
             var model by remember { mutableStateOf(order?.model) }
-            var isErrorModel by rememberSaveable { mutableStateOf(false) }
+            val isErrorModel by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
                     colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                     isError = isErrorModel,
                     modifier = Modifier.fillMaxWidth(),
                     value = model ?: "",
-                    label = { Text("Модель") },
+                    label = { Text(stringResource(R.string.model)) },
                     onValueChange = { newText -> model = newText },
                 )
             }
 
-            /* Цена запчастей */
             var priceZ by remember { mutableStateOf(order?.priceZip.toString()) }
-            var isErrorPriceZ by rememberSaveable { mutableStateOf(false) }
+            val isErrorPriceZ by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
                     colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                     isError = isErrorPriceZ,
                     modifier = Modifier.fillMaxWidth(),
                     value = priceZ,
-                    label = { Text("Цена запчастей") },
+                    label = { Text(stringResource(R.string.price_zip)) },
                     onValueChange = { newText -> priceZ = newText },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
 
-            /* Стоимость заказа */
             var price by remember { mutableStateOf(order?.priceWork.toString()) }
-            var isErrorPrice by rememberSaveable { mutableStateOf(false) }
+            val isErrorPrice by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
                     colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                     isError = isErrorPrice,
                     modifier = Modifier.fillMaxWidth(),
                     value = price,
-                    label = { Text("Стоимость заказа") },
+                    label = { Text(stringResource(R.string.price_order2)) },
                     onValueChange = { newText -> price = newText },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
 
-            /* Комментарий */
             var comment by remember { mutableStateOf(order?.comment ?: "") }
-            var isErrorComment by rememberSaveable { mutableStateOf(false) }
+            val isErrorComment by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
                     colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                     isError = isErrorComment,
                     modifier = Modifier.fillMaxWidth(),
                     value = comment,
-                    label = { Text("Коментарий") },
+                    label = { Text(stringResource(R.string.comment)) },
                     onValueChange = { newText -> comment = newText },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
 
-            /* Кнопка "Сохранить изменения" */
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -285,7 +284,7 @@ fun EditOrderScreen(
                     }
                 }
             ) {
-                Text(text = "Сохранить изменения")
+                Text(stringResource(R.string.save_changes))
             }
         }
     }

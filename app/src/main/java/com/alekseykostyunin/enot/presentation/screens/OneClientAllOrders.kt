@@ -33,11 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
@@ -53,6 +55,7 @@ fun OneClientAllOrdersScreen(
     clientsViewModel: ClientsViewModel,
     requestCallPhonePermission: () -> Unit,
 ) {
+    val context = LocalContext.current
     val activity = LocalContext.current as Activity
     val state = clientsViewModel.state.observeAsState(State.Initial)
     val client by clientsViewModel.client.observeAsState(Client())
@@ -109,7 +112,7 @@ fun OneClientAllOrdersScreen(
                     onClick = {
                         requestCallPhonePermission()
                         if (client.phone != null) {
-                            if (client.phone!![0] == "нет номера телефона") {
+                            if (client.phone!![0] == context.getString(R.string.not_number_phone)) {
                                 openDialogNotNumberPhone.value = true
                             } else {
                                 openDialogSelectNumberPhone.value = true
@@ -134,7 +137,7 @@ fun OneClientAllOrdersScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            "Отсутствуют заказы по данному клиенту",
+                            stringResource(R.string.not_orders_of_this_client),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -173,7 +176,7 @@ fun OneClientAllOrdersScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Отсутствует номер телефона",
+                        text = stringResource(R.string.not_number_phone2),
                         fontSize = 18.sp, fontWeight = FontWeight.Bold,
                     )
                     Row(
@@ -188,7 +191,7 @@ fun OneClientAllOrdersScreen(
                             },
                             modifier = Modifier.padding(end = 8.dp),
                         ) {
-                            Text("Закрыть")
+                            Text(stringResource(R.string.close))
                         }
                     }
                 }
@@ -211,7 +214,7 @@ fun OneClientAllOrdersScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Позвонить по номеру",
+                        text = stringResource(R.string.call_of_phone),
                         fontSize = 18.sp, fontWeight = FontWeight.Bold,
                     )
                     for (oneNumberPhone in client.phone!!) {

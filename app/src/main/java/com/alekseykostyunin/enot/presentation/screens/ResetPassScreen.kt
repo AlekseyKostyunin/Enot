@@ -13,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,14 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.R
-import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.data.utils.Validate
-import com.alekseykostyunin.enot.domain.repository.UsersRepository
-import com.alekseykostyunin.enot.domain.usecase.users.ResetPasswordUseCase
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.google.firebase.auth.FirebaseAuth
@@ -42,12 +39,11 @@ import com.google.firebase.ktx.Firebase
 
 @Composable
 fun ResetPasswordScreen(
-    navigationState: NavigationState,
-    snackBarHostState: SnackbarHostState
+    navigationState: NavigationState
 ) {
     val context = LocalContext.current
-    fun sendToast(message: String){
-        Toast.makeText(context,message,Toast.LENGTH_LONG).show()
+    fun sendToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
     Column(
         modifier = Modifier
@@ -62,7 +58,7 @@ fun ResetPasswordScreen(
             contentDescription = null
         )
         Text(
-            text = "Восстановление пароля",
+            text = stringResource(R.string.recover_password2),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -76,41 +72,37 @@ fun ResetPasswordScreen(
             label = { Text("E-mail") },
             onValueChange = { newText -> email.value = newText },
         )
-        val repository: UsersRepository = UsersRepositoryImpl
-        val resetPasswordUseCase = ResetPasswordUseCase(repository)
 
         ElevatedButton(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
             onClick = {
-                if (email.value.isEmpty()){
+                if (email.value.isEmpty()) {
                     isErrorEmail = true
-                    sendToast("Поле e-mail не может быть пустым!")
-                }
-                else {
+                    sendToast(context.getString(R.string.error_email_not_empty))
+                } else {
                     val isValidEmail = Validate.isEmailValid(email.value)
-                    if (!isValidEmail){
+                    if (!isValidEmail) {
                         isErrorEmail = true
-                        sendToast("Некорректный e-mail. Повторите попытку!")
-                    }
-                    else {
+                        sendToast(context.getString(R.string.error_incorrect_email_try_again))
+                    } else {
                         isErrorEmail = false
                         val auth: FirebaseAuth = Firebase.auth
                         auth.sendPasswordResetEmail(email.value)
                             .addOnSuccessListener {
                                 Log.d("TEST_1", "yes $it")
-                                sendToast("Письмо с инструкцией направлено на указанный e-mail.")
+                                sendToast(context.getString(R.string.e_mail_instrictions_send))
                                 navigationState.navigateTo(Destinations.Authorisation.route)
                             }.addOnFailureListener {
                                 Log.d("TEST_1", "not" + it.message)
-                                sendToast("Неизвестная ошибка. Обратитесь в техподдержку.")
+                                sendToast(context.getString(R.string.unknown_error))
                                 navigationState.navigateTo(Destinations.Authorisation.route)
                             }
                     }
                 }
             }
         ) {
-            Text(text = "Восстановить пароль")
+            Text(stringResource(R.string.recover_password))
         }
     }
 }

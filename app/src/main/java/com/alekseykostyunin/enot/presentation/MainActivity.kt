@@ -1,7 +1,6 @@
 package com.alekseykostyunin.enot.presentation
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -15,6 +14,7 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.presentation.navigation.StartNavigation
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
@@ -151,7 +151,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         } else {
-                            phone.add("нет номера телефона")
+                            phone.add(getString(R.string.not_number_phone))
                         }
                         Log.i(
                             "TEST_contact",
@@ -163,16 +163,9 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-    private fun callClient(phoneNumber: String) {
-        val intent = Intent(Intent.ACTION_CALL)
-        intent.data = Uri.parse("tel:$phoneNumber")
-        startActivity(intent)
-    }
-
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContent {
             StartNavigation(
                 mainViewModel,
@@ -183,7 +176,6 @@ class MainActivity : ComponentActivity() {
                 { requestCallPhonePermission() },
                 cameraExecutor,
                 getContact = { getContact.launch(null) },
-                //{ callClient(phoneNumber: String) }
             )
         }
     }

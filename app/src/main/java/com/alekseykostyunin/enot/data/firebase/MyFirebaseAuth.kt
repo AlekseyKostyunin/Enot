@@ -1,7 +1,6 @@
 package com.alekseykostyunin.enot.data.firebase
 
 import android.util.Log
-import com.alekseykostyunin.enot.App
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -23,9 +22,9 @@ object MyFirebaseAuth {
         }
     }
 
-    fun auth(email: String, password: String) {
+    fun signInWithEmailAndPassword(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener() { task ->
+            .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("TEST_sign", "signInWithEmail:success")
                     val user = auth.currentUser

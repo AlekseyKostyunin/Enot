@@ -28,9 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
@@ -71,38 +73,39 @@ fun EditClientScreen(
                     )
                 }
                 Text(
-                    text = "Редактирование клиента:",
+                    text = stringResource(R.string.edit_client),
                     fontSize = 20.sp,
                     modifier = Modifier.padding(vertical = 10.dp),
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            /* Имя клиента */
             var nameClient by remember { mutableStateOf(client?.name ?: "") }
-            var isErrorNameClient by rememberSaveable { mutableStateOf(false) }
+            val isErrorNameClient by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                 isError = isErrorNameClient,
                 modifier = Modifier.fillMaxWidth(),
                 value = nameClient,
-                label = { Text("Имя клиента") },
+                label = { Text(stringResource(R.string.name_client)) },
                 onValueChange = { newText -> nameClient = newText }
             )
 
-            /* Телефон(ы) клиента */
             var phoneClient by remember { mutableStateOf(client?.phone?.joinToString(", ") ?: "") }
-            var isErrorPhoneClient by rememberSaveable { mutableStateOf(false) }
+            val isErrorPhoneClient by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
                 isError = isErrorPhoneClient,
-                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
                 value = phoneClient,
-                label = { Text("Телефон клиента") },
+                label = { Text(stringResource(R.string.phones_client)) },
                 onValueChange = { newText -> phoneClient = newText }
             )
 
-            /* Кнопка "Сохранить изменения" */
+            Text(stringResource(R.string.phone_separated), Modifier.padding(vertical = 10.dp))
+
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -156,10 +159,8 @@ fun EditClientScreen(
                     }
                 }
             ) {
-                Text(text = "Сохранить изменения")
+                Text(text = stringResource(R.string.save_changes))
             }
-
-
         }
 
     }

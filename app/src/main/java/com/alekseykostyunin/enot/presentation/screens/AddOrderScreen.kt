@@ -1,7 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +13,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,7 +26,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,13 +33,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.entities.Client
@@ -66,7 +63,6 @@ fun AddOrderScreen(
 ) {
     clientsViewModel.updateClients()
     val clientOfDb = remember { mutableStateOf(Client()) }
-
     val context = LocalContext.current
     fun sendToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
@@ -91,17 +87,16 @@ fun AddOrderScreen(
                     )
                 }
                 Text(
-                    text = "Добавление заказа:",
+                    text = stringResource(R.string.add_order),
                     fontSize = 20.sp,
                     modifier = Modifier.padding(vertical = 10.dp),
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            /* Клиент */
-            var expandedClient = remember { mutableStateOf(false) }
+            val expandedClient = remember { mutableStateOf(false) }
             val clients = clientsViewModel.clients
-            var selectedOptionTextClient = remember { mutableStateOf("") }
+            val selectedOptionTextClient = remember { mutableStateOf("") }
             if (clients.value?.isEmpty() == true) {
                 OutlinedCard(
                     modifier = Modifier
@@ -111,7 +106,7 @@ fun AddOrderScreen(
                         }
                 ) {
                     Text(
-                        text = "Добавьте первого клиента",
+                        text = stringResource(R.string.mess_add_first_client),
                         modifier = Modifier.padding(18.dp),
                         fontSize = 16.sp,
                     )
@@ -132,7 +127,7 @@ fun AddOrderScreen(
                         readOnly = true,
                         value = selectedOptionTextClient.value,
                         onValueChange = { },
-                        label = { Text("Клиент") },
+                        label = { Text(stringResource(R.string.client)) },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(
                                 expanded = expandedClient.value
@@ -164,31 +159,8 @@ fun AddOrderScreen(
                         }
                     }
                 }
-
-
             }
 
-//            var isErrorClient by rememberSaveable { mutableStateOf(false) }
-//            OutlinedTextField(
-//                colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
-//                isError = isErrorClient,
-//                modifier = Modifier.fillMaxWidth(),
-//                value = client,
-//                label = { Text("Клиент") },
-//                onValueChange = { newText -> client = newText },
-//                supportingText = null
-//            )
-
-
-//            fun validate(text: CharSequence) {
-//                isError = text.length > charLimit
-//            }
-            LaunchedEffect(Unit) {
-                // Run validation whenever text value changes
-                //snapshotFlow { state.text }.collect { validate(it) }
-            }
-
-            /* Описание */
             var desc by remember { mutableStateOf("") }
             var isErrorDesc by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
@@ -198,13 +170,19 @@ fun AddOrderScreen(
                     .fillMaxWidth()
                     .padding(top = 10.dp),
                 value = desc,
-                label = { Text("Описание заказа") },
+                label = { Text(stringResource(R.string.desc_order)) },
                 onValueChange = { newText -> desc = newText },
             )
 
-            /* Тип заказа */
             val options =
-                listOf("сотовый телефон", "компьютер", "ноутбук", "телевизор", "планшет", "иное")
+                listOf(
+                    stringResource(R.string.mobile_phone),
+                    stringResource(R.string.computer),
+                    stringResource(R.string.nootbook),
+                    stringResource(R.string.television),
+                    stringResource(R.string.tablet),
+                    stringResource(R.string.other)
+                )
             var expanded by remember { mutableStateOf(false) }
             var selectedOptionTextTypeOrder by remember { mutableStateOf("") }
 
@@ -222,7 +200,7 @@ fun AddOrderScreen(
                     readOnly = true,
                     value = selectedOptionTextTypeOrder,
                     onValueChange = { },
-                    label = { Text("Тип заказа") },
+                    label = { Text(stringResource(R.string.type_order)) },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = expanded
@@ -254,8 +232,6 @@ fun AddOrderScreen(
                 }
             }
 
-
-            /* Модель */
             var model by remember { mutableStateOf("") }
             var isErrorModel by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
@@ -264,12 +240,11 @@ fun AddOrderScreen(
                     isError = isErrorModel,
                     modifier = Modifier.fillMaxWidth(),
                     value = model,
-                    label = { Text("Модель") },
+                    label = { Text(stringResource(R.string.model)) },
                     onValueChange = { newText -> model = newText },
                 )
             }
 
-            /* Цена запчастей */
             var priceZ by remember { mutableStateOf("") }
             var isErrorPriceZ by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
@@ -278,13 +253,12 @@ fun AddOrderScreen(
                     isError = isErrorPriceZ,
                     modifier = Modifier.fillMaxWidth(),
                     value = priceZ,
-                    label = { Text("Цена запчастей") },
+                    label = { Text(stringResource(R.string.price_zip)) },
                     onValueChange = { newText -> priceZ = newText },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
 
-            /* Стоимость заказа */
             var price by remember { mutableStateOf("") }
             var isErrorPrice by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
@@ -293,67 +267,66 @@ fun AddOrderScreen(
                     isError = isErrorPrice,
                     modifier = Modifier.fillMaxWidth(),
                     value = price,
-                    label = { Text("Стоимость заказа") },
+                    label = { Text(stringResource(R.string.price_order2)) },
                     onValueChange = { newText -> price = newText },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
 
-            /* Комментарий */
             var comment by remember { mutableStateOf("") }
-            var isErrorComent by rememberSaveable { mutableStateOf(false) }
+            var isErrorComment by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
                     colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
-                    isError = isErrorComent,
+                    isError = isErrorComment,
                     modifier = Modifier.fillMaxWidth(),
                     value = comment,
-                    label = { Text("Коментарий") },
+                    label = { Text(stringResource(R.string.comment)) },
                     onValueChange = { newText -> comment = newText },
                 )
             }
 
-            /* Кнопка "Добавить" */
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp),
                 onClick = {
                     if (selectedOptionTextClient.value.isEmpty()) {
-                        sendToast("Поле клиент не может быть пустым!")
+                        sendToast(context.getString(R.string.error_client_not_empty))
                     } else {
                         if (desc.isEmpty()) {
                             isErrorDesc = true
-                            sendToast("Поле описание не может быть пустым!")
+                            sendToast(context.getString(R.string.error_dest_not_empty))
                         } else {
                             if (selectedOptionTextTypeOrder.isEmpty()) {
-                                sendToast("Поле типа заказа не может быть пустым!")
+                                sendToast(context.getString(R.string.error_type_order_not_empty))
                             } else {
                                 if (model.isEmpty()) {
                                     isErrorModel = true
                                     isErrorDesc = false
-                                    sendToast("Поле модель не может быть пустым!")
+                                    sendToast(context.getString(R.string.error_model_not_empty))
                                 } else {
                                     if (priceZ.isEmpty()) {
                                         isErrorPriceZ = true
                                         isErrorModel = false
-                                        sendToast("Поле цена запчастей не может быть пустым!")
+                                        sendToast(context.getString(R.string.error_priceZ_not_empty))
                                     } else {
                                         if (!Validate.isNumericToX(priceZ)) {
-                                            sendToast("Некорректное число! Повторите попытку.")
+                                            sendToast(context.getString(R.string.error_incorrect_number_try_again))
                                         } else {
                                             if (price.isEmpty()) {
                                                 isErrorPrice = true
                                                 isErrorPriceZ = false
-                                                sendToast("Поле стоимость заказа не может быть пустым!")
+                                                sendToast(context.getString(R.string.error_price_not_empty))
                                             } else {
                                                 if (!Validate.isNumericToX(price)) {
-                                                    sendToast("Некорректное число! Повторите попытку.")
+                                                    sendToast(context.getString(R.string.error_incorrect_number_try_again))
                                                 } else {
                                                     if (comment.isEmpty()) {
-                                                        isErrorComent = true
-                                                        sendToast("Поле комментарий не может быть пустым!")
+                                                        isErrorComment = true
+                                                        sendToast(context.getString(R.string.error_comment_not_empty))
                                                     } else {
+
                                                         val auth: FirebaseAuth = Firebase.auth
                                                         val database = Firebase.database.reference
                                                         val user = auth.currentUser
@@ -410,7 +383,7 @@ fun AddOrderScreen(
                     }
                 }
             ) {
-                Text(text = "Добавить")
+                Text(stringResource(R.string.add))
             }
         }
     }

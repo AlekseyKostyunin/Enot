@@ -1,9 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
@@ -39,20 +35,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
+import com.alekseykostyunin.enot.presentation.general.Circle
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.State
+import com.alekseykostyunin.enot.ui.theme.Purple40
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +60,11 @@ fun AllOrdersScreen(
     val state = ordersViewModel.state.observeAsState(State.Initial)
     val orders0 = ordersViewModel.orders.observeAsState(listOf())
     var selectedIndex by remember { mutableIntStateOf(0) }
-    val options = listOf("Активные", "Закрытые", "Все")
+    val options = listOf(
+        stringResource(R.string.active),
+        stringResource(R.string.closed),
+        stringResource(R.string.all)
+    )
     val orders = when (selectedIndex) {
         0 -> {
             orders0.value.filter { it.isWork }
@@ -93,7 +94,7 @@ fun AllOrdersScreen(
                     contentDescription = null,
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Создать заказ")
+                Text(stringResource(R.string.create_order))
             }
         },
         content = { innerPadding ->
@@ -112,16 +113,17 @@ fun AllOrdersScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
-                            ) { Text("Здесь будут отображаться все заказы",
-                                textAlign = TextAlign.Center ) }
+                            ) {
+                                Text(
+                                    stringResource(R.string.here_all_orders),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         } else {
                             Row(
                                 modifier = Modifier.padding(16.dp)
                             ) {
-                                SingleChoiceSegmentedButtonRow(
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                ) {
+                                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                                     options.forEachIndexed { index, label ->
                                         SegmentedButton(
                                             shape = SegmentedButtonDefaults.itemShape(
@@ -130,6 +132,7 @@ fun AllOrdersScreen(
                                             ),
                                             onClick = { selectedIndex = index },
                                             selected = index == selectedIndex,
+
                                         ) {
                                             Text(label)
                                         }
@@ -162,12 +165,6 @@ fun GetOneOrderListOrders(
     viewModel: OrdersViewModel,
     navigationState: NavigationState,
 ) {
-    val gradient = Brush.horizontalGradient(
-        0.0f to Color(0xFF04293A),
-        1.0f to Color(0xFF781D42),
-        startX = 1000.0f,
-        endX = 0.0f
-    )
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,7 +177,7 @@ fun GetOneOrderListOrders(
     ) {
         Column(
             modifier = Modifier
-                .background(gradient)
+                .background(Purple40)
                 .padding(15.dp)
         ) {
             Row(
@@ -189,16 +186,15 @@ fun GetOneOrderListOrders(
             ) {
                 val dt = DateUtil.dateFormatter(order.dateAdd.toString())
                 Text(
-                    text = "Заказ от: $dt",
+                    text = stringResource(R.string.order_from, dt),
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
                 Circle(color = if (order.isWork) Color.Red else Color.Green)
             }
-
             Row {
                 Text(
-                    text = "Клиент: ",
+                    text = stringResource(R.string.client_),
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
@@ -207,10 +203,9 @@ fun GetOneOrderListOrders(
                     color = Color.White
                 )
             }
-
             Row {
                 Text(
-                    text = "Описание: ",
+                    text = stringResource(R.string.desc_),
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
@@ -219,10 +214,9 @@ fun GetOneOrderListOrders(
                     color = Color.White
                 )
             }
-
             Row {
                 Text(
-                    text = "Тип заказа: ",
+                    text = stringResource(R.string.type_orders_),
                     fontWeight = FontWeight.Bold, color = Color.White
                 )
                 Text(
@@ -232,30 +226,15 @@ fun GetOneOrderListOrders(
             }
             Row {
                 Text(
-                    text = "Стоимость заказа: ",
+                    text = stringResource(R.string.price_order),
                     fontWeight = FontWeight.Bold, color = Color.White
                 )
                 Text(
-                    text = order.priceWork.toString() + " руб.",
+                    text = order.priceWork.toString() + stringResource(R.string._rub),
                     color = Color.White
                 )
             }
         }
 
     }
-}
-
-@SuppressLint("UnnecessaryComposedModifier")
-@Composable
-fun Circle(
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier.composed {
-            size(12.dp)
-                .clip(CircleShape)
-                .background(color)
-        }
-    )
 }

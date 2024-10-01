@@ -8,20 +8,18 @@ import androidx.navigation.compose.rememberNavController
 
 class NavigationState(
     val navHostController: NavHostController
-){
-    fun navigateTo(route: String){
+) {
+    fun navigateTo(route: String) {
         navHostController.navigate(route) {
-            popUpTo(navHostController.graph.findStartDestination().id) {// будут удалены все экраны до стартового
-            //popUpTo(navHostController.graph.startDestinationId) {// будут удалены все экраны до стартового
-            //popUpTo(navHostController.graph.last().id){
-                saveState = true // было при удалении экранов из бекстека их стейт будет сохранен
+            popUpTo(navHostController.graph.findStartDestination().id) {
+                saveState = true
             }
-            launchSingleTop = true // хранить только верхний последний стейт экрана, не хранить дублирование
-            restoreState = true // при возрате на этот экран восстановить стейт этого экрана
+            launchSingleTop = true
+            restoreState = true
         }
     }
 }
 
 @Composable
 fun rememberNavigationState(navHostController: NavHostController = rememberNavController())
-: NavigationState = remember { NavigationState(navHostController) }
+        : NavigationState = remember { NavigationState(navHostController) }

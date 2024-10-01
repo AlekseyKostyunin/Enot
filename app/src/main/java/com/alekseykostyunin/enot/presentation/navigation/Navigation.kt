@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -36,6 +37,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navigation
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.presentation.screens.AddOrderScreen
 import com.alekseykostyunin.enot.presentation.screens.AllClientsScreen
 import com.alekseykostyunin.enot.presentation.screens.AllOrdersScreen
@@ -52,6 +54,7 @@ import com.alekseykostyunin.enot.presentation.screens.UserScreen
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.ui.theme.Purple40
 import java.util.concurrent.ExecutorService
 
 @RequiresApi(Build.VERSION_CODES.R)
@@ -101,14 +104,12 @@ fun StartNavigation(
                 },
                 regScreenContent = {
                     RegScreen(
-                        navigationState,
-                        snackBarHostState
+                        navigationState
                     )
                 },
                 resetScreenContent = {
                     ResetPasswordScreen(
-                        navigationState,
-                        snackBarHostState
+                        navigationState
                     )
                 },
                 allOrdersScreenContent = {
@@ -127,7 +128,6 @@ fun StartNavigation(
                     )
                 },
                 oneOrderScreenContent = {
-                    //ordersViewModel.showBottomBar()
                     OneOrderScreen(
                         navigationState,
                         ordersViewModel,
@@ -201,6 +201,7 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
         Destinations.Analytics,
         Destinations.User
     )
+    val context = LocalContext.current
     NavigationBar(
         containerColor = Color.White,
 
@@ -210,7 +211,6 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
             val selected = navBackStackEntry?.destination?.hierarchy?.any {
                 it.route == screen.route
             } ?: false
-
             NavigationBarItem(
                 label = { Text(text = screen.title!!) },
                 icon = {
@@ -218,14 +218,17 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
                         BadgedBox(
                             badge = {
                                 Badge(
-                                    containerColor = Color.Red,
+                                    containerColor = Purple40,
                                     contentColor = Color.White
                                 ) {
                                     val badgeNumber = countActiveOrders.value.toString()
                                     Text(
                                         badgeNumber,
                                         modifier = Modifier.semantics {
-                                            contentDescription = "$badgeNumber активных заказов"
+                                            contentDescription = context.getString(
+                                                R.string.desc_active_orders,
+                                                badgeNumber
+                                            )
                                         }
                                     )
                                 }
@@ -246,15 +249,9 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
-                            //popUpTo(navController.graph.last().id){
-                            // будут удалены все экраны до стартового
-                            // popUpTo(navController.graph.startDestinationId) {
-                            // при удалении экранов из бекстека их стейт будет сохранен
                             saveState = true
                         }
-//                        // хранить только верхний последний стейт экрана, не хранить дублирование
                         launchSingleTop = true
-//                        // при возрате на этот экран восстановить стейт этого экрана
                         restoreState = true
                     }
                 },
@@ -264,7 +261,7 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
                     unselectedIconColor = Color.Gray,
                     selectedIconColor = Color(0xFF04293A)
                 ),
-                alwaysShowLabel = true // скрывает имя экрана
+                alwaysShowLabel = true
             )
         }
     }

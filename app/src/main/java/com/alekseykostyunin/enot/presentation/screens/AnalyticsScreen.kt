@@ -35,18 +35,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil.Companion.dateFormatter
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.ui.theme.PurpleGrey80
 import com.alekseykostyunin.enot.ui.theme.chartColorsChartPrize
 import com.alekseykostyunin.enot.ui.theme.columnColorsChartCountOrders
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisGuidelineComponent
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
@@ -72,9 +77,9 @@ import com.patrykandpatrick.vico.core.cartesian.CartesianDrawingContext
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
 import com.patrykandpatrick.vico.core.cartesian.Insets
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
@@ -105,6 +110,7 @@ fun AnalyticsScreen(
     ordersViewModel: OrdersViewModel
 ) {
     ordersViewModel.updateOrders()
+    val context = LocalContext.current
     val currentDate = System.currentTimeMillis()
     val weerAgo = (currentDate / 1000 - (60 * 60 * 24 * 7)) * 1000
     val monthAgo = (currentDate / 1000 - (60 * 60 * 24 * 31)) * 1000
@@ -112,7 +118,7 @@ fun AnalyticsScreen(
     val yearAgo = (currentDate / 1000 - (60 * 60 * 24 * 365)) * 1000
 
     val stateDateRangePicker = rememberDateRangePickerState()
-    val stateLabelPeriod = rememberSaveable { mutableStateOf("неделю") }
+    val stateLabelPeriod = rememberSaveable { mutableStateOf(context.getString(R.string.week)) }
     val dateStart = rememberSaveable { mutableLongStateOf(weerAgo) }
     val dateEnd = rememberSaveable { mutableLongStateOf(currentDate) }
     val openDialogPeriod = rememberSaveable { mutableStateOf(false) }
@@ -141,7 +147,7 @@ fun AnalyticsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Данные за",
+                    stringResource(R.string.data_for),
                     Modifier.padding(end = 8.dp),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -168,7 +174,6 @@ fun AnalyticsScreen(
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
-
             if (countAllOrdersAsPeriod.value == 0) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -176,7 +181,7 @@ fun AnalyticsScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        "Нет данных для отображения за указанный период. Выберите другой.",
+                        stringResource(R.string.not_data_of_period),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -186,14 +191,18 @@ fun AnalyticsScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Text("Количество заказов: ${countAllOrdersAsPeriod.value}", fontSize = 16.sp)
-                    Text("Расходы на запчасти: ${priceZ.value} руб.", fontSize = 16.sp)
-                    Text("Прибыль: ${profit.value} руб.", fontSize = 16.sp)
-
-                    // График запчасти и стоимость
+                    Text(
+                        stringResource(R.string.count_orders, countAllOrdersAsPeriod.value),
+                        fontSize = 16.sp
+                    )
+                    Text(stringResource(R.string.price_zip_2, priceZ.value), fontSize = 16.sp)
+                    Text(stringResource(R.string.profit, profit.value), fontSize = 16.sp)
                     Row(modifier = Modifier.fillMaxSize()) {
                         val modelProducer = remember { CartesianChartModelProducer() }
-                        LaunchedEffect(Unit) {
+                        LaunchedEffect(
+                            dataPriceZip.value,
+                            dataProfit.value
+                        ) {
                             withContext(Dispatchers.Default) {
                                 modelProducer.runTransaction {
                                     lineSeries {
@@ -205,7 +214,6 @@ fun AnalyticsScreen(
                         }
                         ChartPrize(modelProducer = modelProducer, modifier = Modifier)
                     }
-
                     Row(
                         Modifier
                             .padding(vertical = 18.dp)
@@ -213,13 +221,14 @@ fun AnalyticsScreen(
                     ) {
                         HorizontalDivider(thickness = 1.dp, color = Color.Black)
                     }
-
-                    // График количества заказов
                     Row(modifier = Modifier.fillMaxSize()) {
                         val modelProducer2 = remember { CartesianChartModelProducer() }
-                        LaunchedEffect(Unit) {
+                        LaunchedEffect(
+                            countAllOrdersAsPeriod.value,
+                            countActiveOrdersForPeriod.value,
+                            countClosedOrdersForPeriod.value
+                        ) {
                             withContext(Dispatchers.Default) {
-
                                 modelProducer2.runTransaction {
                                     columnSeries {
                                         series(countAllOrdersAsPeriod.value.toLong())
@@ -233,13 +242,14 @@ fun AnalyticsScreen(
                             modelProducer = modelProducer2,
                             modifier = Modifier
                         )
+
                     }
+
                 }
             }
         }
     }
 
-    // Выбор заданного периода
     if (openDialogPeriod.value) {
         Dialog(onDismissRequest = { openDialogPeriod.value = false }) {
             OutlinedCard {
@@ -253,7 +263,7 @@ fun AnalyticsScreen(
                     ElevatedCard(
                         onClick = {
                             openDialogPeriod.value = false
-                            stateLabelPeriod.value = "неделю"
+                            stateLabelPeriod.value = context.getString(R.string.week)
                             dateStart.longValue = weerAgo
                             dateEnd.longValue = currentDate
                             ordersViewModel.getOrdersForAnalytics(
@@ -270,13 +280,13 @@ fun AnalyticsScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text("Неделя", Modifier.align(Alignment.Center), fontSize = 18.sp)
+                            Text(stringResource(R.string.week2), Modifier.align(Alignment.Center), fontSize = 18.sp)
                         }
                     }
                     ElevatedCard(
                         onClick = {
                             openDialogPeriod.value = false
-                            stateLabelPeriod.value = "месяц"
+                            stateLabelPeriod.value = context.getString(R.string.month)
                             dateStart.longValue = monthAgo
                             dateEnd.longValue = currentDate
                             ordersViewModel.getOrdersForAnalytics(
@@ -292,12 +302,12 @@ fun AnalyticsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
-                        ) { Text("Месяц", Modifier.align(Alignment.Center), fontSize = 18.sp) }
+                        ) { Text(stringResource(R.string.month2), Modifier.align(Alignment.Center), fontSize = 18.sp) }
                     }
                     ElevatedCard(
                         onClick = {
                             openDialogPeriod.value = false
-                            stateLabelPeriod.value = "полгода"
+                            stateLabelPeriod.value = context.getString(R.string.six_monts)
                             dateStart.longValue = sixMonthAgo
                             dateEnd.longValue = currentDate
                             ordersViewModel.getOrdersForAnalytics(
@@ -314,13 +324,13 @@ fun AnalyticsScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text("Полгода", Modifier.align(Alignment.Center), fontSize = 18.sp)
+                            Text(stringResource(R.string.six_monts2), Modifier.align(Alignment.Center), fontSize = 18.sp)
                         }
                     }
                     ElevatedCard(
                         onClick = {
                             openDialogPeriod.value = false
-                            stateLabelPeriod.value = "год"
+                            stateLabelPeriod.value = context.getString(R.string.year)
                             dateStart.longValue = yearAgo
                             dateEnd.longValue = currentDate
                             ordersViewModel.getOrdersForAnalytics(
@@ -337,14 +347,14 @@ fun AnalyticsScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text("Год", Modifier.align(Alignment.Center), fontSize = 18.sp)
+                            Text(stringResource(R.string.year2), Modifier.align(Alignment.Center), fontSize = 18.sp)
                         }
                     }
                     ElevatedCard(
                         onClick = {
                             openDialogPeriod.value = false
                             openDialogDate.value = true
-                            stateLabelPeriod.value = "выбор периода"
+                            stateLabelPeriod.value = context.getString(R.string.select_period)
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -354,7 +364,7 @@ fun AnalyticsScreen(
                                 .padding(16.dp)
                         ) {
                             Text(
-                                "Произвольный период",
+                                stringResource(R.string.arbitrary_period),
                                 Modifier.align(Alignment.Center),
                                 fontSize = 18.sp
                             )
@@ -365,7 +375,6 @@ fun AnalyticsScreen(
         }
     }
 
-    // Выбор произвольного периода
     if (openDialogDate.value) {
         DatePickerDialog(
             onDismissRequest = { openDialogDate.value = false },
@@ -377,22 +386,23 @@ fun AnalyticsScreen(
                         if (stateDateRangePicker.selectedStartDateMillis != null && stateDateRangePicker.selectedEndDateMillis != null) {
                             dateStart.longValue = stateDateRangePicker.selectedStartDateMillis!!
                             dateEnd.longValue = stateDateRangePicker.selectedEndDateMillis!!
-                            stateLabelPeriod.value = "период:"
+                            stateLabelPeriod.value = context.getString(R.string.period)
                             ordersViewModel.getOrdersForAnalytics(
                                 dateStart.longValue,
                                 dateEnd.longValue
                             )
                         } else {
-                            stateLabelPeriod.value = "период не выбран"
+                            stateLabelPeriod.value =
+                                context.getString(R.string.error_period_not_select)
                         }
                     },
-                ) { Text("OK") }
+                ) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     openDialogDate.value = false
-                    stateLabelPeriod.value = "период не выбран"
-                }) { Text("Отмена") }
+                    stateLabelPeriod.value = context.getString(R.string.error_period_not_select)
+                }) { Text(stringResource(R.string.cansel)) }
             }
         ) {
             DateRangePicker(
@@ -420,14 +430,27 @@ fun ChartPrize(modelProducer: CartesianChartModelProducer, modifier: Modifier) {
                     }
                 )
             ),
-            startAxis = rememberStartAxis(),
+            startAxis = rememberStartAxis(
+                label = rememberStartAxisLabel(),
+                horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
+                titleComponent =
+                rememberTextComponent(
+                    color = Color.Black,
+                    margins = Dimensions.of(end = 4.dp),
+                    padding = Dimensions.of(8.dp, 2.dp),
+                    background = rememberShapeComponent(PurpleGrey80, Shape.Pill),
+                ),
+                title = "руб."
+            ),
             bottomAxis = rememberBottomAxis(
-                //valueFormatter = CartesianValueFormatter { x, chartValues, _ ->
-                //val xToDateMapKey = ExtraStore.Key<Map<Float, Long>>()
-                //hartValues.model.extraStore.
-                //dateFormatter(chartValues.model.extraStore[x])
-                //}
-
+                titleComponent =
+                rememberTextComponent(
+                    color = Color.Black,
+                    margins = Dimensions.of(top = 4.dp),
+                    padding = Dimensions.of(8.dp, 2.dp),
+                    background = rememberShapeComponent(PurpleGrey80, Shape.Pill),
+                ),
+                title = stringResource(R.string.orders)
             ),
             marker = rememberMarker(),
             legend = rememberLegendChartPrize(),
@@ -440,7 +463,7 @@ fun ChartPrize(modelProducer: CartesianChartModelProducer, modifier: Modifier) {
 
 @Composable
 private fun rememberLegendChartPrize(): Legend<CartesianMeasuringContext, CartesianDrawingContext> {
-    val lineNameList = listOf("Расходы на запчасти", "Стоимость заказа")
+    val lineNameList = listOf(stringResource(R.string.prize_zip_3), stringResource(R.string.price_order2))
     val labelComponent = rememberTextComponent(vicoTheme.textColor)
     return rememberHorizontalLegend(
         items = rememberExtraLambda {
@@ -480,10 +503,19 @@ private fun ChartCountOrders(modelProducer: CartesianChartModelProducer, modifie
                 )
             ),
             startAxis = rememberStartAxis(
-
+                label = rememberStartAxisLabel(),
+                horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
+                titleComponent =
+                rememberTextComponent(
+                    color = Color.Black,
+                    margins = Dimensions.of(end = 4.dp),
+                    padding = Dimensions.of(8.dp, 2.dp),
+                    background = rememberShapeComponent(PurpleGrey80, Shape.Pill),
+                ),
+                title = "кол-во"
             ),
             bottomAxis = rememberBottomAxis(
-                valueFormatter = CartesianValueFormatter { x, _, _ -> "" }
+                valueFormatter = { _, _, _ -> "" }
             ),
             marker = marker,
             legend = rememberLegendChartCountOrders()
@@ -496,7 +528,9 @@ private fun ChartCountOrders(modelProducer: CartesianChartModelProducer, modifie
 
 @Composable
 private fun rememberLegendChartCountOrders(): Legend<CartesianMeasuringContext, CartesianDrawingContext> {
-    val lineNameList = listOf("Всего", "Активные заказы", "Закрытые заказы")
+    val lineNameList = listOf(stringResource(R.string.total),
+        stringResource(R.string.active_orders), stringResource(R.string.closed_orders)
+    )
     val labelComponent = rememberTextComponent(vicoTheme.textColor)
     return rememberHorizontalLegend(
         items = rememberExtraLambda {
@@ -612,3 +646,12 @@ internal fun rememberMarker(
         }
     }
 }
+
+@Composable
+private fun rememberStartAxisLabel() =
+    rememberAxisLabelComponent(
+        color = Color.Black,
+        margins = Dimensions.of(4.dp),
+        padding = Dimensions.of(8.dp, 2.dp),
+        background = rememberShapeComponent(PurpleGrey80, Shape.rounded(4.dp)),
+    )

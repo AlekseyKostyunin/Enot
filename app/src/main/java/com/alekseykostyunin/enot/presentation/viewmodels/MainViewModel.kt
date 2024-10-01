@@ -10,16 +10,21 @@ import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 
 class MainViewModel : ViewModel() {
 
+    private val repository: UsersRepository = UsersRepositoryImpl
+
     private val initialState = isStatusAuthorized()
     private val _isAuthorized = MutableLiveData<Boolean>(initialState)
 
     val isAuthorized: LiveData<Boolean> = _isAuthorized
     private fun isStatusAuthorized() : Boolean = MyFirebaseAuth.currentUser()
 
+    fun signInWithEmailAndPassword(email: String, password: String) {
+        repository.signInWithEmailAndPassword(email, password)
+    }
+
     fun successAuth(){ _isAuthorized.value = true  }
 
     fun signOut() {
-        val repository: UsersRepository = UsersRepositoryImpl
         val singOutUserUseCase = SingOutUserUseCase(repository)
         singOutUserUseCase.singOutUser()
         _isAuthorized.value = false

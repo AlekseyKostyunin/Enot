@@ -18,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -39,10 +39,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.R
-import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 import com.alekseykostyunin.enot.data.utils.Validate
-import com.alekseykostyunin.enot.domain.repository.UsersRepository
-import com.alekseykostyunin.enot.domain.usecase.users.RegUserUseCase
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.google.firebase.auth.FirebaseAuth
@@ -52,11 +49,12 @@ import com.google.firebase.ktx.Firebase
 
 @Composable
 fun RegScreen(
-    navigationState: NavigationState,
-    snackBarHostState: SnackbarHostState
+    navigationState: NavigationState
 ) {
     val context = LocalContext.current
-    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG).show()}
+    fun sendToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,7 +68,7 @@ fun RegScreen(
             contentDescription = null
         )
         Text(
-            text = "Регистрация",
+            text = stringResource(R.string.reg),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -99,7 +97,7 @@ fun RegScreen(
             value = password,
             onValueChange = { password = it },
             singleLine = true,
-            label = { Text("Пароль") },
+            label = { Text(stringResource(R.string.password)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
                 IconButton(onClick = {
@@ -120,26 +118,22 @@ fun RegScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 10.dp)
-        ){
+        ) {
             Checkbox(
                 checked = checked,
                 onCheckedChange = { checked = it }
             )
             TextButton(
                 onClick = {
-                    navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route){
-                        popUpTo(Destinations.Registration.route){
+                    navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route) {
+                        popUpTo(Destinations.Registration.route) {
                             saveState = true
                         }
                     }
                 },
-                content = { Text("Я принимаю условия пользовательского соглашения") }
+                content = { Text(stringResource(R.string.i_accept_the_terms)) }
             )
         }
-
-        val repository: UsersRepository = UsersRepositoryImpl
-        val regUserUseCase = RegUserUseCase(repository)
-       //val enable = remember { mutableStateOf(false) }
 
         ElevatedButton(modifier = Modifier
             .fillMaxWidth()
@@ -148,31 +142,29 @@ fun RegScreen(
             onClick = {
                 if (email.value.isEmpty()) {
                     isErrorEmail = true
-                    sendToast("Поле e-mail не может быть пустым!")
+                    sendToast(context.getString(R.string.error_email_not_empty))
                 } else {
                     val isValidEmail = Validate.isEmailValid(email.value)
                     if (!isValidEmail) {
                         isErrorEmail = true
-                        sendToast("Некорректный e-mail. Повторите попытку")
+                        sendToast(context.getString(R.string.error_incorrect_email_try_again))
                     } else {
                         if (password.isEmpty()) {
-                            sendToast("Полe пароль не может быть пустым!")
+                            sendToast(context.getString(R.string.error_passord_not_empty))
                             isErrorEmail = false
                             isErrorPassword = true
                         } else {
                             if (password.length < 6) {
                                 isErrorPassword = true
-                                sendToast("Пароль слишком короткий (менее 6 символов). Повторите попытку!")
+                                sendToast(context.getString(R.string.error_password_is_short))
                             } else {
                                 isErrorPassword = false
 
                                 if (!checked) {
-                                    sendToast("Нужно принимать условия пользовательского соглашения")
+                                    sendToast(context.getString(R.string.you_need_to_accept_the_terms_of_user_agreement))
                                 } else {
-                                    //enable.value = true
                                     val auth: FirebaseAuth = Firebase.auth
                                     val database = Firebase.database.reference
-
                                     auth.createUserWithEmailAndPassword(email.value, password)
                                         .addOnCompleteListener { task ->
                                             if (task.isSuccessful) {
@@ -183,16 +175,14 @@ fun RegScreen(
                                                 val userId = user.uid
                                                 database.child("users").child(userId).child("email")
                                                     .setValue(email.value)
-                                                sendToast("Регистрация прошла успешно!")
-
+                                                sendToast(context.getString(R.string.reg_succes))
                                             } else {
                                                 Log.w(
                                                     "TEST_1",
                                                     "createUserWithEmail:failure",
                                                     task.exception
                                                 )
-                                                //updateUI(null)
-                                                sendToast("Ошибка при регистрации. Обратитесь в техподдержку.")
+                                                sendToast(context.getString(R.string.error_reg))
                                             }
                                         }
                                     Log.d("TEST_email_reg", email.value)
@@ -206,10 +196,9 @@ fun RegScreen(
                         }
                     }
                 }
-//                regUserUseCase.regUser(email.value,password)
             }
         ) {
-            Text(text = "Отправить")
+            Text(stringResource(R.string.send))
         }
     }
 }

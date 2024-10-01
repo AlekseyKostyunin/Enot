@@ -3,9 +3,7 @@ package com.alekseykostyunin.enot.presentation.screens
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -29,9 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.R
-import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,14 +64,15 @@ fun PrivacyPolicyScreen(
                 }
             )
         }
-    ) { it
+    ) {
         Column(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top,
             modifier = Modifier.background(Color.White)
                 .fillMaxSize()
                 .verticalScroll(scroll)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .padding(it),
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             PrivacyNoticeText()

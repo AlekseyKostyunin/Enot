@@ -1,7 +1,9 @@
 package com.alekseykostyunin.enot.presentation.viewmodels
 
 import android.app.Application
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -66,15 +68,14 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
             val userId = user.uid
             val idOrder = order.value?.id
             var photos = order.value?.photos?.toMutableList()
-            if(photos == null){
+            if (photos == null) {
                 photos = mutableListOf(Photo(photoUri))
             } else {
                 photos.add(Photo(photoUri))
                 Log.d("TEST_history", photos.toString())
             }
 
-            val orderUpdate = order.value?.let {
-                order ->
+            val orderUpdate = order.value?.let { order ->
                 Order(
                     id = idOrder,
                     client = order.client,
@@ -159,6 +160,7 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
                     _state.value = State.Success
                     Log.d("TEST_snapshot_countActiveOrders", _countActiveOrders.value.toString())
                 }
+
                 override fun onCancelled(error: DatabaseError) {
                     Log.d("TEST_snapshot_error", error.message)
                 }
@@ -195,21 +197,22 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
     private var _dataProfit = MutableLiveData<List<Float>>(listOf())
     var dataProfit: LiveData<List<Float>> = _dataProfit
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun getOrdersForAnalytics(dateStart: Long, dateEnd: Long) {
         _orders.value?.let {
             val ordersSort: List<Order>? = _orders.value?.filter { order ->
                 order.dateAdd in dateStart..dateEnd
             }?.reversed()
-            if (ordersSort == null){
+            if (ordersSort == null) {
                 _countAllOrdersAsPeriod.value = 0
             } else {
                 _ordersForAnalytics.value = ordersSort.toMutableList()
                 _countAllOrdersAsPeriod.value = ordersSort.size
                 _countActiveOrdersForPeriod.value = ordersSort.filter { order -> order.isWork }.size
-                _countClosedOrdersForPeriod.value = ordersSort.filter { order ->!order.isWork }.size
+                _countClosedOrdersForPeriod.value =
+                    ordersSort.filter { order -> !order.isWork }.size
                 _priceZip.value = ordersSort.sumOf { order -> order.priceZip }
                 _profit.value = ordersSort.sumOf { order -> order.priceWork }
-
                 val preDataPriceZip = mutableListOf<Float>()
                 val preDataProfit = mutableListOf<Float>()
                 for (order in ordersSort) {
@@ -231,7 +234,4 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
             _oneClientAllOrders.value = it.filter { order -> order.client?.id == idClient }
         }
     }
-
-
-
 }

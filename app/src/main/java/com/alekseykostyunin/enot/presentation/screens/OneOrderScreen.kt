@@ -56,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -95,6 +96,7 @@ fun OneOrderScreen(
     requestCallPhonePermission: () -> Unit,
     cameraExecutor: ExecutorService,
 ) {
+    val context = LocalContext.current
     val activity = LocalContext.current as Activity
     var state by remember { mutableIntStateOf(0) }
     val order = ordersViewModel.order.observeAsState().value
@@ -107,7 +109,6 @@ fun OneOrderScreen(
         shouldShowCamera.value = false
     }
 
-    /* Диалог - Добавление шага исполнения */
     val openDialogStep = remember { mutableStateOf(false) }
     if (openDialogStep.value) {
         var descStep by remember { mutableStateOf("") }
@@ -124,7 +125,7 @@ fun OneOrderScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Добавление шага исполнения",
+                        text = stringResource(R.string.add_step),
                         fontSize = 18.sp, fontWeight = FontWeight.Bold,
                     )
                     OutlinedTextField(
@@ -134,7 +135,7 @@ fun OneOrderScreen(
                             .fillMaxWidth()
                             .padding(vertical = 16.dp),
                         value = descStep,
-                        label = { Text("Описание шага исполнения") },
+                        label = { Text(stringResource(R.string.desc_step)) },
                         onValueChange = { newText -> descStep = newText },
                     )
 
@@ -149,7 +150,7 @@ fun OneOrderScreen(
                             },
                             modifier = Modifier.padding(horizontal = 8.dp),
                         ) {
-                            Text("Отмена")
+                            Text(stringResource(R.string.cansel))
                         }
 
                         Button(
@@ -233,7 +234,7 @@ fun OneOrderScreen(
                             },
                             modifier = Modifier.padding(horizontal = 8.dp),
                         ) {
-                            Text("Добавить")
+                            Text(stringResource(R.string.add))
                         }
                     }
                 }
@@ -241,7 +242,6 @@ fun OneOrderScreen(
         }
     }
 
-    /* Диалог - Закрытие заказа */
     val openDialogCloseOrder = remember { mutableStateOf(false) }
     if (openDialogCloseOrder.value) {
         Dialog(
@@ -260,7 +260,7 @@ fun OneOrderScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Закрыть заказ?",
+                        text = stringResource(R.string.closed_order_),
                         Modifier.padding(bottom = 12.dp),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
@@ -324,34 +324,32 @@ fun OneOrderScreen(
 
                                     dbNewOrderUpdate.addValueEventListener(object :
                                         ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            val order2 = snapshot.getValue(Order::class.java)
-                                            if (order2 != null) {
-                                                Log.d(
-                                                    "TEST_snapshot_CloseOrder",
-                                                    order2.toString()
-                                                )
-                                                ordersViewModel.getOrderUser(order2)
-                                                openDialogCloseOrder.value = false
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                val order2 = snapshot.getValue(Order::class.java)
+                                                if (order2 != null) {
+                                                    Log.d(
+                                                        "TEST_snapshot_CloseOrder",
+                                                        order2.toString()
+                                                    )
+                                                    ordersViewModel.getOrderUser(order2)
+                                                    openDialogCloseOrder.value = false
+                                                }
+                                            }
+
+                                            override fun onCancelled(error: DatabaseError) {
+                                                Log.d("TEST_snapshot_error", error.message)
                                             }
                                         }
-
-                                        override fun onCancelled(error: DatabaseError) {
-                                            Log.d("TEST_snapshot_error", error.message)
-                                        }
-                                    }
                                     )
                                     ordersViewModel.updateOrders()
-//                                        navigationState.navigateTo(Destinations.OneOrder.route)
                                 }
-
                             }
                         },
                         Modifier
                             .fillMaxWidth()
                             .padding(bottom = 12.dp)
                     ) {
-                        Text("Да")
+                        Text(stringResource(R.string.yes))
                     }
                     Button(
                         onClick = {
@@ -359,14 +357,13 @@ fun OneOrderScreen(
                         },
                         Modifier.fillMaxWidth()
                     ) {
-                        Text("Нет")
+                        Text(stringResource(R.string.no))
                     }
                 }
             }
         }
     }
 
-    /* Окно об отсутствии номера телефона для звонка */
     val openDialogNotNumberPhone = remember { mutableStateOf(false) }
     if (openDialogNotNumberPhone.value) {
         Dialog(
@@ -385,7 +382,7 @@ fun OneOrderScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Отсутствует номер телефона",
+                        text = stringResource(R.string.not_number_phone2),
                         fontSize = 18.sp, fontWeight = FontWeight.Bold,
                     )
                     Row(
@@ -400,7 +397,7 @@ fun OneOrderScreen(
                             },
                             modifier = Modifier.padding(end = 8.dp),
                         ) {
-                            Text("Закрыть")
+                            Text(stringResource(R.string.close))
                         }
                     }
                 }
@@ -408,7 +405,6 @@ fun OneOrderScreen(
         }
     }
 
-    /* Диалог выбор номера телефона */
     val openDialogSelectNumberPhone = remember { mutableStateOf(false) }
     if (openDialogSelectNumberPhone.value) {
         Dialog(
@@ -426,7 +422,7 @@ fun OneOrderScreen(
                 ) {
                     if (order != null) {
                         Text(
-                            text = "Позвонить по номеру",
+                            text = stringResource(R.string.call_of_phone),
                             fontSize = 18.sp, fontWeight = FontWeight.Bold,
                         )
                         for (oneNumberPhone in order.client?.phone!!) {
@@ -459,7 +455,11 @@ fun OneOrderScreen(
         }
     }
 
-    val titles = listOf("Описание", "История", "Фото")
+    val titles = listOf(
+        stringResource(R.string.desc),
+        stringResource(R.string.history),
+        stringResource(R.string.Photo)
+    )
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
@@ -470,7 +470,7 @@ fun OneOrderScreen(
                             requestCallPhonePermission()
                             if (order != null) {
                                 if (order.client?.phone != null) {
-                                    if (order.client.phone!![0] == "нет номера телефона") {
+                                    if (order.client.phone!![0] == context.getString(R.string.not_number_phone)) {
                                         openDialogNotNumberPhone.value = true
                                     } else {
                                         openDialogSelectNumberPhone.value = true
@@ -485,7 +485,7 @@ fun OneOrderScreen(
                             contentDescription = null,
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(text = "Позвонить клиенту")
+                        Text(text = stringResource(R.string.call_client))
                     }
                 }
             } else if (state == 1) {
@@ -502,7 +502,7 @@ fun OneOrderScreen(
                                 contentDescription = null,
                             )
                             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(text = "Добавить шаг")
+                            Text(text = stringResource(R.string.add_step_2))
                         }
                     }
                 }
@@ -522,7 +522,7 @@ fun OneOrderScreen(
                                 contentDescription = null,
                             )
                             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(text = "Добавить фото")
+                            Text(text = stringResource(R.string.add_photo))
                         }
                     }
                 }
@@ -565,7 +565,7 @@ fun OneOrderScreen(
                                 )
                             }
                             Text(
-                                text = "Заказ от $dt",
+                                text = stringResource(R.string.order_from, dt),
                                 fontSize = 18.sp,
                                 modifier = Modifier.padding(vertical = 10.dp),
                                 fontWeight = FontWeight.Bold
@@ -621,9 +621,11 @@ fun OneOrderScreen(
                                     0 -> {
                                         DescOrder(order)
                                     }
+
                                     1 -> {
                                         HistoryOrder(order)
                                     }
+
                                     2 -> {
                                         PhotosOrder(order, ordersViewModel)
                                     }
@@ -643,18 +645,18 @@ fun DescOrder(order: Order) {
     Column {
         Row(modifier = Modifier.padding(top = 18.dp)) {
             Text(
-                text = "Статус: ",
+                text = stringResource(R.string.status),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
             Text(
-                text = if (order.isWork) "активный" else "закрытый",
+                text = if (order.isWork) stringResource(R.string.active2) else stringResource(R.string.close2),
                 fontSize = 18.sp
             )
         }
         Row(modifier = Modifier.padding(top = 18.dp)) {
             Text(
-                text = "Клиент: ",
+                text = stringResource(R.string.client_),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -665,7 +667,7 @@ fun DescOrder(order: Order) {
         }
         Row(modifier = Modifier.padding(top = 18.dp)) {
             Text(
-                text = "Описание: ",
+                text = stringResource(R.string.desc_),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -678,7 +680,7 @@ fun DescOrder(order: Order) {
             modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
-                text = "Тип заказа: ",
+                text = stringResource(R.string.type_orders_),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -691,7 +693,7 @@ fun DescOrder(order: Order) {
             modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
-                text = "Модель: ",
+                text = stringResource(R.string.model2),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -704,7 +706,7 @@ fun DescOrder(order: Order) {
             modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
-                text = "Цена запчастей: ",
+                text = stringResource(R.string.price_zip2),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -717,7 +719,7 @@ fun DescOrder(order: Order) {
             modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
-                text = "Стоимость заказа: ",
+                text = stringResource(R.string.price_order),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -730,7 +732,7 @@ fun DescOrder(order: Order) {
             modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
-                text = "Комментарий: ",
+                text = stringResource(R.string.comment2),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -751,7 +753,7 @@ fun HistoryOrder(order: Order) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                "Здесь будет отображаться история исполнения заказа",
+                stringResource(R.string.here_history_step),
                 textAlign = TextAlign.Center
             )
         }
@@ -823,7 +825,7 @@ fun PhotosOrder(
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                "Здесь будут отображаться фотографии исполнения заказа",
+                stringResource(R.string.here_photo),
                 textAlign = TextAlign.Center
             )
         }

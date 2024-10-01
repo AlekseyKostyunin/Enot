@@ -59,9 +59,6 @@ import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 fun UserScreen(
     navigationState: NavigationState,
     onClickButtonSighOut: () -> Unit,
-//    onGitHubClick: () -> Unit,
-//    onPlaystoreClick: () -> Unit,
-//    onFdroidClick: () -> Unit
 ) {
     val context = LocalContext.current
     var version = ""
@@ -119,7 +116,7 @@ fun UserScreen(
                             fontSize = MaterialTheme.typography.bodyMedium.fontSize
                         )
                         Text(
-                            text = "Alexey Kostyunin",
+                            text = stringResource(R.string.alexey_kostyunin),
                             style = MaterialTheme.typography.labelSmall,
                         )
                     }
@@ -154,7 +151,7 @@ fun UserScreen(
                         ) {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.google_play),
-                                contentDescription = "Playstore",
+                                contentDescription = stringResource(R.string.rustore),
                                 modifier = Modifier.size(30.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -163,7 +160,6 @@ fun UserScreen(
                 }
             }
 
-            // Политика конфиденциальности
             Row {
                 ListItem(
                     modifier = Modifier
@@ -200,7 +196,6 @@ fun UserScreen(
                     tonalElevation = 5.dp
                 )
             }
-            // Контакт
             Row {
                 ListItem(
                     modifier = Modifier
@@ -230,7 +225,6 @@ fun UserScreen(
                     tonalElevation = 5.dp
                 )
             }
-            // Выход
             Row {
                 ListItem(
                     modifier = Modifier
@@ -281,7 +275,7 @@ fun UserScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Выйти из приложения?",
+                        text = stringResource(R.string.exit_of_app),
                         fontSize = 18.sp, fontWeight = FontWeight.Bold,
                     )
                     Row(
@@ -296,13 +290,13 @@ fun UserScreen(
                             },
                             modifier = Modifier.padding(end = 8.dp),
                         ) {
-                            Text("Отмена")
+                            Text(stringResource(R.string.cansel))
                         }
                         Button(
                             onClick = { onClickButtonSighOut() },
                             modifier = Modifier.padding(start = 8.dp),
                         ) {
-                            Text("Выйти")
+                            Text(stringResource(R.string.exit))
                         }
                     }
                 }
@@ -315,8 +309,8 @@ fun UserScreen(
 fun ToContact(context: Context) {
     val authorEmail = "kostunin-ag@mail.ru"
     val cc = ""
-    val subject = "[Техническая поддержка] Приложение E-note"
-    val bodyText = "О приложении E-note для Android:\n"
+    val subject = stringResource(R.string.title_mail_support_app)
+    val bodyText = stringResource(R.string.title_e_note_android)
     val mailto = "mailto:" + Uri.encode(authorEmail) +
             "?cc=" + Uri.encode(cc) +
             "&subject=" + Uri.encode(subject) +

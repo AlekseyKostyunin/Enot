@@ -40,22 +40,19 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 private fun takePhoto(
-    filenameFormat: String,
     imageCapture: ImageCapture,
     outputDirectory: File,
     executor: Executor,
     onImageCaptured: (Uri) -> Unit,
     onError: (ImageCaptureException) -> Unit
 ) {
-
+    val filenameFormat = "yyyy-MM-dd-HH-mm-ss-SSS"
     val photoFile = File(
         outputDirectory,
         SimpleDateFormat(filenameFormat, Locale.US)
             .format(System.currentTimeMillis()) + ".jpg"
     )
-
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
     imageCapture.takePicture(outputOptions, executor, object: ImageCapture.OnImageSavedCallback {
         override fun onError(exception: ImageCaptureException) {
             Log.e("TEST_camera_take_photo_error", "Take photo error:", exception)
@@ -93,7 +90,6 @@ fun CameraView(
     val cameraSelector = CameraSelector.Builder()
         .requireLensFacing(lensFacing)
         .build()
-
     LaunchedEffect(lensFacing) {
         val cameraProvider = context.getCameraProvider()
         cameraProvider.unbindAll()
@@ -105,7 +101,6 @@ fun CameraView(
         )
         preview.setSurfaceProvider(previewView.surfaceProvider)
     }
-
     Box(
         contentAlignment = Alignment.BottomCenter,
         modifier = Modifier.fillMaxSize()
@@ -116,7 +111,6 @@ fun CameraView(
             onClick = {
                 Log.i("TEST_camera_kilo", "ON CLICK")
                 takePhoto(
-                    filenameFormat = "yyyy-MM-dd-HH-mm-ss-SSS",
                     imageCapture = imageCapture,
                     outputDirectory = outputDirectory,
                     executor = executor,
