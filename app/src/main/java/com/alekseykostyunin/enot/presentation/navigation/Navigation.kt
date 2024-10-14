@@ -13,6 +13,7 @@ import androidx.compose.material.icons.sharp.People
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -54,7 +55,6 @@ import com.alekseykostyunin.enot.presentation.screens.UserScreen
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
-import com.alekseykostyunin.enot.ui.theme.Purple40
 import java.util.concurrent.ExecutorService
 
 @RequiresApi(Build.VERSION_CODES.R)
@@ -89,7 +89,7 @@ fun StartNavigation(
         Box(
             modifier = Modifier
                 .padding(paddingValues)
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.background),
         ) {
             NavGraph(
                 navigationState.navHostController,
@@ -99,6 +99,7 @@ fun StartNavigation(
                         navigationState,
                         mainViewModel,
                         ordersViewModel,
+                        clientsViewModel,
                         snackBarHostState
                     )
                 },
@@ -203,8 +204,8 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
     )
     val context = LocalContext.current
     NavigationBar(
-        containerColor = Color.White,
-
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground,
         ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         screens.forEach { screen ->
@@ -218,7 +219,7 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
                         BadgedBox(
                             badge = {
                                 Badge(
-                                    containerColor = Purple40,
+                                    containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = Color.White
                                 ) {
                                     val badgeNumber = countActiveOrders.value.toString()
@@ -257,9 +258,9 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
                 },
                 colors = NavigationBarItemDefaults.colors(
                     unselectedTextColor = Color.Gray,
-                    selectedTextColor = Color(0xFF04293A),
+                    selectedTextColor = MaterialTheme.colorScheme.onBackground,
                     unselectedIconColor = Color.Gray,
-                    selectedIconColor = Color(0xFF04293A)
+                    selectedIconColor = MaterialTheme.colorScheme.onBackground
                 ),
                 alwaysShowLabel = true
             )

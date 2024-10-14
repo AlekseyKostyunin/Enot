@@ -31,7 +31,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,7 +71,6 @@ import com.patrykandpatrick.vico.compose.common.of
 import com.patrykandpatrick.vico.compose.common.rememberHorizontalLegend
 import com.patrykandpatrick.vico.compose.common.shape.markerCornered
 import com.patrykandpatrick.vico.compose.common.shape.rounded
-import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawingContext
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
@@ -109,7 +107,7 @@ private const val CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER = 1.4f
 fun AnalyticsScreen(
     ordersViewModel: OrdersViewModel
 ) {
-    ordersViewModel.updateOrders()
+
     val context = LocalContext.current
     val currentDate = System.currentTimeMillis()
     val weerAgo = (currentDate / 1000 - (60 * 60 * 24 * 7)) * 1000
@@ -118,13 +116,15 @@ fun AnalyticsScreen(
     val yearAgo = (currentDate / 1000 - (60 * 60 * 24 * 365)) * 1000
 
     val stateDateRangePicker = rememberDateRangePickerState()
-    val stateLabelPeriod = rememberSaveable { mutableStateOf(context.getString(R.string.week)) }
-    val dateStart = rememberSaveable { mutableLongStateOf(weerAgo) }
-    val dateEnd = rememberSaveable { mutableLongStateOf(currentDate) }
-    val openDialogPeriod = rememberSaveable { mutableStateOf(false) }
-    val openDialogDate = rememberSaveable { mutableStateOf(false) }
+    val stateLabelPeriod = remember { mutableStateOf(context.getString(R.string.week)) }
+    val dateStart = remember { mutableLongStateOf(weerAgo) }
+    val dateEnd = remember { mutableLongStateOf(currentDate) }
+    val openDialogPeriod = remember { mutableStateOf(false) }
+    val openDialogDate = remember { mutableStateOf(false) }
 
-    val ordersForAnalytics = ordersViewModel.ordersForAnalytics.observeAsState()
+    ordersViewModel.getOrdersForAnalytics(dateStart.longValue, dateEnd.longValue)
+
+    val ordersForAnalytics = ordersViewModel.ordersForAnalytics.observeAsState(listOf())
     val priceZ = ordersViewModel.priceZip.observeAsState(0)
     val profit = ordersViewModel.profit.observeAsState(0)
     val countAllOrdersAsPeriod = ordersViewModel.countAllOrdersAsPeriod.observeAsState(0)
@@ -133,7 +133,7 @@ fun AnalyticsScreen(
     val dataPriceZip = ordersViewModel.dataPriceZip.observeAsState(listOf())
     val dataProfit = ordersViewModel.dataProfit.observeAsState(listOf())
 
-    if (ordersForAnalytics.value.isNullOrEmpty()) {
+    if (ordersForAnalytics.value.isEmpty()) {
         ordersViewModel.getOrdersForAnalytics(dateStart.longValue, dateEnd.longValue)
     }
 
@@ -191,14 +191,18 @@ fun AnalyticsScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
+
                     Text(
                         stringResource(R.string.count_orders, countAllOrdersAsPeriod.value),
                         fontSize = 16.sp
                     )
                     Text(stringResource(R.string.price_zip_2, priceZ.value), fontSize = 16.sp)
                     Text(stringResource(R.string.profit, profit.value), fontSize = 16.sp)
+
                     Row(modifier = Modifier.fillMaxSize()) {
-                        val modelProducer = remember { CartesianChartModelProducer() }
+                        val modelProducer = remember {
+                            CartesianChartModelProducer()
+                        }
                         LaunchedEffect(
                             dataPriceZip.value,
                             dataProfit.value
@@ -222,7 +226,9 @@ fun AnalyticsScreen(
                         HorizontalDivider(thickness = 1.dp, color = Color.Black)
                     }
                     Row(modifier = Modifier.fillMaxSize()) {
-                        val modelProducer2 = remember { CartesianChartModelProducer() }
+                        val modelProducer2 = remember {
+                            CartesianChartModelProducer()
+                        }
                         LaunchedEffect(
                             countAllOrdersAsPeriod.value,
                             countActiveOrdersForPeriod.value,
@@ -280,7 +286,11 @@ fun AnalyticsScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text(stringResource(R.string.week2), Modifier.align(Alignment.Center), fontSize = 18.sp)
+                            Text(
+                                stringResource(R.string.week2),
+                                Modifier.align(Alignment.Center),
+                                fontSize = 18.sp
+                            )
                         }
                     }
                     ElevatedCard(
@@ -302,7 +312,13 @@ fun AnalyticsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
-                        ) { Text(stringResource(R.string.month2), Modifier.align(Alignment.Center), fontSize = 18.sp) }
+                        ) {
+                            Text(
+                                stringResource(R.string.month2),
+                                Modifier.align(Alignment.Center),
+                                fontSize = 18.sp
+                            )
+                        }
                     }
                     ElevatedCard(
                         onClick = {
@@ -324,7 +340,11 @@ fun AnalyticsScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text(stringResource(R.string.six_monts2), Modifier.align(Alignment.Center), fontSize = 18.sp)
+                            Text(
+                                stringResource(R.string.six_monts2),
+                                Modifier.align(Alignment.Center),
+                                fontSize = 18.sp
+                            )
                         }
                     }
                     ElevatedCard(
@@ -347,7 +367,11 @@ fun AnalyticsScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text(stringResource(R.string.year2), Modifier.align(Alignment.Center), fontSize = 18.sp)
+                            Text(
+                                stringResource(R.string.year2),
+                                Modifier.align(Alignment.Center),
+                                fontSize = 18.sp
+                            )
                         }
                     }
                     ElevatedCard(
@@ -426,6 +450,7 @@ fun ChartPrize(modelProducer: CartesianChartModelProducer, modifier: Modifier) {
                         rememberLine(
                             fill = remember { LineCartesianLayer.LineFill.single(fill(color)) },
                             areaFill = null,
+                            thickness = 3.dp
                         )
                     }
                 )
@@ -443,6 +468,7 @@ fun ChartPrize(modelProducer: CartesianChartModelProducer, modifier: Modifier) {
                 title = "руб."
             ),
             bottomAxis = rememberBottomAxis(
+                label = TextComponent(),
                 titleComponent =
                 rememberTextComponent(
                     color = Color.Black,
@@ -456,15 +482,17 @@ fun ChartPrize(modelProducer: CartesianChartModelProducer, modifier: Modifier) {
             legend = rememberLegendChartPrize(),
         ),
         modelProducer = modelProducer,
-        modifier = modifier.height(280.dp),
+        modifier = modifier
+            .height(280.dp),
         zoomState = rememberVicoZoomState(zoomEnabled = true),
     )
 }
 
 @Composable
 private fun rememberLegendChartPrize(): Legend<CartesianMeasuringContext, CartesianDrawingContext> {
-    val lineNameList = listOf(stringResource(R.string.prize_zip_3), stringResource(R.string.price_order2))
-    val labelComponent = rememberTextComponent(vicoTheme.textColor)
+    val lineNameList =
+        listOf(stringResource(R.string.prize_zip_3), stringResource(R.string.price_order2))
+    val labelComponent = rememberTextComponent(MaterialTheme.colorScheme.onBackground)
     return rememberHorizontalLegend(
         items = rememberExtraLambda {
             chartColorsChartPrize.forEachIndexed { index, color ->
@@ -528,10 +556,12 @@ private fun ChartCountOrders(modelProducer: CartesianChartModelProducer, modifie
 
 @Composable
 private fun rememberLegendChartCountOrders(): Legend<CartesianMeasuringContext, CartesianDrawingContext> {
-    val lineNameList = listOf(stringResource(R.string.total),
-        stringResource(R.string.active_orders), stringResource(R.string.closed_orders)
+    val lineNameList = listOf(
+        stringResource(R.string.total),
+        stringResource(R.string.active_orders),
+        stringResource(R.string.closed_orders)
     )
-    val labelComponent = rememberTextComponent(vicoTheme.textColor)
+    val labelComponent = rememberTextComponent(MaterialTheme.colorScheme.onBackground)
     return rememberHorizontalLegend(
         items = rememberExtraLambda {
             columnColorsChartCountOrders.forEachIndexed { index, color ->
@@ -650,8 +680,11 @@ internal fun rememberMarker(
 @Composable
 private fun rememberStartAxisLabel() =
     rememberAxisLabelComponent(
-        color = Color.Black,
+        color = MaterialTheme.colorScheme.onBackground,
         margins = Dimensions.of(4.dp),
         padding = Dimensions.of(8.dp, 2.dp),
-        background = rememberShapeComponent(PurpleGrey80, Shape.rounded(4.dp)),
+        background = rememberShapeComponent(
+            MaterialTheme.colorScheme.background,
+            Shape.rounded(4.dp)
+        )
     )

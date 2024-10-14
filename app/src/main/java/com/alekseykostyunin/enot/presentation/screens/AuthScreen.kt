@@ -17,7 +17,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,6 +44,7 @@ import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
+import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -54,6 +58,7 @@ fun AuthScreen(
     navigationState: NavigationState,
     mainViewModel: MainViewModel,
     ordersViewModel: OrdersViewModel,
+    clientsViewModel: ClientsViewModel,
     snackBarHostState: SnackbarHostState
 ) {
     val context = LocalContext.current
@@ -72,7 +77,7 @@ fun AuthScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_enot),
+            painter = painterResource(R.drawable.ic_enot),
             contentDescription = null
         )
         Text(
@@ -82,8 +87,11 @@ fun AuthScreen(
         )
 
         val email = rememberSaveable { mutableStateOf("") }
+        var isErrorEmail by rememberSaveable { mutableStateOf(false) }
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
+            isError = isErrorEmail,
             value = email.value,
             label = { Text("E-mail") },
             onValueChange = { newText -> email.value = newText },
@@ -94,8 +102,13 @@ fun AuthScreen(
         var passwordVisibility by rememberSaveable { mutableStateOf(false) }
         val icon = if (passwordVisibility) painterResource(R.drawable.design_ic_visibility)
         else painterResource(R.drawable.design_ic_visibility_off)
+        var isErrorPassword by rememberSaveable { mutableStateOf(false) }
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                errorTextColor = Color.Red,
+                focusedTextColor = MaterialTheme.colorScheme.onBackground),
+            isError = isErrorPassword,
             value = password,
             onValueChange = { password = it },
             singleLine = true,
@@ -120,20 +133,25 @@ fun AuthScreen(
             .padding(vertical = 10.dp),
             onClick = {
                 if (email.value.isEmpty()) {
+                    isErrorEmail = true
                     sendToast(context.getString(R.string.error_email_not_empty))
                 } else {
                     val isValidEmail = Validate.isEmailValid(email.value)
                     if (!isValidEmail) {
+                        isErrorEmail = true
                         sendToast(context.getString(R.string.error_incorrect_email_try_again))
                     } else {
                         if (password.isEmpty()) {
+                            isErrorEmail = false
+                            isErrorPassword = true
                             sendToast(context.getString(R.string.error_passord_not_empty))
                         } else {
                             if (password.length < 6) {
+                                isErrorPassword = true
                                 sendToast(context.getString(R.string.error_password_is_short))
                             } else {
+                                isErrorPassword = false
                                 //mainViewModel.signInWithEmailAndPassword(email.value, password)
-
                                 val auth: FirebaseAuth = Firebase.auth
                                 auth.signInWithEmailAndPassword(email.value, password)
                                     .addOnCompleteListener { task ->
@@ -142,6 +160,7 @@ fun AuthScreen(
                                             sendToast(context.getString(R.string.success_auth))
                                             mainViewModel.successAuth()
                                             ordersViewModel.updateOrders()
+                                            clientsViewModel.updateClients()
                                         } else {
                                             Log.w(
                                                 "TEST_sign",
@@ -159,8 +178,6 @@ fun AuthScreen(
                                     .addOnFailureListener {
                                         Log.w("TEST_addOnFailureListener", it.toString())
                                     }
-
-
                             }
                         }
                     }

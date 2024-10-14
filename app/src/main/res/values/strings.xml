@@ -9,7 +9,7 @@
     <string name="contact_the_author_by_email">Связаться с автором по электронной почте</string>
     <string name="privacy_intro_title">Введение</string>
     <string name="privacy_intro_content">Добро пожаловать в %1$s!\n\nВ этом соглашении описывается,
-        как приложение собирает, использует и защищает вашу личную информацию, когда Вы используете это мобильное приложение.\n\nИспользуя %1$s, вы соглашаетесь с условиями, описанными в этом соглашении.</string>
+        как приложение собирает, использует и защищает вашу личную информацию, когда Вы используете это мобильное приложение.\n\nИспользуя %1$s, Вы соглашаетесь с условиями, описанными в этом соглашении.</string>
     <string name="privacy_data_collection_title">Сбор данных</string>
     <string name="privacy_data_collection_content">Локальные файлы: %1$s получает доступ к фотографиям, хранящимся на вашем
         устройстве и которые Вы добавляете к истории исполнения заказа. Фотографии не загружаются и не передаются на внешние серверы.</string>
@@ -22,7 +22,7 @@
         Приложение не передает и не хранит фотографии снаружи.</string>
     <string name="privacy_third_party_services_title">Сторонние услуги</string>
     <string name="privacy_third_party_services_content">Реклама: %1$s не отображает стороннюю рекламу.\nВнешние ссылки: приложение
-        может содержать ссылки на внешние веб-сайты. Обратите внимание, что автор не несем ответственности за политику конфиденциальности на этих сайтах.</string>
+        может содержать ссылки на внешние веб-сайты. Обратите внимание, что автор не несет ответственности за политику конфиденциальности на этих сайтах.</string>
     <string name="privacy_changes_notice_title">Изменения в этом уведомлении</string>
     <string name="privacy_changes_notice_content">Автор время от времени может обновлять данное пользовательское соглашение.
         Любые изменения будут отражены в приложении.</string>
@@ -43,7 +43,9 @@
     <string name="authorization">Авторизация</string>
     <string name="desc_active_orders">%1$s активных заказов</string>
     <string name="orders">Заказы</string>
-    <string name="active">Активные</string>
+    <string name="active">В работе</string>
+    <string name="wait">В ожидании</string>
+    <string name="wait2">в ожидании</string>
     <string name="closed">Закрытые</string>
     <string name="all">Все</string>
     <string name="create_order">Создать заказ</string>
@@ -52,6 +54,8 @@
     <string name="client_">"Клиент: "</string>
     <string name="desc_">"Описание: "</string>
     <string name="type_orders_">"Тип заказа: "</string>
+    <string name="pare_parts_ordered">"Запчасти заказаны: "</string>
+    <string name="pare_parts_ordered2">"Запчасти заказаны?"</string>
     <string name="price_order">"Стоимость заказа: "</string>
     <string name="_rub">" руб."</string>
     <string name="add_order">Добавление заказа:</string>
@@ -64,6 +68,7 @@
     <string name="nootbook">ноутбук</string>
     <string name="television">телевизор</string>
     <string name="tablet">планшет</string>
+    <string name="print">принтер/МФУ</string>
     <string name="other">иное</string>
     <string name="model">Модель</string>
     <string name="price_zip">Цена запчастей</string>
@@ -71,6 +76,7 @@
     <string name="comment">Коментарий</string>
     <string name="add">Добавить</string>
     <string name="desc">Описание</string>
+    <string name="completed_for">"Выполнен за: "</string>
     <string name="error_client_not_empty">Поле клиент не может быть пустым!</string>
     <string name="error_dest_not_empty">Поле описание не может быть пустым!</string>
     <string name="error_type_order_not_empty">Поле типа заказа не может быть пустым!</string>
@@ -113,7 +119,7 @@
     <string name="title_e_note_android">О приложении E-note для Android:\n</string>
     <string name="e_mail_instrictions_send">Письмо с инструкцией направлено на указанный e-mail.</string>
     <string name="unknown_error">Неизвестная ошибка. Обратитесь в техподдержку.</string>
-    <string name="you_need_to_accept_the_terms_of_user_agreement">Нужно принимать условия пользовательского соглашения</string>
+    <string name="you_need_to_accept_the_terms_of_user_agreement">Нужно принять условия пользовательского соглашения</string>
     <string name="reg_succes">Регистрация прошла успешно!</string>
     <string name="error_reg">Ошибка при регистрации. Обратитесь в техподдержку.</string>
     <string name="send">Отправить</string>
@@ -133,6 +139,10 @@
     <string name="closed_order_">Закрыть заказ?</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
+    <string name="yes2">да</string>
+    <string name="no2">нет</string>
+    <string name="in_work">"В работе: "</string>
+    <string name="day">" д."</string>
     <string name="history">История</string>
     <string name="Photo">Фото</string>
     <string name="call_client">Позвонить клиенту</string>

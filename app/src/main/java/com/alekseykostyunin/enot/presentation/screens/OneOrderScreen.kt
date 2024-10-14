@@ -36,6 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -68,6 +69,7 @@ import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.HistoryStep
 import com.alekseykostyunin.enot.domain.entities.Order
+import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
@@ -85,6 +87,7 @@ import com.pushpal.jetlime.JetLimeEvent
 import com.pushpal.jetlime.JetLimeEventDefaults
 import java.io.File
 import java.util.concurrent.ExecutorService
+import kotlin.math.abs
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -183,6 +186,7 @@ fun OneOrderScreen(
 
                                         val orderUpdate = Order(
                                             id = idOrder,
+                                            status = order.status,
                                             client = order.client,
                                             dateAdd = order.dateAdd,
                                             dateClose = 0,
@@ -191,7 +195,6 @@ fun OneOrderScreen(
                                             model = order.model,
                                             priceZip = order.priceZip,
                                             priceWork = order.priceWork,
-                                            isWork = true,
                                             history = history,
                                             photos = order.photos,
                                             comment = order.comment,
@@ -236,6 +239,128 @@ fun OneOrderScreen(
                         ) {
                             Text(stringResource(R.string.add))
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    val openDialogZipOrdered = remember { mutableStateOf(false) }
+    if (openDialogZipOrdered.value) {
+        Dialog(
+            onDismissRequest = {
+                openDialogZipOrdered.value = false
+            }
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(22.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(R.string.pare_parts_ordered2),
+                        Modifier.padding(bottom = 12.dp),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Button(
+                        onClick = {
+                            val auth: FirebaseAuth = Firebase.auth
+                            val database = Firebase.database.reference
+                            val user = auth.currentUser
+                            if (user != null) {
+                                order?.let {
+                                    val userId = user.uid
+                                    val idOrder = order.id
+                                    val dateCloseOrder = DateUtil.dateOfUnit
+                                    val history = order.history?.toMutableList()
+                                    history?.let {
+                                        val oldHistoryStep = history.last().apply {
+                                            type = 1
+                                        }
+                                        val odlIdHistoryStep = oldHistoryStep.id
+
+                                        val newIdHistoryStep = odlIdHistoryStep.plus(1)
+                                        val newHistoryStep = HistoryStep(
+                                            newIdHistoryStep,
+                                            dateCloseOrder,
+                                            2,
+                                            "Запчасти заказаны"
+                                        )
+                                        history.add(newHistoryStep)
+                                        Log.d("TEST_history", history.toString())
+                                    }
+
+                                    val orderUpdate = Order(
+                                        id = idOrder,
+                                        status = StatusOrder.PAUSED,
+                                        client = order.client,
+                                        dateAdd = order.dateAdd,
+                                        dateClose = dateCloseOrder,
+                                        description = order.description,
+                                        type = order.type,
+                                        model = order.model,
+                                        priceZip = order.priceZip,
+                                        priceWork = order.priceWork,
+                                        history = history,
+                                        photos = order.photos,
+                                        comment = order.comment,
+                                    )
+
+                                    database
+                                        .child("users")
+                                        .child(userId)
+                                        .child("orders")
+                                        .child(idOrder!!)
+                                        .setValue(orderUpdate)
+
+                                    val dbNewOrderUpdate = database
+                                        .child("users")
+                                        .child(userId)
+                                        .child("orders")
+                                        .child(idOrder)
+
+                                    dbNewOrderUpdate.addValueEventListener(object :
+                                        ValueEventListener {
+                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                            val order2 = snapshot.getValue(Order::class.java)
+                                            if (order2 != null) {
+                                                Log.d(
+                                                    "TEST_snapshot_CloseOrder",
+                                                    order2.toString()
+                                                )
+                                                ordersViewModel.getOrderUser(order2)
+                                                openDialogZipOrdered.value = false
+                                            }
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                            Log.d("TEST_snapshot_error", error.message)
+                                        }
+                                    }
+                                    )
+                                    ordersViewModel.updateOrders()
+                                }
+                            }
+                        },
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                    ) {
+                        Text(stringResource(R.string.yes))
+                    }
+                    Button(
+                        onClick = {
+                            openDialogZipOrdered.value = false
+                        },
+                        Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.no))
                     }
                 }
             }
@@ -295,6 +420,7 @@ fun OneOrderScreen(
 
                                     val orderUpdate = Order(
                                         id = idOrder,
+                                        status = StatusOrder.CLOSED,
                                         client = order.client,
                                         dateAdd = order.dateAdd,
                                         dateClose = dateCloseOrder,
@@ -303,7 +429,6 @@ fun OneOrderScreen(
                                         model = order.model,
                                         priceZip = order.priceZip,
                                         priceWork = order.priceWork,
-                                        isWork = false,
                                         history = history,
                                         photos = order.photos,
                                         comment = order.comment,
@@ -324,22 +449,22 @@ fun OneOrderScreen(
 
                                     dbNewOrderUpdate.addValueEventListener(object :
                                         ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                val order2 = snapshot.getValue(Order::class.java)
-                                                if (order2 != null) {
-                                                    Log.d(
-                                                        "TEST_snapshot_CloseOrder",
-                                                        order2.toString()
-                                                    )
-                                                    ordersViewModel.getOrderUser(order2)
-                                                    openDialogCloseOrder.value = false
-                                                }
-                                            }
-
-                                            override fun onCancelled(error: DatabaseError) {
-                                                Log.d("TEST_snapshot_error", error.message)
+                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                            val order2 = snapshot.getValue(Order::class.java)
+                                            if (order2 != null) {
+                                                Log.d(
+                                                    "TEST_snapshot_CloseOrder",
+                                                    order2.toString()
+                                                )
+                                                ordersViewModel.getOrderUser(order2)
+                                                openDialogCloseOrder.value = false
                                             }
                                         }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                            Log.d("TEST_snapshot_error", error.message)
+                                        }
+                                    }
                                     )
                                     ordersViewModel.updateOrders()
                                 }
@@ -465,6 +590,17 @@ fun OneOrderScreen(
         floatingActionButton = {
             if (state == 0) {
                 Column {
+                    if (order?.status == StatusOrder.OPEN) { // если в работе
+                        Button(
+                            onClick = {
+                                openDialogZipOrdered.value = true
+                            },
+                            elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
+                        ) {
+                            Text(text = stringResource(R.string.pare_parts_ordered2))
+                        }
+                    }
+
                     Button(
                         onClick = {
                             requestCallPhonePermission()
@@ -489,7 +625,7 @@ fun OneOrderScreen(
                     }
                 }
             } else if (state == 1) {
-                if (order?.isWork == true) {
+                if (order?.status == StatusOrder.OPEN || order?.status == StatusOrder.PAUSED) { // если в работе
                     Column {
                         Button(
                             onClick = {
@@ -508,7 +644,7 @@ fun OneOrderScreen(
                 }
             } else if (state == 2) {
                 Column {
-                    if (!shouldShowCamera.value && order?.isWork == true) {
+                    if (!shouldShowCamera.value && (order?.status == StatusOrder.OPEN || order?.status == StatusOrder.PAUSED)) {
                         Button(
                             onClick = {
                                 requestCameraPermission()
@@ -541,7 +677,7 @@ fun OneOrderScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                         .padding(innerPadding),
                 ) {
@@ -572,7 +708,7 @@ fun OneOrderScreen(
                             )
                             IconButton(
                                 onClick = {
-                                    if (order?.isWork == true) {
+                                    if (order?.status == StatusOrder.OPEN || order?.status == StatusOrder.PAUSED) {
                                         navigationState.navigateTo(Destinations.EditOrder.route)
                                     }
                                 }
@@ -582,11 +718,15 @@ fun OneOrderScreen(
                                     contentDescription = null
                                 )
                             }
-                            val color = if (order?.isWork == true) Color.Red
-                            else Color.Green
+                            val color = when (order?.status) {
+                                StatusOrder.OPEN -> Color.Red
+                                StatusOrder.PAUSED -> Color.Yellow
+                                StatusOrder.CLOSED -> Color.Green
+                                null -> Color.Red
+                            }
                             IconButton(
                                 onClick = {
-                                    if (order?.isWork == true) {
+                                    if (order?.status == StatusOrder.OPEN || order?.status == StatusOrder.PAUSED) {
                                         openDialogCloseOrder.value = true
                                     }
                                 }
@@ -650,7 +790,11 @@ fun DescOrder(order: Order) {
                 fontSize = 18.sp
             )
             Text(
-                text = if (order.isWork) stringResource(R.string.active2) else stringResource(R.string.close2),
+                text = when (order.status) {
+                    StatusOrder.OPEN -> stringResource(R.string.active2)
+                    StatusOrder.PAUSED -> stringResource(R.string.wait2)
+                    else -> stringResource(R.string.close2)
+                },
                 fontSize = 18.sp
             )
         }
@@ -687,6 +831,27 @@ fun DescOrder(order: Order) {
             Text(
                 text = order.type.toString(),
                 fontSize = 18.sp
+            )
+        }
+        Row(
+            modifier = Modifier.padding(top = 18.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.pare_parts_ordered),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+            Text(
+                text = when (order.status) {
+                    StatusOrder.OPEN -> stringResource(R.string.no2)
+                    StatusOrder.PAUSED,StatusOrder.CLOSED-> stringResource(R.string.yes2)
+                },
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = when (order.status) {
+                    StatusOrder.OPEN -> Color.Red
+                    StatusOrder.PAUSED, StatusOrder.CLOSED -> MaterialTheme.colorScheme.onBackground
+                }
             )
         }
         Row(
@@ -738,6 +903,24 @@ fun DescOrder(order: Order) {
             )
             Text(
                 text = order.comment.toString(),
+                fontSize = 18.sp
+            )
+        }
+        Row(
+            modifier = Modifier.padding(top = 18.dp),
+        ) {
+            Text(
+                text = if(order.status == StatusOrder.CLOSED) stringResource(R.string.completed_for)
+                else stringResource(R.string.in_work),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+            val dateStart = if(order.status == StatusOrder.CLOSED) order.dateClose
+            else DateUtil.dateOfUnit
+            val difference = abs(dateStart - order.dateAdd)
+            val days = difference / (24 * 60 * 60 * 1000)
+            Text(
+                text = days.toString() + stringResource(R.string.day),
                 fontSize = 18.sp
             )
         }

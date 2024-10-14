@@ -27,11 +27,8 @@ object MyFirebaseAuth {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("TEST_sign", "signInWithEmail:success")
-                    val user = auth.currentUser
-                    //updateUI(user)
                 } else {
                     Log.w("TEST_sign", "signInWithEmail:failure", task.exception)
-                    //updateUI(null)
                 }
             }
             .addOnFailureListener {
@@ -48,7 +45,7 @@ object MyFirebaseAuth {
     fun resetPassword(email: String) {
         auth.sendPasswordResetEmail(email)
             .addOnSuccessListener {
-                Log.d("TEST_1", "yes" + it.toString())
+                Log.d("TEST_1", "yes$it")
             }.addOnFailureListener {
                 Log.d("TEST_1", "not" + it.message)
             }
@@ -56,14 +53,11 @@ object MyFirebaseAuth {
 
     fun reg(email: String, password: String) {
         auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener() { task ->
+            .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("TEST_1", "createUserWithEmail:success")
-                    val user = auth.currentUser
-                    //updateUI(user)
                 } else {
                     Log.w("TEST_1", "createUserWithEmail:failure", task.exception)
-                    //updateUI(null)
                 }
             }
     }

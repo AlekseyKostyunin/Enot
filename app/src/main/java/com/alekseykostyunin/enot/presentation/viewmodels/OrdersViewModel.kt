@@ -1,5 +1,6 @@
 package com.alekseykostyunin.enot.presentation.viewmodels
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Build
 import android.util.Log
@@ -10,6 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import com.alekseykostyunin.enot.data.repositoryimpl.OrdersRepositoryImpl
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.entities.Photo
+import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -78,6 +80,7 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
             val orderUpdate = order.value?.let { order ->
                 Order(
                     id = idOrder,
+                    status = order.status,
                     client = order.client,
                     dateAdd = order.dateAdd,
                     dateClose = 0,
@@ -86,7 +89,6 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
                     model = order.model,
                     priceZip = order.priceZip,
                     priceWork = order.priceWork,
-                    isWork = true,
                     history = order.history,
                     photos = photos,
                     comment = order.comment,
@@ -136,6 +138,11 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
         getAllOrdersUser()
     }
 
+    @SuppressLint("NewApi")
+    fun updateOrdersForAnalytics(dateStart: Long, dateEnd: Long) {
+        getOrdersForAnalytics(dateStart, dateEnd)
+    }
+
     private fun getAllOrdersUser() {
         _state.value = State.Loading
         val auth: FirebaseAuth = Firebase.auth
@@ -155,7 +162,9 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
                     }
                     val ordersRevers = ordersDB.asReversed()
                     _orders.value = ordersRevers
-                    val countActiveOrders = ordersDB.filter { it.isWork }.size
+                    val countActiveOrders = ordersDB.filter {
+                        it.status == StatusOrder.OPEN || it.status == StatusOrder.PAUSED
+                    }.size
                     _countActiveOrders.value = countActiveOrders
                     _state.value = State.Success
                     Log.d("TEST_snapshot_countActiveOrders", _countActiveOrders.value.toString())
@@ -208,9 +217,14 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
             } else {
                 _ordersForAnalytics.value = ordersSort.toMutableList()
                 _countAllOrdersAsPeriod.value = ordersSort.size
-                _countActiveOrdersForPeriod.value = ordersSort.filter { order -> order.isWork }.size
+                _countActiveOrdersForPeriod.value = ordersSort.filter {
+                    order ->
+                    order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED
+                }.size
                 _countClosedOrdersForPeriod.value =
-                    ordersSort.filter { order -> !order.isWork }.size
+                    ordersSort.filter {
+                        order -> order.status == StatusOrder.CLOSED
+                    }.size
                 _priceZip.value = ordersSort.sumOf { order -> order.priceZip }
                 _profit.value = ordersSort.sumOf { order -> order.priceWork }
                 val preDataPriceZip = mutableListOf<Float>()

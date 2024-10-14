@@ -19,9 +19,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -43,15 +43,16 @@ import androidx.compose.ui.unit.dp
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
+import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.presentation.general.Circle
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.State
-import com.alekseykostyunin.enot.ui.theme.Purple40
+import com.alekseykostyunin.enot.ui.theme.gradient
+import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllOrdersScreen(
     navigationState: NavigationState,
@@ -62,18 +63,16 @@ fun AllOrdersScreen(
     var selectedIndex by remember { mutableIntStateOf(0) }
     val options = listOf(
         stringResource(R.string.active),
-        stringResource(R.string.closed),
+        stringResource(R.string.wait),
         stringResource(R.string.all)
     )
     val orders = when (selectedIndex) {
         0 -> {
-            orders0.value.filter { it.isWork }
+            orders0.value.filter { it.status == StatusOrder.OPEN }
         }
-
         1 -> {
-            orders0.value.filter { !it.isWork }
+            orders0.value.filter { it.status == StatusOrder.PAUSED }
         }
-
         else -> {
             orders0.value
         }
@@ -99,8 +98,8 @@ fun AllOrdersScreen(
         },
         content = { innerPadding ->
             Box(
-                modifier = Modifier
-                    .background(Color.White)
+                Modifier
+                    .background(MaterialTheme.colorScheme.background)
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
@@ -133,8 +132,11 @@ fun AllOrdersScreen(
                                             onClick = { selectedIndex = index },
                                             selected = index == selectedIndex,
 
-                                        ) {
-                                            Text(label)
+                                            ) {
+                                            Text(
+                                                text = label,
+                                                fontWeight = FontWeight.Bold,
+                                            )
                                         }
                                     }
                                 }
@@ -177,8 +179,8 @@ fun GetOneOrderListOrders(
     ) {
         Column(
             modifier = Modifier
-                .background(Purple40)
-                .padding(15.dp)
+                .background(gradient)
+                .padding(18.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -190,7 +192,12 @@ fun GetOneOrderListOrders(
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
-                Circle(color = if (order.isWork) Color.Red else Color.Green)
+                Circle(color = when (order.status) {
+                        StatusOrder.OPEN -> Color.Red
+                        StatusOrder.PAUSED -> Color.Yellow
+                        StatusOrder.CLOSED -> Color.Green
+                    }
+                )
             }
             Row {
                 Text(
@@ -226,11 +233,43 @@ fun GetOneOrderListOrders(
             }
             Row {
                 Text(
+                    text = stringResource(R.string.pare_parts_ordered),
+                    fontWeight = FontWeight.Bold, color = Color.White
+                )
+                Text(
+                    text = when(order.status) {
+                        StatusOrder.OPEN -> stringResource(R.string.no2)
+                        StatusOrder.PAUSED,StatusOrder.CLOSED-> stringResource(R.string.yes2)
+                    },
+                    fontWeight = FontWeight.Bold,
+                    color = when(order.status) {
+                        StatusOrder.OPEN -> Color.Red
+                        StatusOrder.PAUSED, StatusOrder.CLOSED-> Color.White
+                    }
+                )
+            }
+            Row {
+                Text(
                     text = stringResource(R.string.price_order),
                     fontWeight = FontWeight.Bold, color = Color.White
                 )
                 Text(
                     text = order.priceWork.toString() + stringResource(R.string._rub),
+                    color = Color.White
+                )
+            }
+            Row {
+                val dateStart = if(order.status == StatusOrder.CLOSED) order.dateClose
+                else DateUtil.dateOfUnit
+                val difference = abs(dateStart - order.dateAdd)
+                val days = difference / (24 * 60 * 60 * 1000)
+                Text(
+                    text = if(order.status == StatusOrder.CLOSED) stringResource(R.string.completed_for)
+                    else stringResource(R.string.in_work),
+                    fontWeight = FontWeight.Bold, color = Color.White
+                )
+                Text(
+                    text = days.toString() + stringResource(R.string.day),
                     color = Color.White
                 )
             }

@@ -19,6 +19,7 @@ import com.alekseykostyunin.enot.presentation.navigation.StartNavigation
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.ui.theme.EnotTheme
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -167,16 +168,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            StartNavigation(
-                mainViewModel,
-                ordersViewModel,
-                clientsViewModel,
-                { requestCameraPermission() },
-                { requestContactsPermission() },
-                { requestCallPhonePermission() },
-                cameraExecutor,
-                getContact = { getContact.launch(null) },
-            )
+            EnotTheme {
+                StartNavigation(
+                    mainViewModel,
+                    ordersViewModel,
+                    clientsViewModel,
+                    { requestCameraPermission() },
+                    { requestContactsPermission() },
+                    { requestCallPhonePermission() },
+                    cameraExecutor,
+                    getContact = { getContact.launch(null) },
+                )
+            }
         }
     }
 

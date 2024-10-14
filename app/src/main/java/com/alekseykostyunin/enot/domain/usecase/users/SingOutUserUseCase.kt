@@ -1,9 +1,9 @@
 package com.alekseykostyunin.enot.domain.usecase.users
 
-import com.alekseykostyunin.enot.domain.repository.UsersRepository
+import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
 
 class SingOutUserUseCase(
-    private val usersRepository: UsersRepository
+    private val usersRepository: UsersRepositoryImpl
 ) {
 
     fun singOutUser() : Boolean{

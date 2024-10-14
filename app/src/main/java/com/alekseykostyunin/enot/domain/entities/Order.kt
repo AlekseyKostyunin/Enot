@@ -2,6 +2,7 @@ package com.alekseykostyunin.enot.domain.entities
 
 data class Order(
     val id: String? = null,
+    val status: StatusOrder = StatusOrder.OPEN,
     val client: Client? = null,
     val dateAdd: Long = 0,
     var dateClose: Long = 0,
@@ -10,8 +11,13 @@ data class Order(
     var model: String? = null,
     var priceZip: Int = 0,
     var priceWork: Int = 0,
-    var isWork: Boolean = true,
     var history: List<HistoryStep>? = null,
     var photos: List<Photo>? = null,
     var comment: String? = null
 )
+
+enum class StatusOrder {
+    OPEN,
+    PAUSED,
+    CLOSED
+}

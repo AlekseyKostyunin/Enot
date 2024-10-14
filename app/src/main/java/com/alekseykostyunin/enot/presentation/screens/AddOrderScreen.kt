@@ -1,6 +1,7 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,8 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -45,6 +48,7 @@ import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.domain.entities.HistoryStep
 import com.alekseykostyunin.enot.domain.entities.Order
+import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
@@ -64,9 +68,7 @@ fun AddOrderScreen(
     clientsViewModel.updateClients()
     val clientOfDb = remember { mutableStateOf(Client()) }
     val context = LocalContext.current
-    fun sendToast(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-    }
+    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG).show()}
 
     Box(
         modifier = Modifier
@@ -114,7 +116,8 @@ fun AddOrderScreen(
 
             } else {
                 ExposedDropdownMenuBox(
-                    modifier = Modifier.padding(top = 10.dp),
+                    modifier = Modifier
+                        .padding(top = 10.dp),
                     expanded = expandedClient.value,
                     onExpandedChange = {
                         expandedClient.value = !expandedClient.value
@@ -122,7 +125,7 @@ fun AddOrderScreen(
                 ) {
                     OutlinedTextField(
                         modifier = Modifier
-                            .menuAnchor()
+                            .menuAnchor(MenuAnchorType.PrimaryEditable, true)
                             .fillMaxWidth(),
                         readOnly = true,
                         value = selectedOptionTextClient.value,
@@ -133,11 +136,11 @@ fun AddOrderScreen(
                                 expanded = expandedClient.value
                             )
                         },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            disabledContainerColor = Color.White,
-                        )
+//                        colors = TextFieldDefaults.colors(
+//                            focusedContainerColor = Color.White,
+//                            unfocusedContainerColor = Color.White,
+//                            disabledContainerColor = Color.White,
+//                        )
                     )
                     ExposedDropdownMenu(
                         expanded = expandedClient.value,
@@ -181,6 +184,7 @@ fun AddOrderScreen(
                     stringResource(R.string.nootbook),
                     stringResource(R.string.television),
                     stringResource(R.string.tablet),
+                    stringResource(R.string.print),
                     stringResource(R.string.other)
                 )
             var expanded by remember { mutableStateOf(false) }
@@ -195,7 +199,7 @@ fun AddOrderScreen(
             ) {
                 OutlinedTextField(
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryEditable, true)
                         .fillMaxWidth(),
                     readOnly = true,
                     value = selectedOptionTextTypeOrder,
@@ -206,11 +210,11 @@ fun AddOrderScreen(
                             expanded = expanded
                         )
                     },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        disabledContainerColor = Color.White,
-                    )
+//                    colors = TextFieldDefaults.colors(
+//                        focusedContainerColor = Color.White,
+//                        unfocusedContainerColor = Color.White,
+//                        disabledContainerColor = Color.White,
+//                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -351,6 +355,7 @@ fun AddOrderScreen(
                                                             )
                                                             val order = Order(
                                                                 id = idOrder,
+                                                                status = StatusOrder.OPEN,
                                                                 client = clientNew,
                                                                 dateAdd = dateAdd,
                                                                 dateClose = 0,
@@ -359,7 +364,6 @@ fun AddOrderScreen(
                                                                 model = model,
                                                                 priceZip = priceZ.toInt(),
                                                                 priceWork = price.toInt(),
-                                                                isWork = true,
                                                                 history = history,
                                                                 comment = comment,
                                                             )

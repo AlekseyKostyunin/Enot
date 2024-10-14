@@ -22,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,11 +37,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.domain.entities.Client
+import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.State
-import com.alekseykostyunin.enot.ui.theme.Purple40
+import com.alekseykostyunin.enot.ui.theme.gradient
 
 @Composable
 fun AllClientsScreen(
@@ -49,14 +51,14 @@ fun AllClientsScreen(
     getContact: () -> Unit,
     requestContactsPermission: () -> Unit
 ) {
-    val state = clientsViewModel.state.observeAsState(State.Initial)
-    val clients = clientsViewModel.clients.observeAsState(listOf())
+    val state = clientsViewModel.state.observeAsState(State.Initial).value
+    val clients = clientsViewModel.clients.observeAsState(listOf()).value
     val context = LocalContext.current
     fun sendToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
-    if (state.value is State.Error) {
-        sendToast((state.value as State.Error).textError)
+    if (state is State.Error) {
+        sendToast(state.textError)
         clientsViewModel.resetState()
     }
 
@@ -81,33 +83,38 @@ fun AllClientsScreen(
         content = { innerPadding ->
             Box(
                 Modifier
-                    .background(Color.White)
+                    //.background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
                 Column {
-                    if (clients.value.isEmpty()) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                stringResource(R.string.here_all_clients),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                    if (state == State.Loading) {
+                        ProgressIndicator()
                     } else {
-                        LazyColumn {
-                            items(
-                                items = clients.value,
-                                key = { it.id.toString() },
+                        if (clients.isEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                GetOneClient(
-                                    it,
-                                    navigationState,
-                                    clientsViewModel
+                                Text(
+                                    stringResource(R.string.here_all_clients),
+                                    textAlign = TextAlign.Center
                                 )
+                            }
+                        } else {
+                            LazyColumn {
+                                items(
+                                    items = clients,
+                                    key = { it.id.toString() },
+                                ) {
+                                    GetOneClient(
+                                        it,
+                                        navigationState,
+                                        clientsViewModel
+                                    )
+                                }
                             }
                         }
                     }
@@ -138,7 +145,7 @@ fun GetOneClient(
         ) {
             Column(
                 modifier = Modifier
-                    .background(Purple40)
+                    .background(gradient)
                     .padding(15.dp)
             ) {
                 Row(

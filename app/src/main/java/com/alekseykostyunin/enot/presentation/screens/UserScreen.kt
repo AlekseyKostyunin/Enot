@@ -78,6 +78,9 @@ fun UserScreen(
         toContact = false
     }
 
+    val githubLink = "https://github.com/AlekseyKostyunin/Enot"
+    val ruStoreLink = "https://www.rustore.ru/"
+
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             Card(
@@ -130,12 +133,17 @@ fun UserScreen(
                             modifier = Modifier
                                 .size(70.dp)
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
-
                         ) {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.github),
                                 contentDescription = "GitHub",
-                                modifier = Modifier.size(30.dp),
+                                modifier = Modifier.size(30.dp)
+                                    .clickable {
+                                        val openURL = Intent(Intent.ACTION_VIEW)
+                                        openURL.data = Uri.parse(githubLink)
+                                        context.startActivity(openURL)
+                                    }
+                                ,
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
@@ -147,12 +155,17 @@ fun UserScreen(
                             modifier = Modifier
                                 .size(70.dp)
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
-
                         ) {
                             Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.google_play),
+                                imageVector = ImageVector.vectorResource(R.drawable.rustore2),
                                 contentDescription = stringResource(R.string.rustore),
-                                modifier = Modifier.size(30.dp),
+                                modifier = Modifier.size(30.dp)
+                                    .clickable {
+                                        val openURL = Intent(Intent.ACTION_VIEW)
+                                        openURL.data = Uri.parse(ruStoreLink)
+                                        context.startActivity(openURL)
+                                    }
+                                ,
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }

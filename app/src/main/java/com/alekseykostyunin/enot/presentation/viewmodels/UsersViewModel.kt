@@ -21,7 +21,7 @@ class UsersViewModel: ViewModel() {
     }
 
     fun signOutUser() {
-        val repository: UsersRepository = UsersRepositoryImpl
+        val repository: UsersRepositoryImpl = UsersRepositoryImpl
         val singOutUserUseCase = SingOutUserUseCase(repository)
         initial = singOutUserUseCase.singOutUser()
     }

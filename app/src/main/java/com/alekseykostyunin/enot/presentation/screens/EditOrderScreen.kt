@@ -19,6 +19,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -113,6 +114,7 @@ fun EditOrderScreen(
                     stringResource(R.string.nootbook),
                     stringResource(R.string.television),
                     stringResource(R.string.tablet),
+                    stringResource(R.string.print),
                     stringResource(R.string.other))
             var expanded by remember { mutableStateOf(false) }
             var selectedOptionText by remember { mutableStateOf(order?.type) }
@@ -125,7 +127,7 @@ fun EditOrderScreen(
             ) {
                 OutlinedTextField(
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(MenuAnchorType.PrimaryEditable, true)
                         .fillMaxWidth(),
                     readOnly = true,
                     value = selectedOptionText ?: "",
@@ -136,11 +138,11 @@ fun EditOrderScreen(
                             expanded = expanded
                         )
                     },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        disabledContainerColor = Color.White,
-                    )
+//                    colors = TextFieldDefaults.colors(
+//                        focusedContainerColor = Color.White,
+//                        unfocusedContainerColor = Color.White,
+//                        disabledContainerColor = Color.White,
+//                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -212,8 +214,7 @@ fun EditOrderScreen(
                     modifier = Modifier.fillMaxWidth(),
                     value = comment,
                     label = { Text(stringResource(R.string.comment)) },
-                    onValueChange = { newText -> comment = newText },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    onValueChange = { newText -> comment = newText }
                 )
             }
 
@@ -237,6 +238,7 @@ fun EditOrderScreen(
                         idOrder?.let {
                             val orderUpdate = Order(
                                 id = idOrder,
+                                status = order.status,
                                 client = editClient,
                                 dateAdd = order.dateAdd,
                                 dateClose = 0,
@@ -245,7 +247,6 @@ fun EditOrderScreen(
                                 model = model,
                                 priceZip = priceZ.toInt(),
                                 priceWork = price.toInt(),
-                                isWork = true,
                                 history = order.history,
                                 photos = order.photos,
                                 comment = comment

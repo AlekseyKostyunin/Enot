@@ -29,8 +29,8 @@ object UsersRepositoryImpl : UsersRepository {
         TODO("Not yet implemented")
     }
 
-    override fun resetPasswordUser(email: String) {
-        MyFirebaseAuth.resetPassword(email)
+    override fun resetPasswordUser(id: String) {
+        MyFirebaseAuth.resetPassword(id)
     }
 
     override fun signOutUser() : Boolean {
