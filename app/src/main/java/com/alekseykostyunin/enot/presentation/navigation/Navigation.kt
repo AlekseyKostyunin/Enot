@@ -55,12 +55,14 @@ import com.alekseykostyunin.enot.presentation.screens.UserScreen
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
 import java.util.concurrent.ExecutorService
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun StartNavigation(
     mainViewModel: MainViewModel,
+    userViewModel: UserViewModel,
     ordersViewModel: OrdersViewModel,
     clientsViewModel: ClientsViewModel,
     requestCameraPermission: () -> Unit,
@@ -204,9 +206,9 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
     )
     val context = LocalContext.current
     NavigationBar(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onBackground,
-        ) {
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
+    ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         screens.forEach { screen ->
             val selected = navBackStackEntry?.destination?.hierarchy?.any {

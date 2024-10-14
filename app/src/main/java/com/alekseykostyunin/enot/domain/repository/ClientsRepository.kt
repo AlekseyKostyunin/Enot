@@ -5,5 +5,5 @@ import com.alekseykostyunin.enot.domain.entities.Client
 interface ClientsRepository {
     fun addClient(client: Client)
     fun getAllClients()
-    fun getInfoClient(idClient: String)
+    fun editClient(client: Client)
 }

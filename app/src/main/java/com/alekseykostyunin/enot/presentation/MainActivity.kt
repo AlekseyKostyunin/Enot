@@ -15,21 +15,104 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.alekseykostyunin.enot.R
+import com.alekseykostyunin.enot.data.repositoryimpl.ClientsRepositoryImpl
+import com.alekseykostyunin.enot.data.repositoryimpl.OrdersRepositoryImpl
+import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
+import com.alekseykostyunin.enot.domain.repository.ClientsRepository
+import com.alekseykostyunin.enot.domain.repository.OrdersRepository
+import com.alekseykostyunin.enot.domain.repository.UsersRepository
+import com.alekseykostyunin.enot.domain.usecase.clients.AddClientUseCase
+import com.alekseykostyunin.enot.domain.usecase.clients.AllClientsUseCase
+import com.alekseykostyunin.enot.domain.usecase.clients.EditClientUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.AddHistoryStepUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.AddOrderUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.AllOrdersUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.CloseOrderUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.EditOrderUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.AuthUserUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.CurrentUserUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.RegUserUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.ResetPasswordUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 import com.alekseykostyunin.enot.presentation.navigation.StartNavigation
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
+import com.alekseykostyunin.enot.presentation.viewmodelsfactory.ClientsViewModelFactory
+import com.alekseykostyunin.enot.presentation.viewmodelsfactory.OrdersViewModelFactory
+import com.alekseykostyunin.enot.presentation.viewmodelsfactory.UserViewModelFactory
 import com.alekseykostyunin.enot.ui.theme.EnotTheme
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
 
-    private val mainViewModel: MainViewModel by viewModels()
-    private val ordersViewModel: OrdersViewModel by viewModels()
-    private val clientsViewModel: ClientsViewModel by viewModels()
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
+    /* Repository */
+    private val userRepository: UsersRepository = UsersRepositoryImpl
+    private val ordersRepository: OrdersRepository = OrdersRepositoryImpl
+    private val clientsRepository: ClientsRepository = ClientsRepositoryImpl
+
+    /* Use cases */
+
+    /* Users */
+    private val regUserUseCase: RegUserUseCase = RegUserUseCase(userRepository)
+    private val authUserUseCase: AuthUserUseCase = AuthUserUseCase(userRepository)
+    private val currentUserUseCase: CurrentUserUseCase = CurrentUserUseCase(userRepository)
+    private val resetPasswordUseCase: ResetPasswordUseCase = ResetPasswordUseCase(userRepository)
+    private val singOutUserUseCase: SingOutUserUseCase = SingOutUserUseCase(userRepository)
+
+    /* Orders */
+    private val addOrderUseCase: AddOrderUseCase = AddOrderUseCase(ordersRepository)
+    private val allOrdersUseCase: AllOrdersUseCase = AllOrdersUseCase(ordersRepository)
+    private val editOrderUseCase: EditOrderUseCase = EditOrderUseCase(ordersRepository)
+    private val closeOrderUseCase: CloseOrderUseCase = CloseOrderUseCase(ordersRepository)
+    private val addHistoryStepUseCase: AddHistoryStepUseCase = AddHistoryStepUseCase(ordersRepository)
+
+    /* Clients */
+    private val addClientUseCase: AddClientUseCase = AddClientUseCase(clientsRepository)
+    private val allClientsUseCase: AllClientsUseCase = AllClientsUseCase(clientsRepository)
+    private val editClientUseCase: EditClientUseCase = EditClientUseCase(clientsRepository)
+
+    /* View models */
+    private val mainViewModel: MainViewModel by viewModels()
+
+    private val userViewModel: UserViewModel by viewModels(
+        factoryProducer = {
+            UserViewModelFactory(
+                regUserUseCase = regUserUseCase,
+                authUserUseCase = authUserUseCase,
+                currentUserUseCase = currentUserUseCase,
+                resetPasswordUseCase = resetPasswordUseCase,
+                singOutUserUseCase = singOutUserUseCase
+            )
+        }
+    )
+
+    private val ordersViewModel: OrdersViewModel by viewModels(
+        factoryProducer = {
+            OrdersViewModelFactory(
+                addOrderUseCase = addOrderUseCase,
+                allOrdersUseCase = allOrdersUseCase,
+                editOrderUseCase = editOrderUseCase,
+                closeOrderUseCase = closeOrderUseCase,
+                addHistoryStepUseCase = addHistoryStepUseCase,
+            )
+        }
+    )
+    private val clientsViewModel: ClientsViewModel by viewModels(
+        factoryProducer = {
+            ClientsViewModelFactory(
+                addClientUseCase = addClientUseCase,
+                allClientsUseCase = allClientsUseCase,
+                editClientUseCase = editClientUseCase,
+            )
+        }
+    )
+
+    /* Permissions */
     private val launcherCamera = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -170,13 +253,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             EnotTheme {
                 StartNavigation(
-                    mainViewModel,
-                    ordersViewModel,
-                    clientsViewModel,
-                    { requestCameraPermission() },
-                    { requestContactsPermission() },
-                    { requestCallPhonePermission() },
-                    cameraExecutor,
+                    mainViewModel = mainViewModel,
+                    userViewModel = userViewModel,
+                    ordersViewModel = ordersViewModel,
+                    clientsViewModel = clientsViewModel,
+                    requestCameraPermission = { requestCameraPermission() },
+                    requestContactsPermission = { requestContactsPermission() },
+                    requestCallPhonePermission = { requestCallPhonePermission() },
+                    cameraExecutor = cameraExecutor,
                     getContact = { getContact.launch(null) },
                 )
             }

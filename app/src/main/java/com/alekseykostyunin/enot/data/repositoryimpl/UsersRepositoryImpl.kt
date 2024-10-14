@@ -1,39 +1,27 @@
 package com.alekseykostyunin.enot.data.repositoryimpl
 
-import com.alekseykostyunin.enot.data.firebase.MyFirebaseAuth
+import com.alekseykostyunin.enot.data.firebase.Firebase
 import com.alekseykostyunin.enot.domain.repository.UsersRepository
 
 object UsersRepositoryImpl : UsersRepository {
 
     override fun signInWithEmailAndPassword(email: String, password: String) {
-        MyFirebaseAuth.signInWithEmailAndPassword(email,password)
+        Firebase.signInWithEmailAndPassword(email,password)
     }
 
     override fun currentUser() : Boolean {
-        return MyFirebaseAuth.currentUser()
+        return Firebase.currentUser()
     }
 
     override fun regUser(email: String, password: String) {
-        MyFirebaseAuth.reg(email,password)
-    }
-
-    override fun getUser(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun getEmailUser(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun getIdUser() {
-        TODO("Not yet implemented")
+        Firebase.reg(email,password)
     }
 
     override fun resetPasswordUser(id: String) {
-        MyFirebaseAuth.resetPassword(id)
+        Firebase.resetPassword(id)
     }
 
     override fun signOutUser() : Boolean {
-        return MyFirebaseAuth.singOutUser()
+        return Firebase.singOutUser()
     }
 }

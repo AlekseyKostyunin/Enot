@@ -8,10 +8,16 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.alekseykostyunin.enot.data.repositoryimpl.OrdersRepositoryImpl
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.entities.Photo
 import com.alekseykostyunin.enot.domain.entities.StatusOrder
+import com.alekseykostyunin.enot.domain.usecase.orders.AddHistoryStepUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.AddOrderUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.AllOrdersUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.CloseOrderUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.EditOrderUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -21,7 +27,13 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class OrdersViewModel(application: Application) : AndroidViewModel(application) {
+class OrdersViewModel(
+    private val addOrderUseCase: AddOrderUseCase,
+    private val allOrdersUseCase: AllOrdersUseCase,
+    private val editOrderUseCase: EditOrderUseCase,
+    private val closeOrderUseCase: CloseOrderUseCase,
+    private val addHistoryStepUseCase: AddHistoryStepUseCase,
+) : ViewModel() {
 
     private val repository = OrdersRepositoryImpl
 
@@ -217,13 +229,12 @@ class OrdersViewModel(application: Application) : AndroidViewModel(application) 
             } else {
                 _ordersForAnalytics.value = ordersSort.toMutableList()
                 _countAllOrdersAsPeriod.value = ordersSort.size
-                _countActiveOrdersForPeriod.value = ordersSort.filter {
-                    order ->
+                _countActiveOrdersForPeriod.value = ordersSort.filter { order ->
                     order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED
                 }.size
                 _countClosedOrdersForPeriod.value =
-                    ordersSort.filter {
-                        order -> order.status == StatusOrder.CLOSED
+                    ordersSort.filter { order ->
+                        order.status == StatusOrder.CLOSED
                     }.size
                 _priceZip.value = ordersSort.sumOf { order -> order.priceZip }
                 _profit.value = ordersSort.sumOf { order -> order.priceWork }

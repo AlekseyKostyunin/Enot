@@ -13,7 +13,7 @@ object ClientsRepositoryImpl: ClientsRepository {
         TODO("Not yet implemented")
     }
 
-    override fun getInfoClient(idClient: String) {
+    override fun editClient(client: Client) {
         TODO("Not yet implemented")
     }
 

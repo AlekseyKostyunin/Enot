@@ -1,12 +1,14 @@
 package com.alekseykostyunin.enot.presentation.viewmodels
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.alekseykostyunin.enot.data.repositoryimpl.ClientsRepositoryImpl
 import com.alekseykostyunin.enot.domain.entities.Client
+import com.alekseykostyunin.enot.domain.usecase.clients.AddClientUseCase
+import com.alekseykostyunin.enot.domain.usecase.clients.AllClientsUseCase
+import com.alekseykostyunin.enot.domain.usecase.clients.EditClientUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -15,7 +17,11 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
-class ClientsViewModel(application: Application) : AndroidViewModel(application) {
+class ClientsViewModel(
+    private val addClientUseCase: AddClientUseCase,
+    private val allClientsUseCase: AllClientsUseCase,
+    private val editClientUseCase: EditClientUseCase,
+) : ViewModel() {
 
     private val repository = ClientsRepositoryImpl
 

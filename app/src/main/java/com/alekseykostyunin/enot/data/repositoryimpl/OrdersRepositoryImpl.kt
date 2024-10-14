@@ -1,5 +1,6 @@
 package com.alekseykostyunin.enot.data.repositoryimpl
 
+import com.alekseykostyunin.enot.domain.entities.HistoryStep
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.repository.OrdersRepository
 
@@ -17,7 +18,11 @@ object OrdersRepositoryImpl : OrdersRepository {
         TODO("Not yet implemented")
     }
 
-    override fun editHistoryOrder(idOrder: String, history: String) {
+    override fun editOrder(idOrder: String, history: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun addHistoryStep(idOrder: String, historyStep: HistoryStep) {
         TODO("Not yet implemented")
     }
 }

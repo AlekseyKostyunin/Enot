@@ -4,12 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.alekseykostyunin.enot.data.firebase.Firebase
-import com.alekseykostyunin.enot.data.repositoryimpl.UsersRepositoryImpl
+import com.alekseykostyunin.enot.domain.usecase.users.AuthUserUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.CurrentUserUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.RegUserUseCase
+import com.alekseykostyunin.enot.domain.usecase.users.ResetPasswordUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 
-class MainViewModel : ViewModel() {
-
-    private val repository: UsersRepositoryImpl = UsersRepositoryImpl
+class UserViewModel(
+    private val regUserUseCase: RegUserUseCase,
+    private val authUserUseCase: AuthUserUseCase,
+    private val currentUserUseCase: CurrentUserUseCase,
+    private val resetPasswordUseCase: ResetPasswordUseCase,
+    private val singOutUserUseCase: SingOutUserUseCase,
+) : ViewModel() {
 
     private val initialState = isStatusAuthorized()
     private val _isAuthorized = MutableLiveData(initialState)
@@ -18,7 +25,7 @@ class MainViewModel : ViewModel() {
     private fun isStatusAuthorized(): Boolean = Firebase.currentUser()
 
     fun signInWithEmailAndPassword(email: String, password: String) {
-        repository.signInWithEmailAndPassword(email, password)
+        regUserUseCase.regUser(email, password)
     }
 
     fun successAuth() {
@@ -26,8 +33,9 @@ class MainViewModel : ViewModel() {
     }
 
     fun signOut() {
-        val singOutUserUseCase = SingOutUserUseCase(repository)
         singOutUserUseCase.singOutUser()
         _isAuthorized.value = false
     }
+
+
 }
