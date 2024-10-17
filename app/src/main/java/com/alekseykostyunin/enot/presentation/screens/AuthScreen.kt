@@ -47,9 +47,6 @@ import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")

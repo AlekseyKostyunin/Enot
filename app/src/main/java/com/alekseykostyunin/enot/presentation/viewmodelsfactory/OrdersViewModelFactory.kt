@@ -9,7 +9,6 @@ import com.alekseykostyunin.enot.domain.usecase.orders.AllOrdersUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.CloseOrderUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.EditOrderUseCase
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
-import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
 
 class OrdersViewModelFactory(
     private val allOrdersUseCase: AllOrdersUseCase,
