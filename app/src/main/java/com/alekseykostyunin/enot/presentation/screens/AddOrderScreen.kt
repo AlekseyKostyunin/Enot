@@ -1,7 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,13 +20,11 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.data.utils.Validate
@@ -53,10 +51,6 @@ import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +62,9 @@ fun AddOrderScreen(
     clientsViewModel.updateClients()
     val clientOfDb = remember { mutableStateOf(Client()) }
     val context = LocalContext.current
-    fun sendToast(message: String) {Toast.makeText(context, message, Toast.LENGTH_LONG).show()}
+    fun sendToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
 
     Box(
         modifier = Modifier
@@ -97,9 +93,9 @@ fun AddOrderScreen(
             }
 
             val expandedClient = remember { mutableStateOf(false) }
-            val clients = clientsViewModel.clients
+            val clients = clientsViewModel.clients.collectAsStateWithLifecycle().value
             val selectedOptionTextClient = remember { mutableStateOf("") }
-            if (clients.value?.isEmpty() == true) {
+            if (clients.isEmpty()) {
                 OutlinedCard(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -136,11 +132,6 @@ fun AddOrderScreen(
                                 expanded = expandedClient.value
                             )
                         },
-//                        colors = TextFieldDefaults.colors(
-//                            focusedContainerColor = Color.White,
-//                            unfocusedContainerColor = Color.White,
-//                            disabledContainerColor = Color.White,
-//                        )
                     )
                     ExposedDropdownMenu(
                         expanded = expandedClient.value,
@@ -148,7 +139,7 @@ fun AddOrderScreen(
                             expandedClient.value = false
                         }
                     ) {
-                        clients.value?.forEach { selectionOption ->
+                        clients.forEach { selectionOption ->
                             DropdownMenuItem(
                                 text = {
                                     Text(text = selectionOption.name.toString())
@@ -209,12 +200,7 @@ fun AddOrderScreen(
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = expanded
                         )
-                    },
-//                    colors = TextFieldDefaults.colors(
-//                        focusedContainerColor = Color.White,
-//                        unfocusedContainerColor = Color.White,
-//                        disabledContainerColor = Color.White,
-//                    )
+                    }
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -330,48 +316,33 @@ fun AddOrderScreen(
                                                         isErrorComment = true
                                                         sendToast(context.getString(R.string.error_comment_not_empty))
                                                     } else {
-
-                                                        val auth: FirebaseAuth = Firebase.auth
-                                                        val database = Firebase.database.reference
-                                                        val user = auth.currentUser
-                                                        if (user != null) {
-                                                            val userId = user.uid
-                                                            val idOrder = database.child("users")
-                                                                .child(userId)
-                                                                .child("orders")
-                                                                .push().key.toString()
-                                                            val dateAdd = DateUtil.dateOfUnit
-                                                            val historyStep1 = HistoryStep(
-                                                                0,
-                                                                dateAdd,
-                                                                2,
-                                                                "Заказ создан"
-                                                            )
-                                                            val history = listOf(historyStep1)
-                                                            val clientNew = Client(
-                                                                clientOfDb.value.id,
-                                                                clientOfDb.value.name,
-                                                                clientOfDb.value.phone
-                                                            )
-                                                            val order = Order(
-                                                                id = idOrder,
-                                                                status = StatusOrder.OPEN,
-                                                                client = clientNew,
-                                                                dateAdd = dateAdd,
-                                                                dateClose = 0,
-                                                                description = desc,
-                                                                type = selectedOptionTextTypeOrder,
-                                                                model = model,
-                                                                priceZip = priceZ.toInt(),
-                                                                priceWork = price.toInt(),
-                                                                history = history,
-                                                                comment = comment,
-                                                            )
-                                                            database.child("users").child(userId)
-                                                                .child("orders")
-                                                                .child(idOrder).setValue(order)
-                                                        }
-
+                                                        val dateAdd = DateUtil.dateOfUnit
+                                                        val historyStep1 = HistoryStep(
+                                                            0,
+                                                            dateAdd,
+                                                            2,
+                                                            "Заказ создан"
+                                                        )
+                                                        val history = listOf(historyStep1)
+                                                        val clientNew = Client(
+                                                            clientOfDb.value.id,
+                                                            clientOfDb.value.name,
+                                                            clientOfDb.value.phone
+                                                        )
+                                                        val order = Order(
+                                                            status = StatusOrder.OPEN,
+                                                            client = clientNew,
+                                                            dateAdd = dateAdd,
+                                                            dateClose = 0,
+                                                            description = desc,
+                                                            type = selectedOptionTextTypeOrder,
+                                                            model = model,
+                                                            priceZip = priceZ.toInt(),
+                                                            priceWork = price.toInt(),
+                                                            history = history,
+                                                            comment = comment,
+                                                        )
+                                                        ordersViewModel.addOrder(order)
                                                         ordersViewModel.updateOrders()
                                                         ordersViewModel.showBottomBar()
                                                         navigationState.navigateTo(Destinations.Orders.route)

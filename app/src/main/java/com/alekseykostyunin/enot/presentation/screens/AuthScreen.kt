@@ -45,8 +45,8 @@ import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
-import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -56,7 +56,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AuthScreen(
     navigationState: NavigationState,
-    mainViewModel: MainViewModel,
+    userViewModel: UserViewModel,
     ordersViewModel: OrdersViewModel,
     clientsViewModel: ClientsViewModel,
     snackBarHostState: SnackbarHostState
@@ -86,15 +86,15 @@ fun AuthScreen(
             fontWeight = FontWeight.Bold,
         )
 
-        val email = rememberSaveable { mutableStateOf("") }
+        var email by rememberSaveable { mutableStateOf("") }
         var isErrorEmail by rememberSaveable { mutableStateOf(false) }
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
             isError = isErrorEmail,
-            value = email.value,
+            value = email,
             label = { Text("E-mail") },
-            onValueChange = { newText -> email.value = newText },
+            onValueChange = { newText -> email = newText },
             singleLine = true,
         )
 
@@ -132,11 +132,11 @@ fun AuthScreen(
             .fillMaxWidth()
             .padding(vertical = 10.dp),
             onClick = {
-                if (email.value.isEmpty()) {
+                if (email.isEmpty()) {
                     isErrorEmail = true
                     sendToast(context.getString(R.string.error_email_not_empty))
                 } else {
-                    val isValidEmail = Validate.isEmailValid(email.value)
+                    val isValidEmail = Validate.isEmailValid(email)
                     if (!isValidEmail) {
                         isErrorEmail = true
                         sendToast(context.getString(R.string.error_incorrect_email_try_again))
@@ -151,33 +151,24 @@ fun AuthScreen(
                                 sendToast(context.getString(R.string.error_password_is_short))
                             } else {
                                 isErrorPassword = false
-                                //mainViewModel.signInWithEmailAndPassword(email.value, password)
-                                val auth: FirebaseAuth = Firebase.auth
-                                auth.signInWithEmailAndPassword(email.value, password)
-                                    .addOnCompleteListener { task ->
-                                        if (task.isSuccessful) {
-                                            Log.d("TEST_sign", "signInWithEmail:success")
-                                            sendToast(context.getString(R.string.success_auth))
-                                            mainViewModel.successAuth()
-                                            ordersViewModel.updateOrders()
-                                            clientsViewModel.updateClients()
-                                        } else {
-                                            Log.w(
-                                                "TEST_sign",
-                                                "signInWithEmail:failure",
-                                                task.exception
+                                userViewModel.auth(email, password){ success ->
+                                    if (success) {
+                                        sendToast(context.getString(R.string.success_auth))
+                                        ordersViewModel.updateOrders()
+                                        clientsViewModel.updateClients()
+                                    } else {
+                                        Log.d(
+                                            "TEST_sign",
+                                            "signInWithEmail:failure"
+                                        )
+                                        scope.launch {
+                                            snackBarHostState.showSnackbar(
+                                                message = context.getString(R.string.error_invalid_login_or_password),
+                                                actionLabel = context.getString(R.string.close),
                                             )
-                                            scope.launch {
-                                                snackBarHostState.showSnackbar(
-                                                    message = context.getString(R.string.error_invalid_login_or_password),
-                                                    actionLabel = context.getString(R.string.close),
-                                                )
-                                            }
                                         }
                                     }
-                                    .addOnFailureListener {
-                                        Log.w("TEST_addOnFailureListener", it.toString())
-                                    }
+                                }
                             }
                         }
                     }

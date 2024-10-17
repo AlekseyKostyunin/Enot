@@ -1,5 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,17 +30,18 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
@@ -58,8 +60,18 @@ fun AllOrdersScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel
 ) {
-    val state = ordersViewModel.state.observeAsState(State.Initial)
-    val orders0 = ordersViewModel.orders.observeAsState(listOf())
+    val state = ordersViewModel.state.collectAsStateWithLifecycle().value
+    val orders0 = ordersViewModel.orders.collectAsStateWithLifecycle().value
+
+    val context = LocalContext.current
+    fun sendToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
+    if (state is State.Error) {
+        sendToast(state.textError)
+        ordersViewModel.resetState()
+    }
+
     var selectedIndex by remember { mutableIntStateOf(0) }
     val options = listOf(
         stringResource(R.string.active),
@@ -68,13 +80,13 @@ fun AllOrdersScreen(
     )
     val orders = when (selectedIndex) {
         0 -> {
-            orders0.value.filter { it.status == StatusOrder.OPEN }
+            orders0.filter { it.status == StatusOrder.OPEN }
         }
         1 -> {
-            orders0.value.filter { it.status == StatusOrder.PAUSED }
+            orders0.filter { it.status == StatusOrder.PAUSED }
         }
         else -> {
-            orders0.value
+            orders0
         }
     }
 
@@ -104,10 +116,10 @@ fun AllOrdersScreen(
                     .padding(innerPadding)
             ) {
                 Column {
-                    if (state.value == State.Loading) {
+                    if (state is State.Loading) {
                         ProgressIndicator()
-                    } else {
-                        if (orders0.value.isEmpty()) {
+                    } else if (state is State.Success) {
+                        if (orders0.isEmpty()) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalAlignment = Alignment.CenterHorizontally,

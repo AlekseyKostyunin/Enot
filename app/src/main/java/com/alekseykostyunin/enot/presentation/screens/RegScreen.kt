@@ -1,6 +1,5 @@
 package com.alekseykostyunin.enot.presentation.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -42,14 +41,12 @@ import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
 
 @Composable
 fun RegScreen(
-    navigationState: NavigationState
+    navigationState: NavigationState,
+    userViewModel: UserViewModel,
 ) {
     val context = LocalContext.current
     fun sendToast(message: String) {
@@ -72,16 +69,16 @@ fun RegScreen(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
         )
-        val email = remember { mutableStateOf("") }
+        var email by rememberSaveable { mutableStateOf("") }
         var isErrorEmail by rememberSaveable { mutableStateOf(false) }
         OutlinedTextField(
             colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
             isError = isErrorEmail,
             modifier = Modifier.fillMaxWidth(),
-            value = email.value,
+            value = email,
             label = { Text("E-mail") },
             singleLine = true,
-            onValueChange = { newText -> email.value = newText },
+            onValueChange = { newText -> email = newText },
         )
 
         var password by rememberSaveable { mutableStateOf("") }
@@ -112,6 +109,7 @@ fun RegScreen(
             visualTransformation = if (passwordVisibility) VisualTransformation.None
             else PasswordVisualTransformation()
         )
+
         var checked by remember { mutableStateOf(false) }
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -138,13 +136,12 @@ fun RegScreen(
         ElevatedButton(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
-            //enabled = enable.value,
             onClick = {
-                if (email.value.isEmpty()) {
+                if (email.isEmpty()) {
                     isErrorEmail = true
                     sendToast(context.getString(R.string.error_email_not_empty))
                 } else {
-                    val isValidEmail = Validate.isEmailValid(email.value)
+                    val isValidEmail = Validate.isEmailValid(email)
                     if (!isValidEmail) {
                         isErrorEmail = true
                         sendToast(context.getString(R.string.error_incorrect_email_try_again))
@@ -159,39 +156,19 @@ fun RegScreen(
                                 sendToast(context.getString(R.string.error_password_is_short))
                             } else {
                                 isErrorPassword = false
-
                                 if (!checked) {
                                     sendToast(context.getString(R.string.you_need_to_accept_the_terms_of_user_agreement))
                                 } else {
-                                    val auth: FirebaseAuth = Firebase.auth
-                                    val database = Firebase.database.reference
-                                    auth.createUserWithEmailAndPassword(email.value, password)
-                                        .addOnCompleteListener { task ->
-                                            if (task.isSuccessful) {
-                                                Log.d("TEST_1", "createUserWithEmail:success")
-                                                val user =
-                                                    auth.currentUser ?: return@addOnCompleteListener
-                                                //updateUI(user)
-                                                val userId = user.uid
-                                                database.child("users").child(userId).child("email")
-                                                    .setValue(email.value)
-                                                sendToast(context.getString(R.string.reg_succes))
-                                            } else {
-                                                Log.w(
-                                                    "TEST_1",
-                                                    "createUserWithEmail:failure",
-                                                    task.exception
-                                                )
-                                                sendToast(context.getString(R.string.error_reg))
-                                            }
+                                    userViewModel.regUser(email, password) { success ->
+                                        if (success) {
+                                            sendToast(context.getString(R.string.reg_success))
+                                            navigationState.navigateTo(Destinations.Authorisation.route)
+                                        } else {
+                                            sendToast(context.getString(R.string.error_reg))
                                         }
-                                    Log.d("TEST_email_reg", email.value)
-                                    Log.d("TEST_password_reg", password)
-                                    navigationState.navigateTo(Destinations.Authorisation.route)
+                                    }
 
                                 }
-
-
                             }
                         }
                     }

@@ -26,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
@@ -51,8 +51,9 @@ fun AllClientsScreen(
     getContact: () -> Unit,
     requestContactsPermission: () -> Unit
 ) {
-    val state = clientsViewModel.state.observeAsState(State.Initial).value
-    val clients = clientsViewModel.clients.observeAsState(listOf()).value
+    val state = clientsViewModel.state.collectAsStateWithLifecycle().value
+    val clients = clientsViewModel.clients.collectAsStateWithLifecycle().value
+
     val context = LocalContext.current
     fun sendToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
@@ -83,7 +84,6 @@ fun AllClientsScreen(
         content = { innerPadding ->
             Box(
                 Modifier
-                    //.background(Color.White)
                     .background(MaterialTheme.colorScheme.background)
                     .fillMaxSize()
                     .padding(innerPadding)
@@ -107,10 +107,12 @@ fun AllClientsScreen(
                             LazyColumn {
                                 items(
                                     items = clients,
-                                    key = { it.id.toString() },
-                                ) {
+                                    key = { client ->
+                                        client.id.toString()
+                                    },
+                                ) { client ->
                                     GetOneClient(
-                                        it,
+                                        client,
                                         navigationState,
                                         clientsViewModel
                                     )
@@ -126,47 +128,44 @@ fun AllClientsScreen(
 
 @Composable
 fun GetOneClient(
-    client: Client?,
+    client: Client,
     navigationState: NavigationState,
     clientsViewModel: ClientsViewModel,
 ) {
-    client?.let {
-        ElevatedCard(
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 15.dp, start = 15.dp, end = 15.dp)
+            .clickable {
+                clientsViewModel.setClient(client)
+                navigationState.navigateTo(Destinations.OneClientAllOrders.route)
+            },
+        elevation = CardDefaults.elevatedCardElevation(6.dp),
+    ) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 15.dp, start = 15.dp, end = 15.dp)
-                .clickable {
-                    client.id?.let {
-                        clientsViewModel.loadClient(client.id)
-                    }
-                    navigationState.navigateTo(Destinations.OneClientAllOrders.route)
-                },
-            elevation = CardDefaults.elevatedCardElevation(6.dp),
+                .background(gradient)
+                .padding(15.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .background(gradient)
-                    .padding(15.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Text(
+                    text = "${client.name}",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+            Row {
+                client.phone?.let {
                     Text(
-                        text = "${client.name}",
-                        fontWeight = FontWeight.Bold,
+                        text = it.joinToString(", "),
                         color = Color.White
                     )
-                }
-                Row {
-                    client.phone?.let {
-                        Text(
-                            text = it.joinToString(", "),
-                            color = Color.White
-                        )
-                    }
                 }
             }
         }
     }
+
 }

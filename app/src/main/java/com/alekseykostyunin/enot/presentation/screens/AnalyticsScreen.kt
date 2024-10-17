@@ -1,9 +1,7 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.text.Layout
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +25,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil.Companion.dateFormatter
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
@@ -101,7 +99,6 @@ private const val LABEL_BACKGROUND_SHADOW_RADIUS_DP = 4f
 private const val LABEL_BACKGROUND_SHADOW_DY_DP = 2f
 private const val CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER = 1.4f
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsScreen(
@@ -124,16 +121,19 @@ fun AnalyticsScreen(
 
     ordersViewModel.getOrdersForAnalytics(dateStart.longValue, dateEnd.longValue)
 
-    val ordersForAnalytics = ordersViewModel.ordersForAnalytics.observeAsState(listOf())
-    val priceZ = ordersViewModel.priceZip.observeAsState(0)
-    val profit = ordersViewModel.profit.observeAsState(0)
-    val countAllOrdersAsPeriod = ordersViewModel.countAllOrdersAsPeriod.observeAsState(0)
-    val countActiveOrdersForPeriod = ordersViewModel.countActiveOrdersForPeriod.observeAsState(0)
-    val countClosedOrdersForPeriod = ordersViewModel.countClosedOrdersForPeriod.observeAsState(0)
-    val dataPriceZip = ordersViewModel.dataPriceZip.observeAsState(listOf())
-    val dataProfit = ordersViewModel.dataProfit.observeAsState(listOf())
+    val ordersForAnalytics = ordersViewModel.ordersForAnalytics.collectAsStateWithLifecycle().value
+    val priceZ = ordersViewModel.priceZip.collectAsStateWithLifecycle().value
+    val profit = ordersViewModel.profit.collectAsStateWithLifecycle().value
+    val countAllOrdersAsPeriod =
+        ordersViewModel.countAllOrdersAsPeriod.collectAsStateWithLifecycle().value
+    val countActiveOrdersForPeriod =
+        ordersViewModel.countActiveOrdersForPeriod.collectAsStateWithLifecycle().value
+    val countClosedOrdersForPeriod =
+        ordersViewModel.countClosedOrdersForPeriod.collectAsStateWithLifecycle().value
+    val dataPriceZip = ordersViewModel.dataPriceZip.collectAsStateWithLifecycle().value
+    val dataProfit = ordersViewModel.dataProfit.collectAsStateWithLifecycle().value
 
-    if (ordersForAnalytics.value.isEmpty()) {
+    if (ordersForAnalytics.isEmpty()) {
         ordersViewModel.getOrdersForAnalytics(dateStart.longValue, dateEnd.longValue)
     }
 
@@ -174,7 +174,7 @@ fun AnalyticsScreen(
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
-            if (countAllOrdersAsPeriod.value == 0) {
+            if (countAllOrdersAsPeriod == 0) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -193,25 +193,25 @@ fun AnalyticsScreen(
                 ) {
 
                     Text(
-                        stringResource(R.string.count_orders, countAllOrdersAsPeriod.value),
+                        stringResource(R.string.count_orders, countAllOrdersAsPeriod),
                         fontSize = 16.sp
                     )
-                    Text(stringResource(R.string.price_zip_2, priceZ.value), fontSize = 16.sp)
-                    Text(stringResource(R.string.profit, profit.value), fontSize = 16.sp)
+                    Text(stringResource(R.string.price_zip_2, priceZ), fontSize = 16.sp)
+                    Text(stringResource(R.string.profit, profit), fontSize = 16.sp)
 
                     Row(modifier = Modifier.fillMaxSize()) {
                         val modelProducer = remember {
                             CartesianChartModelProducer()
                         }
                         LaunchedEffect(
-                            dataPriceZip.value,
-                            dataProfit.value
+                            dataPriceZip,
+                            dataProfit
                         ) {
                             withContext(Dispatchers.Default) {
                                 modelProducer.runTransaction {
                                     lineSeries {
-                                        series(dataPriceZip.value)
-                                        series(dataProfit.value)
+                                        series(dataPriceZip)
+                                        series(dataProfit)
                                     }
                                 }
                             }
@@ -230,16 +230,16 @@ fun AnalyticsScreen(
                             CartesianChartModelProducer()
                         }
                         LaunchedEffect(
-                            countAllOrdersAsPeriod.value,
-                            countActiveOrdersForPeriod.value,
-                            countClosedOrdersForPeriod.value
+                            countAllOrdersAsPeriod,
+                            countActiveOrdersForPeriod,
+                            countClosedOrdersForPeriod
                         ) {
                             withContext(Dispatchers.Default) {
                                 modelProducer2.runTransaction {
                                     columnSeries {
-                                        series(countAllOrdersAsPeriod.value.toLong())
-                                        series(countActiveOrdersForPeriod.value.toLong())
-                                        series(countClosedOrdersForPeriod.value.toLong())
+                                        series(countAllOrdersAsPeriod.toLong())
+                                        series(countActiveOrdersForPeriod.toLong())
+                                        series(countClosedOrdersForPeriod.toLong())
                                     }
                                 }
                             }

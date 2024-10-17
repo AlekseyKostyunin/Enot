@@ -4,7 +4,5 @@ import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.repository.OrdersRepository
 
 class AddOrderUseCase(private val ordersRepository: OrdersRepository) {
-
-    fun addOrder(order: Order) = ordersRepository.addOrder(order)
-
+    fun invoke(order: Order) = ordersRepository.addOrder(order)
 }

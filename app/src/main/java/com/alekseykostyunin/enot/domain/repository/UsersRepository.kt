@@ -1,9 +1,8 @@
 package com.alekseykostyunin.enot.domain.repository
 
 interface UsersRepository {
-    fun signInWithEmailAndPassword(email: String, password: String)
-    fun currentUser() : Boolean
-    fun regUser(email: String, password: String)
-    fun resetPasswordUser(id: String)
-    fun signOutUser(): Boolean
+    fun signInWithEmailAndPassword(email: String, password: String, onResult: (Boolean) -> Unit)
+    fun regUser(email: String, password: String, onResult: (Boolean) -> Unit)
+    fun resetPasswordUser(email: String, onResult: (Boolean) -> Unit)
+    fun signOutUser()
 }

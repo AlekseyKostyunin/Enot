@@ -26,13 +26,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,8 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alekseykostyunin.enot.R
-import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
@@ -58,11 +55,10 @@ fun OneClientAllOrdersScreen(
 ) {
     val context = LocalContext.current
     val activity = LocalContext.current as Activity
-    val state = clientsViewModel.state.observeAsState(State.Initial)
-    val client by clientsViewModel.client.observeAsState(Client())
-    client.id?.let { ordersViewModel.getOneClientAllOrdersOnId(it) }
-    val allOrdersOneClient by ordersViewModel.oneClientAllOrders.observeAsState(listOf())
-
+    val state = clientsViewModel.state.collectAsStateWithLifecycle().value
+    val client = clientsViewModel.client.collectAsStateWithLifecycle().value
+    ordersViewModel.getOneClientAllOrdersOnId(client)
+    val allOrdersOneClient = ordersViewModel.oneClientAllOrders.collectAsStateWithLifecycle().value
     val openDialogNotNumberPhone = remember { mutableStateOf(false) }
     val openDialogSelectNumberPhone = remember { mutableStateOf(false) }
 
@@ -78,7 +74,6 @@ fun OneClientAllOrdersScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                //horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -128,7 +123,7 @@ fun OneClientAllOrdersScreen(
                 }
             }
 
-            if (state.value == State.Loading) {
+            if (state == State.Loading) {
                 ProgressIndicator()
             } else {
                 if (allOrdersOneClient.isEmpty()) {

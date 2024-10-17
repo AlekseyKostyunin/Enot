@@ -1,6 +1,5 @@
 package com.alekseykostyunin.enot.presentation.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,18 +31,18 @@ import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.Validate
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
 
 @Composable
 fun ResetPasswordScreen(
-    navigationState: NavigationState
+    navigationState: NavigationState,
+    userViewModel: UserViewModel,
 ) {
     val context = LocalContext.current
     fun sendToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,42 +60,41 @@ fun ResetPasswordScreen(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
         )
-        val email = remember { mutableStateOf("") }
+
+        var email by rememberSaveable { mutableStateOf("") }
         var isErrorEmail by rememberSaveable { mutableStateOf(false) }
         OutlinedTextField(
             colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
             isError = isErrorEmail,
             modifier = Modifier.fillMaxWidth(),
-            value = email.value,
+            value = email,
             label = { Text("E-mail") },
-            onValueChange = { newText -> email.value = newText },
+            onValueChange = { newText -> email = newText },
         )
 
         ElevatedButton(modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
             onClick = {
-                if (email.value.isEmpty()) {
+                if (email.isEmpty()) {
                     isErrorEmail = true
                     sendToast(context.getString(R.string.error_email_not_empty))
                 } else {
-                    val isValidEmail = Validate.isEmailValid(email.value)
+                    val isValidEmail = Validate.isEmailValid(email)
                     if (!isValidEmail) {
                         isErrorEmail = true
                         sendToast(context.getString(R.string.error_incorrect_email_try_again))
                     } else {
                         isErrorEmail = false
-                        val auth: FirebaseAuth = Firebase.auth
-                        auth.sendPasswordResetEmail(email.value)
-                            .addOnSuccessListener {
-                                Log.d("TEST_1", "yes $it")
-                                sendToast(context.getString(R.string.e_mail_instrictions_send))
+                        userViewModel.resetPasswordUser(email) { success ->
+                            if (success) {
+                                sendToast(context.getString(R.string.e_mail_instructions_send))
                                 navigationState.navigateTo(Destinations.Authorisation.route)
-                            }.addOnFailureListener {
-                                Log.d("TEST_1", "not" + it.message)
+                            } else {
                                 sendToast(context.getString(R.string.unknown_error))
                                 navigationState.navigateTo(Destinations.Authorisation.route)
                             }
+                        }
                     }
                 }
             }

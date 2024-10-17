@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +47,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,15 +64,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.HistoryStep
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.entities.StatusOrder
+import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
+import com.alekseykostyunin.enot.presentation.viewmodels.State
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -101,13 +104,21 @@ fun OneOrderScreen(
 ) {
     val context = LocalContext.current
     val activity = LocalContext.current as Activity
-    var state by remember { mutableIntStateOf(0) }
-    val order = ordersViewModel.order.observeAsState().value
+    val state = ordersViewModel.state.collectAsStateWithLifecycle().value
+    var stateTabIndex by remember { mutableIntStateOf(0) }
+    val order = ordersViewModel.order.collectAsStateWithLifecycle().value
     val shouldShowCamera = remember { mutableStateOf(false) }
     val outputDirectory: File = getOutputDirectory(activity)
 
+    fun sendToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
+    if (state is State.Error) {
+        sendToast(state.textError)
+        ordersViewModel.resetState()
+    }
+
     fun handleImageCapture(uri: Uri) {
-        Log.i("TEST_camera_handleImageCapture", "Image captured: $uri")
         ordersViewModel.addPhoto(uri.toString())
         shouldShowCamera.value = false
     }
@@ -158,82 +169,8 @@ fun OneOrderScreen(
 
                         Button(
                             onClick = {
-                                val auth: FirebaseAuth = Firebase.auth
-                                val database = Firebase.database.reference
-                                val user = auth.currentUser
-                                if (user != null) {
-                                    order?.let {
-                                        val userId = user.uid
-                                        val idOrder = order.id
-                                        val dateNewStep = DateUtil.dateOfUnit
-                                        val history = order.history?.toMutableList()
-                                        history?.let {
-                                            val oldHistoryStep = history.last().apply {
-                                                type = 1
-                                            }
-                                            val odlIdHistoryStep = oldHistoryStep.id
-
-                                            val newIdHistoryStep = odlIdHistoryStep.plus(1)
-                                            val newHistoryStep = HistoryStep(
-                                                newIdHistoryStep,
-                                                dateNewStep,
-                                                2,
-                                                descStep
-                                            )
-                                            history.add(newHistoryStep)
-                                            Log.d("TEST_history", history.toString())
-                                        }
-
-                                        val orderUpdate = Order(
-                                            id = idOrder,
-                                            status = order.status,
-                                            client = order.client,
-                                            dateAdd = order.dateAdd,
-                                            dateClose = 0,
-                                            description = order.description,
-                                            type = order.type,
-                                            model = order.model,
-                                            priceZip = order.priceZip,
-                                            priceWork = order.priceWork,
-                                            history = history,
-                                            photos = order.photos,
-                                            comment = order.comment,
-                                        )
-
-                                        database
-                                            .child("users")
-                                            .child(userId)
-                                            .child("orders")
-                                            .child(idOrder!!)
-                                            .setValue(orderUpdate)
-
-                                        val dbNewOrderUpdate = database
-                                            .child("users")
-                                            .child(userId)
-                                            .child("orders")
-                                            .child(idOrder)
-
-                                        dbNewOrderUpdate.addValueEventListener(object :
-                                            ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                val order2 = snapshot.getValue(Order::class.java)
-                                                if (order2 != null) {
-                                                    Log.d(
-                                                        "TEST_snapshot_OneOrderScreen",
-                                                        order2.toString()
-                                                    )
-                                                    ordersViewModel.getOrderUser(order2)
-                                                    openDialogStep.value = false
-                                                }
-                                            }
-
-                                            override fun onCancelled(error: DatabaseError) {
-                                                Log.d("TEST_snapshot_error", error.message)
-                                            }
-                                        })
-                                        ordersViewModel.updateOrders()
-                                    }
-                                }
+                                ordersViewModel.addHistoryStep(descStep)
+                                openDialogStep.value = false
                             },
                             modifier = Modifier.padding(horizontal = 8.dp),
                         ) {
@@ -270,83 +207,8 @@ fun OneOrderScreen(
                     )
                     Button(
                         onClick = {
-                            val auth: FirebaseAuth = Firebase.auth
-                            val database = Firebase.database.reference
-                            val user = auth.currentUser
-                            if (user != null) {
-                                order?.let {
-                                    val userId = user.uid
-                                    val idOrder = order.id
-                                    val dateCloseOrder = DateUtil.dateOfUnit
-                                    val history = order.history?.toMutableList()
-                                    history?.let {
-                                        val oldHistoryStep = history.last().apply {
-                                            type = 1
-                                        }
-                                        val odlIdHistoryStep = oldHistoryStep.id
-
-                                        val newIdHistoryStep = odlIdHistoryStep.plus(1)
-                                        val newHistoryStep = HistoryStep(
-                                            newIdHistoryStep,
-                                            dateCloseOrder,
-                                            2,
-                                            "Запчасти заказаны"
-                                        )
-                                        history.add(newHistoryStep)
-                                        Log.d("TEST_history", history.toString())
-                                    }
-
-                                    val orderUpdate = Order(
-                                        id = idOrder,
-                                        status = StatusOrder.PAUSED,
-                                        client = order.client,
-                                        dateAdd = order.dateAdd,
-                                        dateClose = dateCloseOrder,
-                                        description = order.description,
-                                        type = order.type,
-                                        model = order.model,
-                                        priceZip = order.priceZip,
-                                        priceWork = order.priceWork,
-                                        history = history,
-                                        photos = order.photos,
-                                        comment = order.comment,
-                                    )
-
-                                    database
-                                        .child("users")
-                                        .child(userId)
-                                        .child("orders")
-                                        .child(idOrder!!)
-                                        .setValue(orderUpdate)
-
-                                    val dbNewOrderUpdate = database
-                                        .child("users")
-                                        .child(userId)
-                                        .child("orders")
-                                        .child(idOrder)
-
-                                    dbNewOrderUpdate.addValueEventListener(object :
-                                        ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            val order2 = snapshot.getValue(Order::class.java)
-                                            if (order2 != null) {
-                                                Log.d(
-                                                    "TEST_snapshot_CloseOrder",
-                                                    order2.toString()
-                                                )
-                                                ordersViewModel.getOrderUser(order2)
-                                                openDialogZipOrdered.value = false
-                                            }
-                                        }
-
-                                        override fun onCancelled(error: DatabaseError) {
-                                            Log.d("TEST_snapshot_error", error.message)
-                                        }
-                                    }
-                                    )
-                                    ordersViewModel.updateOrders()
-                                }
-                            }
+                            ordersViewModel.addHistoryStepZipOrdered("Запчасти заказаны")
+                            openDialogZipOrdered.value = false
                         },
                         Modifier
                             .fillMaxWidth()
@@ -392,83 +254,8 @@ fun OneOrderScreen(
                     )
                     Button(
                         onClick = {
-                            val auth: FirebaseAuth = Firebase.auth
-                            val database = Firebase.database.reference
-                            val user = auth.currentUser
-                            if (user != null) {
-                                order?.let {
-                                    val userId = user.uid
-                                    val idOrder = order.id
-                                    val dateCloseOrder = DateUtil.dateOfUnit
-                                    val history = order.history?.toMutableList()
-                                    history?.let {
-                                        val oldHistoryStep = history.last().apply {
-                                            type = 1
-                                        }
-                                        val odlIdHistoryStep = oldHistoryStep.id
-
-                                        val newIdHistoryStep = odlIdHistoryStep.plus(1)
-                                        val newHistoryStep = HistoryStep(
-                                            newIdHistoryStep,
-                                            dateCloseOrder,
-                                            3,
-                                            "Заказ выполнен"
-                                        )
-                                        history.add(newHistoryStep)
-                                        Log.d("TEST_history", history.toString())
-                                    }
-
-                                    val orderUpdate = Order(
-                                        id = idOrder,
-                                        status = StatusOrder.CLOSED,
-                                        client = order.client,
-                                        dateAdd = order.dateAdd,
-                                        dateClose = dateCloseOrder,
-                                        description = order.description,
-                                        type = order.type,
-                                        model = order.model,
-                                        priceZip = order.priceZip,
-                                        priceWork = order.priceWork,
-                                        history = history,
-                                        photos = order.photos,
-                                        comment = order.comment,
-                                    )
-
-                                    database
-                                        .child("users")
-                                        .child(userId)
-                                        .child("orders")
-                                        .child(idOrder!!)
-                                        .setValue(orderUpdate)
-
-                                    val dbNewOrderUpdate = database
-                                        .child("users")
-                                        .child(userId)
-                                        .child("orders")
-                                        .child(idOrder)
-
-                                    dbNewOrderUpdate.addValueEventListener(object :
-                                        ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            val order2 = snapshot.getValue(Order::class.java)
-                                            if (order2 != null) {
-                                                Log.d(
-                                                    "TEST_snapshot_CloseOrder",
-                                                    order2.toString()
-                                                )
-                                                ordersViewModel.getOrderUser(order2)
-                                                openDialogCloseOrder.value = false
-                                            }
-                                        }
-
-                                        override fun onCancelled(error: DatabaseError) {
-                                            Log.d("TEST_snapshot_error", error.message)
-                                        }
-                                    }
-                                    )
-                                    ordersViewModel.updateOrders()
-                                }
-                            }
+                            ordersViewModel.closeOrder(order)
+                            openDialogCloseOrder.value = false
                         },
                         Modifier
                             .fillMaxWidth()
@@ -545,36 +332,35 @@ fun OneOrderScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    if (order != null) {
-                        Text(
-                            text = stringResource(R.string.call_of_phone),
-                            fontSize = 18.sp, fontWeight = FontWeight.Bold,
-                        )
-                        for (oneNumberPhone in order.client?.phone!!) {
-                            ElevatedCard(
-                                onClick = {
-                                    val intent = Intent(Intent.ACTION_CALL)
-                                    intent.data = Uri.parse("tel:$oneNumberPhone")
-                                    activity.startActivity(intent)
-                                },
+                    Text(
+                        text = stringResource(R.string.call_of_phone),
+                        fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                    )
+                    for (oneNumberPhone in order.client?.phone!!) {
+                        ElevatedCard(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_CALL)
+                                intent.data = Uri.parse("tel:$oneNumberPhone")
+                                activity.startActivity(intent)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                        ) {
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 16.dp)
+                                    .padding(16.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                ) {
-                                    Text(
-                                        oneNumberPhone,
-                                        Modifier.align(Alignment.Center),
-                                        fontSize = 18.sp
-                                    )
-                                }
+                                Text(
+                                    oneNumberPhone,
+                                    Modifier.align(Alignment.Center),
+                                    fontSize = 18.sp
+                                )
                             }
                         }
                     }
+
                 }
             }
         }
@@ -588,9 +374,9 @@ fun OneOrderScreen(
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            if (state == 0) {
+            if (stateTabIndex == 0) {
                 Column {
-                    if (order?.status == StatusOrder.OPEN) { // если в работе
+                    if (order.status == StatusOrder.OPEN) { // если в работе
                         Button(
                             onClick = {
                                 openDialogZipOrdered.value = true
@@ -604,15 +390,14 @@ fun OneOrderScreen(
                     Button(
                         onClick = {
                             requestCallPhonePermission()
-                            if (order != null) {
-                                if (order.client?.phone != null) {
-                                    if (order.client.phone!![0] == context.getString(R.string.not_number_phone)) {
-                                        openDialogNotNumberPhone.value = true
-                                    } else {
-                                        openDialogSelectNumberPhone.value = true
-                                    }
+                            if (order.client?.phone != null) {
+                                if (order.client.phone!![0] == context.getString(R.string.not_number_phone)) {
+                                    openDialogNotNumberPhone.value = true
+                                } else {
+                                    openDialogSelectNumberPhone.value = true
                                 }
                             }
+
                         },
                         elevation = ButtonDefaults.elevatedButtonElevation(4.dp),
                     ) {
@@ -624,8 +409,8 @@ fun OneOrderScreen(
                         Text(text = stringResource(R.string.call_client))
                     }
                 }
-            } else if (state == 1) {
-                if (order?.status == StatusOrder.OPEN || order?.status == StatusOrder.PAUSED) { // если в работе
+            } else if (stateTabIndex == 1) {
+                if (order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED) { // если в работе
                     Column {
                         Button(
                             onClick = {
@@ -642,9 +427,9 @@ fun OneOrderScreen(
                         }
                     }
                 }
-            } else if (state == 2) {
+            } else if (stateTabIndex == 2) {
                 Column {
-                    if (!shouldShowCamera.value && (order?.status == StatusOrder.OPEN || order?.status == StatusOrder.PAUSED)) {
+                    if (!shouldShowCamera.value && (order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED)) {
                         Button(
                             onClick = {
                                 requestCameraPermission()
@@ -674,90 +459,91 @@ fun OneOrderScreen(
                 )
                 Log.i("TEST_CameraView1", "CameraView")
             } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                        .padding(innerPadding),
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
+                if (state is State.Loading) {
+                    ProgressIndicator()
+                } else if (state is State.Success) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                            .padding(innerPadding),
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            val dt = DateUtil.dateFormatter(order?.dateAdd.toString())
-                            IconButton(
-                                onClick = {
-                                    navigationState.navigateTo(Destinations.AllOrders.route)
-                                }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = null
-                                )
-                            }
-                            Text(
-                                text = stringResource(R.string.order_from, dt),
-                                fontSize = 18.sp,
-                                modifier = Modifier.padding(vertical = 10.dp),
-                                fontWeight = FontWeight.Bold
-                            )
-                            IconButton(
-                                onClick = {
-                                    if (order?.status == StatusOrder.OPEN || order?.status == StatusOrder.PAUSED) {
-                                        navigationState.navigateTo(Destinations.EditOrder.route)
+                                val dt = DateUtil.dateFormatter(order.dateAdd.toString())
+                                IconButton(
+                                    onClick = {
+                                        navigationState.navigateTo(Destinations.AllOrders.route)
                                     }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = null
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Create,
-                                    contentDescription = null
+                                Text(
+                                    text = stringResource(R.string.order_from, dt),
+                                    fontSize = 18.sp,
+                                    modifier = Modifier.padding(vertical = 10.dp),
+                                    fontWeight = FontWeight.Bold
                                 )
-                            }
-                            val color = when (order?.status) {
-                                StatusOrder.OPEN -> Color.Red
-                                StatusOrder.PAUSED -> Color.Yellow
-                                StatusOrder.CLOSED -> Color.Green
-                                null -> Color.Red
-                            }
-                            IconButton(
-                                onClick = {
-                                    if (order?.status == StatusOrder.OPEN || order?.status == StatusOrder.PAUSED) {
-                                        openDialogCloseOrder.value = true
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = null,
-                                    tint = color
-                                )
-                            }
-                        }
-
-                        Column {
-                            SecondaryTabRow(selectedTabIndex = state) {
-                                titles.forEachIndexed { index, title ->
-                                    Tab(
-                                        selected = state == index,
-                                        onClick = { state = index },
-                                        text = {
-                                            Text(
-                                                text = title,
-                                                maxLines = 1,
-                                                fontSize = 16.sp
-                                            )
+                                IconButton(
+                                    onClick = {
+                                        if (order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED) {
+                                            navigationState.navigateTo(Destinations.EditOrder.route)
                                         }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Create,
+                                        contentDescription = null
+                                    )
+                                }
+                                val color = when (order.status) {
+                                    StatusOrder.OPEN -> Color.Red
+                                    StatusOrder.PAUSED -> Color.Yellow
+                                    StatusOrder.CLOSED -> Color.Green
+                                }
+                                IconButton(
+                                    onClick = {
+                                        if (order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED) {
+                                            openDialogCloseOrder.value = true
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Check,
+                                        contentDescription = null,
+                                        tint = color
                                     )
                                 }
                             }
 
-                            if (order != null) {
-                                when (state) {
+                            Column {
+                                SecondaryTabRow(selectedTabIndex = stateTabIndex) {
+                                    titles.forEachIndexed { index, title ->
+                                        Tab(
+                                            selected = stateTabIndex == index,
+                                            onClick = { stateTabIndex = index },
+                                            text = {
+                                                Text(
+                                                    text = title,
+                                                    maxLines = 1,
+                                                    fontSize = 16.sp
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+
+                                when (stateTabIndex) {
                                     0 -> {
                                         DescOrder(order)
                                     }
@@ -770,8 +556,8 @@ fun OneOrderScreen(
                                         PhotosOrder(order, ordersViewModel)
                                     }
                                 }
-                            }
 
+                            }
                         }
                     }
                 }
@@ -844,7 +630,7 @@ fun DescOrder(order: Order) {
             Text(
                 text = when (order.status) {
                     StatusOrder.OPEN -> stringResource(R.string.no2)
-                    StatusOrder.PAUSED,StatusOrder.CLOSED-> stringResource(R.string.yes2)
+                    StatusOrder.PAUSED, StatusOrder.CLOSED -> stringResource(R.string.yes2)
                 },
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
@@ -910,12 +696,12 @@ fun DescOrder(order: Order) {
             modifier = Modifier.padding(top = 18.dp),
         ) {
             Text(
-                text = if(order.status == StatusOrder.CLOSED) stringResource(R.string.completed_for)
+                text = if (order.status == StatusOrder.CLOSED) stringResource(R.string.completed_for)
                 else stringResource(R.string.in_work),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
-            val dateStart = if(order.status == StatusOrder.CLOSED) order.dateClose
+            val dateStart = if (order.status == StatusOrder.CLOSED) order.dateClose
             else DateUtil.dateOfUnit
             val difference = abs(dateStart - order.dateAdd)
             val days = difference / (24 * 60 * 60 * 1000)
@@ -1016,7 +802,7 @@ fun PhotosOrder(
 
         /* Full Photo */
         val openDialogFullPhoto = remember { mutableStateOf(false) }
-        val uriFullPhoto = ordersViewModel.urlPhoto.observeAsState("").value
+        val uriFullPhoto = ordersViewModel.urlPhotoOrder.collectAsStateWithLifecycle().value
         if (openDialogFullPhoto.value) {
             Dialog(
                 onDismissRequest = { openDialogFullPhoto.value = false },
@@ -1030,7 +816,7 @@ fun PhotosOrder(
             }
         }
 
-        val photos = order.photos!!
+        val photos = order.photos
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -1044,7 +830,7 @@ fun PhotosOrder(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 content = {
                     items(
-                        items = photos,
+                        items = photos!!,
                         key = { it.url.toString() }
                     ) { photo ->
                         AsyncImage(

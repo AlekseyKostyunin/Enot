@@ -26,17 +26,16 @@ import com.alekseykostyunin.enot.domain.usecase.clients.AllClientsUseCase
 import com.alekseykostyunin.enot.domain.usecase.clients.EditClientUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.AddHistoryStepUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.AddOrderUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.AddPhotoOrderUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.AllOrdersUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.CloseOrderUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.EditOrderUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.AuthUserUseCase
-import com.alekseykostyunin.enot.domain.usecase.users.CurrentUserUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.RegUserUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.ResetPasswordUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 import com.alekseykostyunin.enot.presentation.navigation.StartNavigation
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
-import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
 import com.alekseykostyunin.enot.presentation.viewmodelsfactory.ClientsViewModelFactory
@@ -60,13 +59,13 @@ class MainActivity : ComponentActivity() {
     /* Users */
     private val regUserUseCase: RegUserUseCase = RegUserUseCase(userRepository)
     private val authUserUseCase: AuthUserUseCase = AuthUserUseCase(userRepository)
-    private val currentUserUseCase: CurrentUserUseCase = CurrentUserUseCase(userRepository)
     private val resetPasswordUseCase: ResetPasswordUseCase = ResetPasswordUseCase(userRepository)
     private val singOutUserUseCase: SingOutUserUseCase = SingOutUserUseCase(userRepository)
 
     /* Orders */
-    private val addOrderUseCase: AddOrderUseCase = AddOrderUseCase(ordersRepository)
     private val allOrdersUseCase: AllOrdersUseCase = AllOrdersUseCase(ordersRepository)
+    private val addOrderUseCase: AddOrderUseCase = AddOrderUseCase(ordersRepository)
+    private val addPhotoOrderUseCase: AddPhotoOrderUseCase = AddPhotoOrderUseCase(ordersRepository)
     private val editOrderUseCase: EditOrderUseCase = EditOrderUseCase(ordersRepository)
     private val closeOrderUseCase: CloseOrderUseCase = CloseOrderUseCase(ordersRepository)
     private val addHistoryStepUseCase: AddHistoryStepUseCase = AddHistoryStepUseCase(ordersRepository)
@@ -77,14 +76,11 @@ class MainActivity : ComponentActivity() {
     private val editClientUseCase: EditClientUseCase = EditClientUseCase(clientsRepository)
 
     /* View models */
-    private val mainViewModel: MainViewModel by viewModels()
-
     private val userViewModel: UserViewModel by viewModels(
         factoryProducer = {
             UserViewModelFactory(
                 regUserUseCase = regUserUseCase,
                 authUserUseCase = authUserUseCase,
-                currentUserUseCase = currentUserUseCase,
                 resetPasswordUseCase = resetPasswordUseCase,
                 singOutUserUseCase = singOutUserUseCase
             )
@@ -94,8 +90,9 @@ class MainActivity : ComponentActivity() {
     private val ordersViewModel: OrdersViewModel by viewModels(
         factoryProducer = {
             OrdersViewModelFactory(
-                addOrderUseCase = addOrderUseCase,
                 allOrdersUseCase = allOrdersUseCase,
+                addOrderUseCase = addOrderUseCase,
+                addPhotoOrderUseCase = addPhotoOrderUseCase,
                 editOrderUseCase = editOrderUseCase,
                 closeOrderUseCase = closeOrderUseCase,
                 addHistoryStepUseCase = addHistoryStepUseCase,
@@ -253,7 +250,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             EnotTheme {
                 StartNavigation(
-                    mainViewModel = mainViewModel,
                     userViewModel = userViewModel,
                     ordersViewModel = ordersViewModel,
                     clientsViewModel = clientsViewModel,

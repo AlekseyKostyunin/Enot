@@ -1,262 +1,176 @@
 package com.alekseykostyunin.enot.presentation.viewmodels
 
-import android.annotation.SuppressLint
-import android.app.Application
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.alekseykostyunin.enot.data.repositoryimpl.OrdersRepositoryImpl
+import androidx.lifecycle.viewModelScope
+import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.domain.entities.Order
-import com.alekseykostyunin.enot.domain.entities.Photo
 import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.domain.usecase.orders.AddHistoryStepUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.AddOrderUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.AddPhotoOrderUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.AllOrdersUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.CloseOrderUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.EditOrderUseCase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 
 class OrdersViewModel(
-    private val addOrderUseCase: AddOrderUseCase,
     private val allOrdersUseCase: AllOrdersUseCase,
+    private val addOrderUseCase: AddOrderUseCase,
+    private val addPhotoOrderUseCase: AddPhotoOrderUseCase,
     private val editOrderUseCase: EditOrderUseCase,
     private val closeOrderUseCase: CloseOrderUseCase,
     private val addHistoryStepUseCase: AddHistoryStepUseCase,
 ) : ViewModel() {
 
-    private val repository = OrdersRepositoryImpl
-
-    private val _state = MutableLiveData<State>(State.Initial)
-    val state: LiveData<State> = _state
-
-    private val _state2 = MutableStateFlow(State.Initial)
-    val state2 = _state2
-
-    private var _orders = MutableLiveData<List<Order>>(listOf())
-    var orders: LiveData<List<Order>> = _orders
-
-    private var _order = MutableLiveData<Order>(Order())
-    var order: LiveData<Order> = _order
-
-    private var _countActiveOrders = MutableLiveData<Int>(0)
-    var countActiveOrders: LiveData<Int> = _countActiveOrders
-
-    private var _countNotActiveOrders = MutableLiveData<Int>(0)
-    var countNotActiveOrders: LiveData<Int> = _countNotActiveOrders
-
-    private var _isShowBottomBar = MutableLiveData<Boolean>(false)
-    var isShowBottomBar: LiveData<Boolean> = _isShowBottomBar
-
-    fun notShowBottomBar() {
-        _isShowBottomBar.value = false
-    }
-
-    fun showBottomBar() {
-        _isShowBottomBar.value = true
-    }
-
-    private var _urlPhoto = MutableLiveData<String>("")
-    var urlPhoto: LiveData<String> = _urlPhoto
-
-    fun insertUrlPhoto(urlPhoto: String) {
-        _urlPhoto.value = urlPhoto
-    }
-
-    fun addPhoto(photoUri: String) {
-        val auth: FirebaseAuth = Firebase.auth
-        val database = Firebase.database.reference
-        val user = auth.currentUser
-
-        if (user != null) {
-            val userId = user.uid
-            val idOrder = order.value?.id
-            var photos = order.value?.photos?.toMutableList()
-            if (photos == null) {
-                photos = mutableListOf(Photo(photoUri))
-            } else {
-                photos.add(Photo(photoUri))
-                Log.d("TEST_history", photos.toString())
-            }
-
-            val orderUpdate = order.value?.let { order ->
-                Order(
-                    id = idOrder,
-                    status = order.status,
-                    client = order.client,
-                    dateAdd = order.dateAdd,
-                    dateClose = 0,
-                    description = order.description,
-                    type = order.type,
-                    model = order.model,
-                    priceZip = order.priceZip,
-                    priceWork = order.priceWork,
-                    history = order.history,
-                    photos = photos,
-                    comment = order.comment,
-                )
-            }
-
-            database
-                .child("users")
-                .child(userId)
-                .child("orders")
-                .child(idOrder!!)
-                .setValue(orderUpdate)
-
-            val dbNewOrderUpdate = database
-                .child("users")
-                .child(userId)
-                .child("orders")
-                .child(idOrder)
-
-            dbNewOrderUpdate.addValueEventListener(object :
-                ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val order2 = snapshot.getValue(Order::class.java)
-                    if (order2 != null) {
-                        Log.d(
-                            "TEST_snapshot_OneOrderScreen",
-                            order2.toString()
-                        )
-                        getOrderUser(order2)
-                        updateOrders()
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("TEST_snapshot_error", error.message)
-                }
-            })
-            //updateOrders()
-        }
-    }
+    var state: MutableStateFlow<State> = MutableStateFlow(State.Initial)
+    var orders = MutableStateFlow<List<Order>>(listOf())
+    var order = MutableStateFlow(Order())
+    var oneClientAllOrders = MutableStateFlow<List<Order>>(listOf())
+    var countActiveOrders = MutableStateFlow(0)
+    var isShowBottomBar = MutableStateFlow(false)
 
     init {
-        getAllOrdersUser()
+        allOrders()
+    }
+
+    fun resetState() {
+        state.value = State.Initial
     }
 
     fun updateOrders() {
-        getAllOrdersUser()
+        allOrders()
     }
 
-    @SuppressLint("NewApi")
-    fun updateOrdersForAnalytics(dateStart: Long, dateEnd: Long) {
-        getOrdersForAnalytics(dateStart, dateEnd)
+    private fun allOrders() {
+        allOrdersUseCase.invoke()
+            .onStart {
+                state.value = State.Loading
+            }.onEach { listOrders ->
+                orders.value = listOrders
+                countActiveOrders.value = listOrders.filter {
+                    it.status == StatusOrder.OPEN || it.status == StatusOrder.PAUSED
+                }.size
+                state.value = State.Success
+            }.catch {
+                state.value = State.Error("Произошла ошибка. Попробуйте позже")
+            }.launchIn(viewModelScope)
     }
 
-    private fun getAllOrdersUser() {
-        _state.value = State.Loading
-        val auth: FirebaseAuth = Firebase.auth
-        val database = Firebase.database.reference
-        val user = auth.currentUser
-        val ordersDB = mutableListOf<Order>()
-        if (user != null) {
-            val userId = user.uid
-            val db = database.child("users").child(userId).child("orders")
-            db.addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for (i in snapshot.children) {
-                        val order = i.getValue(Order::class.java)
-                        if (order != null) {
-                            ordersDB.add(order)
-                        }
-                    }
-                    val ordersRevers = ordersDB.asReversed()
-                    _orders.value = ordersRevers
-                    val countActiveOrders = ordersDB.filter {
-                        it.status == StatusOrder.OPEN || it.status == StatusOrder.PAUSED
-                    }.size
-                    _countActiveOrders.value = countActiveOrders
-                    _state.value = State.Success
-                    Log.d("TEST_snapshot_countActiveOrders", _countActiveOrders.value.toString())
-                }
+    fun showBottomBar() {
+        isShowBottomBar.value = true
+    }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("TEST_snapshot_error", error.message)
-                }
-            })
-        }
+    fun notShowBottomBar() {
+        isShowBottomBar.value = false
+    }
+
+    fun addOrder(order: Order) {
+        addOrderUseCase.invoke(order)
+    }
+
+    var urlPhotoOrder = MutableStateFlow("")
+
+    fun insertUrlPhoto(urlPhoto: String) {
+        urlPhotoOrder.value = urlPhoto
+    }
+
+    fun addPhoto(photoUri: String) {
+        addPhotoOrderUseCase.invoke(photoUri, order.value)
+            .onStart { state.value = State.Loading }
+            .onEach { updateOrder ->
+                getOrderUser(updateOrder)
+                state.value = State.Success
+            }
+            .catch { state.value = State.Error("Произошла ошибка. Попробуйте позже") }
+            .launchIn(viewModelScope)
+    }
+
+    fun closeOrder(order: Order) {
+        closeOrderUseCase.invoke(order)
+            .onStart { state.value = State.Loading }
+            .onEach { closedOrder ->
+                getOrderUser(closedOrder)
+                state.value = State.Success
+            }.catch { state.value = State.Error("Произошла ошибка. Попробуйте позже") }
+            .launchIn(viewModelScope)
+    }
+
+    fun editOrder(order: Order) {
+        editOrderUseCase.invoke(order)
     }
 
     fun getOrderUser(order: Order) {
-        _order.value = order
+        this.order.value = order
     }
 
-    // Раздел для экрана аналитики заказов
-    private var _ordersForAnalytics = MutableLiveData<List<Order>>(listOf())
-    var ordersForAnalytics: LiveData<List<Order>> = _ordersForAnalytics
-
-    private var _priceZip = MutableLiveData<Int>(0)
-    var priceZip: LiveData<Int> = _priceZip
-
-    private var _profit = MutableLiveData<Int>(0)
-    var profit: LiveData<Int> = _profit
-
-    private var _countAllOrdersAsPeriod = MutableLiveData<Int>(0)
-    var countAllOrdersAsPeriod: LiveData<Int> = _countAllOrdersAsPeriod
-
-    private var _countActiveOrdersForPeriod = MutableLiveData<Int>(0)
-    var countActiveOrdersForPeriod: LiveData<Int> = _countActiveOrdersForPeriod
-
-    private var _countClosedOrdersForPeriod = MutableLiveData<Int>(0)
-    var countClosedOrdersForPeriod: LiveData<Int> = _countClosedOrdersForPeriod
-
-    private var _dataPriceZip = MutableLiveData<List<Float>>(listOf())
-    var dataPriceZip: LiveData<List<Float>> = _dataPriceZip
-
-    private var _dataProfit = MutableLiveData<List<Float>>(listOf())
-    var dataProfit: LiveData<List<Float>> = _dataProfit
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun getOrdersForAnalytics(dateStart: Long, dateEnd: Long) {
-        _orders.value?.let {
-            val ordersSort: List<Order>? = _orders.value?.filter { order ->
-                order.dateAdd in dateStart..dateEnd
-            }?.reversed()
-            if (ordersSort == null) {
-                _countAllOrdersAsPeriod.value = 0
-            } else {
-                _ordersForAnalytics.value = ordersSort.toMutableList()
-                _countAllOrdersAsPeriod.value = ordersSort.size
-                _countActiveOrdersForPeriod.value = ordersSort.filter { order ->
-                    order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED
-                }.size
-                _countClosedOrdersForPeriod.value =
-                    ordersSort.filter { order ->
-                        order.status == StatusOrder.CLOSED
-                    }.size
-                _priceZip.value = ordersSort.sumOf { order -> order.priceZip }
-                _profit.value = ordersSort.sumOf { order -> order.priceWork }
-                val preDataPriceZip = mutableListOf<Float>()
-                val preDataProfit = mutableListOf<Float>()
-                for (order in ordersSort) {
-                    preDataPriceZip.add(order.priceZip.toFloat())
-                    preDataProfit.add(order.priceWork.toFloat())
-                }
-                _dataPriceZip.value = preDataPriceZip
-                _dataProfit.value = preDataProfit
+    fun addHistoryStep(descStep: String) {
+        addHistoryStepUseCase.invoke(order.value, descStep)
+            .onStart { state.value = State.Loading }
+            .onEach { updateOrder ->
+                getOrderUser(updateOrder)
+                state.value = State.Success
             }
+            .catch { state.value = State.Error("Произошла ошибка. Попробуйте позже") }
+            .launchIn(viewModelScope)
+    }
+
+    fun addHistoryStepZipOrdered(descStep: String) {
+        val orderStep = order.value.copy(
+            status = StatusOrder.PAUSED
+        )
+        addHistoryStepUseCase.invoke(orderStep, descStep)
+            .onStart { state.value = State.Loading }
+            .onEach { updateOrder ->
+                getOrderUser(updateOrder)
+                state.value = State.Success
+            }
+            .catch { state.value = State.Error("Произошла ошибка. Попробуйте позже") }
+            .launchIn(viewModelScope)
+    }
+
+    fun getOneClientAllOrdersOnId(client: Client) {
+        oneClientAllOrders.value = orders.value.filter { order ->
+            order.client?.id == client.id
         }
     }
 
-    // Заказы одного клиента
-    private var _oneClientAllOrders = MutableLiveData<List<Order>>(listOf())
-    var oneClientAllOrders: LiveData<List<Order>> = _oneClientAllOrders
+    /* Раздел для экрана аналитики заказо */
+    var ordersForAnalytics = MutableStateFlow<List<Order>>(listOf())
+    var priceZip = MutableStateFlow(0)
+    var profit = MutableStateFlow(0)
+    var countAllOrdersAsPeriod = MutableStateFlow(0)
+    var countActiveOrdersForPeriod = MutableStateFlow(0)
+    var countClosedOrdersForPeriod = MutableStateFlow(0)
+    var dataPriceZip = MutableStateFlow<List<Float>>(listOf())
+    var dataProfit = MutableStateFlow<List<Float>>(listOf())
 
-    fun getOneClientAllOrdersOnId(idClient: String) {
-        _orders.value?.let {
-            _oneClientAllOrders.value = it.filter { order -> order.client?.id == idClient }
+    fun getOrdersForAnalytics(dateStart: Long, dateEnd: Long) {
+        val ordersSort: List<Order> = orders.value.filter { order ->
+            order.dateAdd in dateStart..dateEnd
+        }.reversed()
+        ordersForAnalytics.value = ordersSort.toMutableList()
+        countAllOrdersAsPeriod.value = ordersSort.size
+        countActiveOrdersForPeriod.value = ordersSort.filter { order ->
+            order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED
+        }.size
+        countClosedOrdersForPeriod.value =
+            ordersSort.filter { order ->
+                order.status == StatusOrder.CLOSED
+            }.size
+        priceZip.value = ordersSort.sumOf { order -> order.priceZip }
+        profit.value = ordersSort.sumOf { order -> order.priceWork }
+        val preDataPriceZip = mutableListOf<Float>()
+        val preDataProfit = mutableListOf<Float>()
+        for (order in ordersSort) {
+            preDataPriceZip.add(order.priceZip.toFloat())
+            preDataProfit.add(order.priceWork.toFloat())
         }
+        dataPriceZip.value = preDataPriceZip
+        dataProfit.value = preDataProfit
     }
+
 }

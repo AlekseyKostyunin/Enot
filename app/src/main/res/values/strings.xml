@@ -117,10 +117,10 @@
     <string name="exit">Выйти</string>
     <string name="title_mail_support_app">[Техническая поддержка] Приложение E-note</string>
     <string name="title_e_note_android">О приложении E-note для Android:\n</string>
-    <string name="e_mail_instrictions_send">Письмо с инструкцией направлено на указанный e-mail.</string>
+    <string name="e_mail_instructions_send">Письмо с инструкцией направлено на указанный e-mail.</string>
     <string name="unknown_error">Неизвестная ошибка. Обратитесь в техподдержку.</string>
     <string name="you_need_to_accept_the_terms_of_user_agreement">Нужно принять условия пользовательского соглашения</string>
-    <string name="reg_succes">Регистрация прошла успешно!</string>
+    <string name="reg_success">Регистрация прошла успешно!</string>
     <string name="error_reg">Ошибка при регистрации. Обратитесь в техподдержку.</string>
     <string name="send">Отправить</string>
     <string name="reg">Регистрация</string>

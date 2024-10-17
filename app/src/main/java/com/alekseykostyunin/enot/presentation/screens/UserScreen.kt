@@ -88,7 +88,6 @@ fun UserScreen(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                //colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -179,7 +178,6 @@ fun UserScreen(
                         .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .clickable {
-                            //navigationState.navigateTo(Destinations.PrivacyPolicy.route)
                             navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route) {
                                 popUpTo(Destinations.User.route) {
                                     saveState = true

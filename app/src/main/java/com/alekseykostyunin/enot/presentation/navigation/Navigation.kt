@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -53,7 +54,6 @@ import com.alekseykostyunin.enot.presentation.screens.RegScreen
 import com.alekseykostyunin.enot.presentation.screens.ResetPasswordScreen
 import com.alekseykostyunin.enot.presentation.screens.UserScreen
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
-import com.alekseykostyunin.enot.presentation.viewmodels.MainViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
 import java.util.concurrent.ExecutorService
@@ -61,7 +61,6 @@ import java.util.concurrent.ExecutorService
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun StartNavigation(
-    mainViewModel: MainViewModel,
     userViewModel: UserViewModel,
     ordersViewModel: OrdersViewModel,
     clientsViewModel: ClientsViewModel,
@@ -71,16 +70,16 @@ fun StartNavigation(
     cameraExecutor: ExecutorService,
     getContact: () -> Unit
 ) {
-    val statusAuth = mainViewModel.isAuthorized.observeAsState()
+    val statusAuth = userViewModel.isAuthorized.collectAsStateWithLifecycle().value
     val navigationState = rememberNavigationState()
-    val isShowBottomBar = ordersViewModel.isShowBottomBar.observeAsState()
-    val startDestination: String = if (statusAuth.value == true) Destinations.Orders.route
+    val isShowBottomBar = ordersViewModel.isShowBottomBar.collectAsStateWithLifecycle().value
+    val startDestination: String = if (statusAuth) Destinations.Orders.route
     else Destinations.Authorisation.route
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
         bottomBar = {
-            if (isShowBottomBar.value == true && statusAuth.value == true) {
+            if (isShowBottomBar && statusAuth) {
                 BottomBar(
                     navController = navigationState.navHostController,
                     ordersViewModel
@@ -99,7 +98,7 @@ fun StartNavigation(
                 authScreenContent = {
                     AuthScreen(
                         navigationState,
-                        mainViewModel,
+                        userViewModel,
                         ordersViewModel,
                         clientsViewModel,
                         snackBarHostState
@@ -107,12 +106,14 @@ fun StartNavigation(
                 },
                 regScreenContent = {
                     RegScreen(
-                        navigationState
+                        navigationState,
+                        userViewModel
                     )
                 },
                 resetScreenContent = {
                     ResetPasswordScreen(
-                        navigationState
+                        navigationState,
+                        userViewModel
                     )
                 },
                 allOrdersScreenContent = {
@@ -181,7 +182,7 @@ fun StartNavigation(
                         navigationState,
                         onClickButtonSighOut = {
                             ordersViewModel.notShowBottomBar()
-                            mainViewModel.signOut()
+                            userViewModel.signOut()
                         }
                     )
                 },
@@ -197,7 +198,7 @@ fun StartNavigation(
 
 @Composable
 fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel) {
-    val countActiveOrders = ordersViewModel.countActiveOrders.observeAsState()
+    val countActiveOrders = ordersViewModel.countActiveOrders.collectAsStateWithLifecycle().value
     val screens = listOf(
         Destinations.Orders,
         Destinations.Clients,
@@ -224,7 +225,7 @@ fun BottomBar(navController: NavHostController, ordersViewModel: OrdersViewModel
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = Color.White
                                 ) {
-                                    val badgeNumber = countActiveOrders.value.toString()
+                                    val badgeNumber = countActiveOrders.toString()
                                     Text(
                                         badgeNumber,
                                         modifier = Modifier.semantics {

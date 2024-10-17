@@ -1,6 +1,5 @@
 package com.alekseykostyunin.enot.presentation.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,10 +22,8 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,19 +35,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +49,7 @@ fun EditOrderScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel
 ) {
-    val order = ordersViewModel.order.observeAsState().value
+    val order = ordersViewModel.order.collectAsStateWithLifecycle().value
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -84,7 +75,7 @@ fun EditOrderScreen(
                 )
             }
 
-            var nameClient by remember { mutableStateOf(order?.client?.name) }
+            var nameClient by remember { mutableStateOf(order.client?.name) }
             val isErrorClient by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
@@ -95,7 +86,7 @@ fun EditOrderScreen(
                 onValueChange = { newText -> nameClient = newText },
             )
 
-            var desc by remember { mutableStateOf(order?.description) }
+            var desc by remember { mutableStateOf(order.description) }
             val isErrorDesc by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 colors = OutlinedTextFieldDefaults.colors(errorTextColor = Color.Red),
@@ -109,15 +100,17 @@ fun EditOrderScreen(
             )
 
             val options =
-                listOf(stringResource(R.string.mobile_phone),
+                listOf(
+                    stringResource(R.string.mobile_phone),
                     stringResource(R.string.computer),
                     stringResource(R.string.nootbook),
                     stringResource(R.string.television),
                     stringResource(R.string.tablet),
                     stringResource(R.string.print),
-                    stringResource(R.string.other))
+                    stringResource(R.string.other)
+                )
             var expanded by remember { mutableStateOf(false) }
-            var selectedOptionText by remember { mutableStateOf(order?.type) }
+            var selectedOptionText by remember { mutableStateOf(order.type) }
             ExposedDropdownMenuBox(
                 modifier = Modifier.padding(top = 10.dp),
                 expanded = expanded,
@@ -137,12 +130,7 @@ fun EditOrderScreen(
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = expanded
                         )
-                    },
-//                    colors = TextFieldDefaults.colors(
-//                        focusedContainerColor = Color.White,
-//                        unfocusedContainerColor = Color.White,
-//                        disabledContainerColor = Color.White,
-//                    )
+                    }
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -164,7 +152,7 @@ fun EditOrderScreen(
                 }
             }
 
-            var model by remember { mutableStateOf(order?.model) }
+            var model by remember { mutableStateOf(order.model) }
             val isErrorModel by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
@@ -177,7 +165,7 @@ fun EditOrderScreen(
                 )
             }
 
-            var priceZ by remember { mutableStateOf(order?.priceZip.toString()) }
+            var priceZ by remember { mutableStateOf(order.priceZip.toString()) }
             val isErrorPriceZ by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
@@ -191,7 +179,7 @@ fun EditOrderScreen(
                 )
             }
 
-            var price by remember { mutableStateOf(order?.priceWork.toString()) }
+            var price by remember { mutableStateOf(order.priceWork.toString()) }
             val isErrorPrice by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
@@ -205,7 +193,7 @@ fun EditOrderScreen(
                 )
             }
 
-            var comment by remember { mutableStateOf(order?.comment ?: "") }
+            var comment by remember { mutableStateOf(order.comment ?: "") }
             val isErrorComment by rememberSaveable { mutableStateOf(false) }
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 OutlinedTextField(
@@ -217,71 +205,37 @@ fun EditOrderScreen(
                     onValueChange = { newText -> comment = newText }
                 )
             }
-
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp),
                 onClick = {
-
-                    val auth: FirebaseAuth = Firebase.auth
-                    val database = Firebase.database.reference
-                    val user = auth.currentUser
                     val editClient = Client(
-                        id = order?.client?.id,
+                        id = order.client?.id,
                         name = nameClient,
-                        phone = order?.client?.phone
+                        phone = order.client?.phone
                     )
-                    if (user != null) {
-                        val userId = user.uid
-                        val idOrder = order?.id
-                        idOrder?.let {
-                            val orderUpdate = Order(
-                                id = idOrder,
-                                status = order.status,
-                                client = editClient,
-                                dateAdd = order.dateAdd,
-                                dateClose = 0,
-                                description = desc,
-                                type = selectedOptionText,
-                                model = model,
-                                priceZip = priceZ.toInt(),
-                                priceWork = price.toInt(),
-                                history = order.history,
-                                photos = order.photos,
-                                comment = comment
-                            )
-
-                            database
-                                .child("users")
-                                .child(userId)
-                                .child("orders")
-                                .child(idOrder)
-                                .setValue(orderUpdate)
-
-                            val dbNewOrderUpdate = database
-                                .child("users")
-                                .child(userId)
-                                .child("orders")
-                                .child(idOrder)
-
-                            dbNewOrderUpdate.addValueEventListener(object : ValueEventListener {
-                                override fun onDataChange(snapshot: DataSnapshot) {
-                                    val order2 = snapshot.getValue(Order::class.java)
-                                    if (order2 != null) {
-                                        Log.d("TEST_snapshot_EditOrderScreen", order2.toString())
-                                        ordersViewModel.getOrderUser(order2)
-                                    }
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    Log.d("TEST_snapshot_error", error.message)
-                                }
-                            })
-                            ordersViewModel.updateOrders()
-                            navigationState.navigateTo(Destinations.OneOrder.route)
-                        }
-
+                    val idOrder = order.id
+                    idOrder?.let {
+                        val orderUpdate = Order(
+                            id = idOrder,
+                            status = order.status,
+                            client = editClient,
+                            dateAdd = order.dateAdd,
+                            dateClose = 0,
+                            description = desc,
+                            type = selectedOptionText,
+                            model = model,
+                            priceZip = priceZ.toInt(),
+                            priceWork = price.toInt(),
+                            history = order.history,
+                            photos = order.photos,
+                            comment = comment
+                        )
+                        ordersViewModel.editOrder(orderUpdate)
+                        ordersViewModel.updateOrders()
+                        ordersViewModel.getOrderUser(orderUpdate)
+                        navigationState.navigateTo(Destinations.OneOrder.route)
                     }
                 }
             ) {
