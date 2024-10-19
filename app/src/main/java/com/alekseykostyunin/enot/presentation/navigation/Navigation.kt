@@ -40,8 +40,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navigation
 import com.alekseykostyunin.enot.R
-import com.alekseykostyunin.enot.domain.usecase.clients.AllClientsUseCase
-import com.alekseykostyunin.enot.domain.usecase.orders.AllOrdersUseCase
 import com.alekseykostyunin.enot.presentation.screens.AddOrderScreen
 import com.alekseykostyunin.enot.presentation.screens.AllClientsScreen
 import com.alekseykostyunin.enot.presentation.screens.AllOrdersScreen
