@@ -104,7 +104,8 @@ fun AuthScreen(
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
-                focusedTextColor = MaterialTheme.colorScheme.onBackground),
+                focusedTextColor = MaterialTheme.colorScheme.onBackground
+            ),
             isError = isErrorPassword,
             value = password,
             onValueChange = { password = it },
@@ -148,11 +149,12 @@ fun AuthScreen(
                                 sendToast(context.getString(R.string.error_password_is_short))
                             } else {
                                 isErrorPassword = false
-                                userViewModel.auth(email, password){ success ->
+                                userViewModel.auth(email, password) { success ->
                                     if (success) {
                                         sendToast(context.getString(R.string.success_auth))
                                         ordersViewModel.updateOrders()
                                         clientsViewModel.updateClients()
+                                        userViewModel.setStatusAuthorized(true)
                                     } else {
                                         Log.d(
                                             "TEST_sign",

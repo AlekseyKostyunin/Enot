@@ -3,10 +3,8 @@ package com.alekseykostyunin.enot.presentation.screens
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +21,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -54,6 +53,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -75,7 +76,7 @@ import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
-import com.alekseykostyunin.enot.presentation.viewmodels.State
+import com.alekseykostyunin.enot.presentation.navigation.State
 import com.pushpal.jetlime.EventPointType
 import com.pushpal.jetlime.ItemsList
 import com.pushpal.jetlime.JetLimeColumn
@@ -85,7 +86,6 @@ import java.io.File
 import java.util.concurrent.ExecutorService
 import kotlin.math.abs
 
-@RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OneOrderScreen(
@@ -364,6 +364,7 @@ fun OneOrderScreen(
         stringResource(R.string.history),
         stringResource(R.string.Photo)
     )
+
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
@@ -487,18 +488,24 @@ fun OneOrderScreen(
                                     modifier = Modifier.padding(vertical = 10.dp),
                                     fontWeight = FontWeight.Bold
                                 )
-                                IconButton(
-                                    onClick = {
-                                        if (order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED) {
+                                if (order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED) {
+                                    IconButton(
+                                        onClick = {
                                             navigationState.navigateTo(Destinations.EditOrder.route)
+                                        },
+                                        Modifier.composed {
+                                            clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.primary)
                                         }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Create,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.background
+                                        )
                                     }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Create,
-                                        contentDescription = null
-                                    )
                                 }
+
                                 val color = when (order.status) {
                                     StatusOrder.OPEN -> Color.Red
                                     StatusOrder.PAUSED -> Color.Yellow
@@ -509,6 +516,10 @@ fun OneOrderScreen(
                                         if (order.status == StatusOrder.OPEN || order.status == StatusOrder.PAUSED) {
                                             openDialogCloseOrder.value = true
                                         }
+                                    },
+                                    Modifier.composed {
+                                        clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
                                     }
                                 ) {
                                     Icon(

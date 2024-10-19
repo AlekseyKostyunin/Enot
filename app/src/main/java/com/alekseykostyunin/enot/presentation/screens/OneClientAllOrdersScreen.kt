@@ -44,7 +44,7 @@ import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
-import com.alekseykostyunin.enot.presentation.viewmodels.State
+import com.alekseykostyunin.enot.presentation.navigation.State
 
 @Composable
 fun OneClientAllOrdersScreen(

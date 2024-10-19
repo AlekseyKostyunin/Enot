@@ -22,6 +22,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -39,6 +40,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navigation
 import com.alekseykostyunin.enot.R
+import com.alekseykostyunin.enot.domain.usecase.clients.AllClientsUseCase
+import com.alekseykostyunin.enot.domain.usecase.orders.AllOrdersUseCase
 import com.alekseykostyunin.enot.presentation.screens.AddOrderScreen
 import com.alekseykostyunin.enot.presentation.screens.AllClientsScreen
 import com.alekseykostyunin.enot.presentation.screens.AllOrdersScreen
@@ -69,12 +72,13 @@ fun StartNavigation(
     cameraExecutor: ExecutorService,
     getContact: () -> Unit
 ) {
-    val statusAuth = userViewModel.isAuthorized.collectAsStateWithLifecycle().value
-    val navigationState = rememberNavigationState()
-    val isShowBottomBar = ordersViewModel.isShowBottomBar.collectAsStateWithLifecycle().value
+    val statusAuth = userViewModel.isAuthorized.collectAsState().value
+    val isShowBottomBar = ordersViewModel.isShowBottomBar.collectAsState().value
     val startDestination: String = if (statusAuth) Destinations.Orders.route
     else Destinations.Authorisation.route
+    val navigationState = rememberNavigationState()
     val snackBarHostState = remember { SnackbarHostState() }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
         bottomBar = {

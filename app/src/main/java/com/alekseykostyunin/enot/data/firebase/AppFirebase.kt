@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
-object Firebase {
+object AppFirebase {
 
     private var auth = Firebase.auth
     private val user = auth.currentUser
@@ -31,17 +31,22 @@ object Firebase {
             Log.d("TEST_currentUser_null", "not")
             false
         } else {
-            Log.d("TEST_currentUser_MyFirebaseAuth2", user.uid)
+            Log.d("TEST_currentUser_MyFirebaseAuth2", "null")
             true
         }
     }
 
-    fun signInWithEmailAndPassword(email: String, password: String, onResult: (Boolean) -> Unit) {
+    fun auth(
+        email: String,
+        password: String,
+        onResult: (Boolean) -> Unit
+    ): Flow<Boolean> = callbackFlow {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("TEST_sign", "signInWithEmail:success")
                     onResult(true)
+                    launch { send(true) }
                 } else {
                     Log.w("TEST_sign", "signInWithEmail:failure", task.exception)
                 }
@@ -49,7 +54,11 @@ object Firebase {
             .addOnFailureListener {
                 Log.w("TEST_", it.toString())
                 onResult(false)
+                launch { send(false) }
             }
+        awaitClose {
+            close()
+        }
     }
 
     fun singOutUser() {
@@ -94,7 +103,12 @@ object Firebase {
     fun getAllOrders(): Flow<List<Order>> = callbackFlow {
         if (user != null) {
             val userId = user.uid
-            val db = database.child("users").child(userId).child("orders")
+
+            val db = database
+                .child("users")
+                .child(userId)
+                .child("orders")
+
             val valueEventListener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val orders = mutableListOf<Order>()
@@ -106,13 +120,15 @@ object Firebase {
                     }
                     launch { send(orders.asReversed()) }
                 }
-
                 override fun onCancelled(error: DatabaseError) {
-                    Log.d("TEST_snapshot_error", error.message)
+                    Log.d("TEST_snapshot_errorAllOrders", error.message)
                 }
             }
             db.addValueEventListener(valueEventListener)
             awaitClose { db.removeEventListener(valueEventListener) }
+        } else {
+            Log.d("TEST_user", "null")
+            awaitClose { close() }
         }
     }
 
@@ -198,6 +214,9 @@ object Firebase {
                 awaitClose { db.removeEventListener(valueEventListener) }
 
             }
+        } else {
+            Log.d("TEST_user", "null")
+            awaitClose { close() }
         }
     }
 
@@ -270,6 +289,9 @@ object Firebase {
             }
             dbNewOrderUpdate.addValueEventListener(valueEventListener)
             awaitClose { dbNewOrderUpdate.removeEventListener(valueEventListener) }
+        } else {
+            Log.d("TEST_user", "null")
+            awaitClose { close() }
         }
     }
 
@@ -339,12 +361,14 @@ object Firebase {
             }
             dbNewOrderUpdate.addValueEventListener(valueEventListener)
             awaitClose { dbNewOrderUpdate.removeEventListener(valueEventListener) }
+        } else {
+            Log.d("TEST_user", "null")
+            awaitClose { close() }
         }
     }
 
     /* Clients */
     fun getAllClients(): Flow<List<Client>> = callbackFlow {
-        //val user = auth.currentUser
         if (user != null) {
             val userId = user.uid
             val db = database.child("users").child(userId).child("clients")
@@ -366,6 +390,9 @@ object Firebase {
             }
             db.addValueEventListener(valueEventListener)
             awaitClose { db.removeEventListener(valueEventListener) }
+        } else {
+            Log.d("TEST_user", "null")
+            awaitClose { close() }
         }
     }
 
@@ -405,8 +432,9 @@ object Firebase {
             }
             dbNewClientUpdate.addValueEventListener(valueEventListener)
             awaitClose { dbNewClientUpdate.removeEventListener(valueEventListener) }
-
-
+        } else {
+            Log.d("TEST_user", "null")
+            awaitClose { close() }
         }
     }
 
@@ -445,6 +473,9 @@ object Firebase {
             }
             dbNewClientUpdate.addValueEventListener(valueEventListener)
             awaitClose { dbNewClientUpdate.removeEventListener(valueEventListener) }
+        } else {
+            Log.d("TEST_user", "null")
+            awaitClose { close() }
         }
     }
 

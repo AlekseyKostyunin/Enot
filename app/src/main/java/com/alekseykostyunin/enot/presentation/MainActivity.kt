@@ -68,11 +68,12 @@ class MainActivity : ComponentActivity() {
     private val addPhotoOrderUseCase: AddPhotoOrderUseCase = AddPhotoOrderUseCase(ordersRepository)
     private val editOrderUseCase: EditOrderUseCase = EditOrderUseCase(ordersRepository)
     private val closeOrderUseCase: CloseOrderUseCase = CloseOrderUseCase(ordersRepository)
-    private val addHistoryStepUseCase: AddHistoryStepUseCase = AddHistoryStepUseCase(ordersRepository)
+    private val addHistoryStepUseCase: AddHistoryStepUseCase =
+        AddHistoryStepUseCase(ordersRepository)
 
     /* Clients */
-    private val addClientUseCase: AddClientUseCase = AddClientUseCase(clientsRepository)
     private val allClientsUseCase: AllClientsUseCase = AllClientsUseCase(clientsRepository)
+    private val addClientUseCase: AddClientUseCase = AddClientUseCase(clientsRepository)
     private val editClientUseCase: EditClientUseCase = EditClientUseCase(clientsRepository)
 
     /* View models */
@@ -99,6 +100,7 @@ class MainActivity : ComponentActivity() {
             )
         }
     )
+
     private val clientsViewModel: ClientsViewModel by viewModels(
         factoryProducer = {
             ClientsViewModelFactory(

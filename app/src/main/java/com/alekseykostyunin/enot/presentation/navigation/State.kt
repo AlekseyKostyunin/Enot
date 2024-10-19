@@ -1,4 +1,4 @@
-package com.alekseykostyunin.enot.presentation.viewmodels
+package com.alekseykostyunin.enot.presentation.navigation
 
 sealed class State {
     data object Initial : State()

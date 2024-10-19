@@ -122,6 +122,7 @@
     <string name="you_need_to_accept_the_terms_of_user_agreement">Нужно принять условия пользовательского соглашения</string>
     <string name="reg_success">Регистрация прошла успешно!</string>
     <string name="error_reg">Ошибка при регистрации. Обратитесь в техподдержку.</string>
+    <string name="error_load">Произошла ошибка. Попробуйте позже.</string>
     <string name="send">Отправить</string>
     <string name="reg">Регистрация</string>
     <string name="i_accept_the_terms">Я принимаю условия пользовательского соглашения</string>

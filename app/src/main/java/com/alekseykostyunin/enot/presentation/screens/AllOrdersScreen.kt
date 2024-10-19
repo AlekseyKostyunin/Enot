@@ -29,6 +29,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -51,7 +52,7 @@ import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
-import com.alekseykostyunin.enot.presentation.viewmodels.State
+import com.alekseykostyunin.enot.presentation.navigation.State
 import com.alekseykostyunin.enot.ui.theme.gradient
 import kotlin.math.abs
 
@@ -60,9 +61,8 @@ fun AllOrdersScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel
 ) {
-    val state = ordersViewModel.state.collectAsStateWithLifecycle().value
+    val state = ordersViewModel.state.collectAsState().value
     val orders0 = ordersViewModel.orders.collectAsStateWithLifecycle().value
-
     val context = LocalContext.current
     fun sendToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()

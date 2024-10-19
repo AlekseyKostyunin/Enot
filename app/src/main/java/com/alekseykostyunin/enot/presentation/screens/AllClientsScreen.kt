@@ -41,7 +41,7 @@ import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
-import com.alekseykostyunin.enot.presentation.viewmodels.State
+import com.alekseykostyunin.enot.presentation.navigation.State
 import com.alekseykostyunin.enot.ui.theme.gradient
 
 @Composable
