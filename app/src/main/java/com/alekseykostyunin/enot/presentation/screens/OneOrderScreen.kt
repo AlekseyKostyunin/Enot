@@ -21,9 +21,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -77,8 +75,8 @@ import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
-import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.navigation.State
+import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.pushpal.jetlime.EventPointType
 import com.pushpal.jetlime.ItemsList
 import com.pushpal.jetlime.JetLimeColumn
