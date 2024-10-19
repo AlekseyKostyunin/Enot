@@ -40,6 +40,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
+import com.alekseykostyunin.enot.presentation.general.ProgressIndicatorLogo
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.navigation.State
@@ -124,7 +125,7 @@ fun OneClientAllOrdersScreen(
             }
 
             if (state == State.Loading) {
-                ProgressIndicator()
+                ProgressIndicatorLogo()
             } else {
                 if (allOrdersOneClient.isEmpty()) {
                     Column(

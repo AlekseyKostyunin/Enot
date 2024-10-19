@@ -49,6 +49,7 @@ import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.presentation.general.Circle
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
+import com.alekseykostyunin.enot.presentation.general.ProgressIndicatorLogo
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
@@ -117,7 +118,7 @@ fun AllOrdersScreen(
             ) {
                 Column {
                     if (state is State.Loading) {
-                        ProgressIndicator()
+                        ProgressIndicatorLogo()
                     } else if (state is State.Success) {
                         if (orders0.isEmpty()) {
                             Column(

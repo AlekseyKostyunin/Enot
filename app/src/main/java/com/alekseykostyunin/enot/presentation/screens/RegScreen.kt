@@ -1,7 +1,6 @@
 package com.alekseykostyunin.enot.presentation.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.Validate
+import com.alekseykostyunin.enot.presentation.general.LogoAnimation
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
@@ -60,10 +60,7 @@ fun RegScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_enot),
-            contentDescription = null
-        )
+        LogoAnimation()
         Text(
             text = stringResource(R.string.reg),
             fontSize = 24.sp,

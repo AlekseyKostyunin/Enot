@@ -3,7 +3,6 @@ package com.alekseykostyunin.enot.presentation.screens
 import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.data.utils.Validate
+import com.alekseykostyunin.enot.presentation.general.LogoAnimation
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
@@ -73,10 +73,7 @@ fun AuthScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_enot),
-            contentDescription = null
-        )
+        LogoAnimation()
         Text(
             text = stringResource(R.string.authorization),
             fontSize = 24.sp,

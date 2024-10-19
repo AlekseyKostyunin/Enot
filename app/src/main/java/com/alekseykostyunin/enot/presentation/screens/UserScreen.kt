@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,10 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.startActivity
 import com.alekseykostyunin.enot.R
+import com.alekseykostyunin.enot.presentation.general.LogoAnimation
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 
@@ -96,17 +94,11 @@ fun UserScreen(
                     Column(
                         modifier = Modifier
                             .weight(2f)
-                            .padding(16.dp),
+                            .padding(6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_enot),
-                            contentDescription = stringResource(id = R.string.app_name),
-                            modifier = Modifier
-                                .size(140.dp)
-                                .scale(1.5f)
-                        )
+                        Box(Modifier.size(160.dp)) { LogoAnimation() }
                         Text(
                             text = stringResource(id = R.string.app_name),
                             style = MaterialTheme.typography.titleMedium,
@@ -136,13 +128,13 @@ fun UserScreen(
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.github),
                                 contentDescription = "GitHub",
-                                modifier = Modifier.size(30.dp)
+                                modifier = Modifier
+                                    .size(30.dp)
                                     .clickable {
                                         val openURL = Intent(Intent.ACTION_VIEW)
                                         openURL.data = Uri.parse(githubLink)
                                         context.startActivity(openURL)
-                                    }
-                                ,
+                                    },
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
@@ -158,13 +150,13 @@ fun UserScreen(
                             Icon(
                                 imageVector = ImageVector.vectorResource(R.drawable.rustore2),
                                 contentDescription = stringResource(R.string.rustore),
-                                modifier = Modifier.size(30.dp)
+                                modifier = Modifier
+                                    .size(30.dp)
                                     .clickable {
                                         val openURL = Intent(Intent.ACTION_VIEW)
                                         openURL.data = Uri.parse(ruStoreLink)
                                         context.startActivity(openURL)
-                                    }
-                                ,
+                                    },
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }

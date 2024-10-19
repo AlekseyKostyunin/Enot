@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alekseykostyunin.enot.R
 import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
+import com.alekseykostyunin.enot.presentation.general.ProgressIndicatorLogo
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
@@ -90,7 +91,7 @@ fun AllClientsScreen(
             ) {
                 Column {
                     if (state == State.Loading) {
-                        ProgressIndicator()
+                        ProgressIndicatorLogo()
                     } else {
                         if (clients.isEmpty()) {
                             Column(

@@ -73,6 +73,7 @@ import com.alekseykostyunin.enot.domain.entities.HistoryStep
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
+import com.alekseykostyunin.enot.presentation.general.ProgressIndicatorLogo
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.navigation.State
@@ -454,7 +455,7 @@ fun OneOrderScreen(
                 Log.i("TEST_CameraView1", "CameraView")
             } else {
                 if (state is State.Loading) {
-                    ProgressIndicator()
+                    ProgressIndicatorLogo()
                 } else if (state is State.Success) {
                     Box(
                         modifier = Modifier
