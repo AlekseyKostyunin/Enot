@@ -66,6 +66,7 @@ class OrdersViewModel(
 
     fun updateOrders() {
         getAllOrdersUser()
+        allOrders()
     }
 
     private fun allOrders() {
@@ -165,7 +166,6 @@ class OrdersViewModel(
                 _state.value = State.Success
             }.catch { _state.value = State.Error(ERROR_LOAD) }
             .launchIn(viewModelScope)
-        updateOrders()
     }
 
     fun editOrder(order: Order) {
@@ -187,7 +187,6 @@ class OrdersViewModel(
                 _state.value = State.Error(ERROR_LOAD)
             }
             .launchIn(viewModelScope)
-        updateOrders()
     }
 
     fun addHistoryStepZipOrdered(descStep: String) {

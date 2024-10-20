@@ -41,6 +41,7 @@ class ClientsViewModel(
 
     fun updateClients() {
         loadAllClients()
+        allClients()
     }
 
     private fun allClients() {
@@ -50,7 +51,7 @@ class ClientsViewModel(
                 Log.e("TEST_allClients", "State.Loading")
             }
             .onEach { listClients ->
-                clients.value = listClients
+                clients.value = listClients.sortedBy { it.name }
                 state.value = State.Success
             }.catch {
                 state.value = State.Error("Произошла ошибка. Попробуйте позже")
@@ -75,7 +76,7 @@ class ClientsViewModel(
                             clientsDB.add(client)
                         }
                     }
-                    clients.value = clientsDB
+                    clients.value = clientsDB.sortedBy { it.name }
                     state.value = State.Success
                     Log.d("TEST_snapshot_clientsDB", clients.value.toString())
                 }
@@ -105,7 +106,6 @@ class ClientsViewModel(
                 }.catch {
                     state.value = State.Error("Произошла ошибка. Попробуйте позже")
                 }.launchIn(viewModelScope)
-            updateClients()
         }
     }
 
@@ -120,7 +120,6 @@ class ClientsViewModel(
                 }.catch {
                     state.value = State.Error("Произошла ошибка. Попробуйте позже")
                 }.launchIn(viewModelScope)
-            updateClients()
         }
 
     }
