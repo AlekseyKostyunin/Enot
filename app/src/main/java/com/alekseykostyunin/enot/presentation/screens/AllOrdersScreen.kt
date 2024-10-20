@@ -48,7 +48,6 @@ import com.alekseykostyunin.enot.data.utils.DateUtil
 import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.presentation.general.Circle
-import com.alekseykostyunin.enot.presentation.general.ProgressIndicator
 import com.alekseykostyunin.enot.presentation.general.ProgressIndicatorLogo
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
