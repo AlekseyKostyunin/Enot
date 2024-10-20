@@ -165,6 +165,7 @@ class OrdersViewModel(
                 _state.value = State.Success
             }.catch { _state.value = State.Error(ERROR_LOAD) }
             .launchIn(viewModelScope)
+        updateOrders()
     }
 
     fun editOrder(order: Order) {
@@ -186,6 +187,7 @@ class OrdersViewModel(
                 _state.value = State.Error(ERROR_LOAD)
             }
             .launchIn(viewModelScope)
+        updateOrders()
     }
 
     fun addHistoryStepZipOrdered(descStep: String) {
@@ -209,7 +211,6 @@ class OrdersViewModel(
         _oneClientAllOrders.value = orders.value.filter { order ->
             order.client?.id == client.id
         }
-
     }
 
     /* Analytics */

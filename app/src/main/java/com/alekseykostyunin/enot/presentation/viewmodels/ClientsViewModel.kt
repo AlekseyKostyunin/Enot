@@ -105,6 +105,7 @@ class ClientsViewModel(
                 }.catch {
                     state.value = State.Error("Произошла ошибка. Попробуйте позже")
                 }.launchIn(viewModelScope)
+            updateClients()
         }
     }
 
@@ -119,6 +120,7 @@ class ClientsViewModel(
                 }.catch {
                     state.value = State.Error("Произошла ошибка. Попробуйте позже")
                 }.launchIn(viewModelScope)
+            updateClients()
         }
 
     }
