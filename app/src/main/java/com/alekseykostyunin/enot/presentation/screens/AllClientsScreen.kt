@@ -83,11 +83,11 @@ fun AllClientsScreen(
             }
         },
         content = { innerPadding ->
+            innerPadding
             Box(
                 Modifier
                     .background(MaterialTheme.colorScheme.background)
                     .fillMaxSize()
-                    .padding(innerPadding)
             ) {
                 Column {
                     if (state == State.Loading) {

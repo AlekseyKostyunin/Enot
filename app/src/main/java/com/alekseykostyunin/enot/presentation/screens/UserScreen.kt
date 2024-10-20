@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,187 +80,194 @@ fun UserScreen(
     val githubLink = "https://github.com/AlekseyKostyunin/Enot"
     val ruStoreLink = "https://www.rustore.ru/"
 
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Column(
+    Scaffold(
+        content = { innerPadding ->
+            innerPadding
+            Box(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxSize()) {
+                    Card(
                         modifier = Modifier
-                            .weight(2f)
-                            .padding(6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     ) {
-                        Box(Modifier.size(160.dp)) { LogoAnimation() }
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = MaterialTheme.typography.titleLarge.fontSize
-                        )
-                        Text(
-                            text = stringResource(R.string.version, version),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = MaterialTheme.typography.bodyMedium.fontSize
-                        )
-                        Text(
-                            text = stringResource(R.string.alexey_kostyunin),
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        IconButton(
-                            onClick = { },
-                            modifier = Modifier
-                                .size(70.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(16.dp)
                         ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.github),
-                                contentDescription = "GitHub",
+                            Column(
                                 modifier = Modifier
-                                    .size(30.dp)
-                                    .clickable {
-                                        val openURL = Intent(Intent.ACTION_VIEW)
-                                        openURL.data = Uri.parse(githubLink)
-                                        context.startActivity(openURL)
-                                    },
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
+                                    .weight(2f)
+                                    .padding(6.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(Modifier.size(160.dp)) { LogoAnimation() }
+                                Text(
+                                    text = stringResource(id = R.string.app_name),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize
+                                )
+                                Text(
+                                    text = stringResource(R.string.version, version),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = MaterialTheme.typography.bodyMedium.fontSize
+                                )
+                                Text(
+                                    text = stringResource(R.string.alexey_kostyunin),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                IconButton(
+                                    onClick = { },
+                                    modifier = Modifier
+                                        .size(70.dp)
+                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                ) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(id = R.drawable.github),
+                                        contentDescription = "GitHub",
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .clickable {
+                                                val openURL = Intent(Intent.ACTION_VIEW)
+                                                openURL.data = Uri.parse(githubLink)
+                                                context.startActivity(openURL)
+                                            },
+                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
 
-                        IconButton(
-                            onClick = { },
-                            modifier = Modifier
-                                .size(70.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.rustore2),
-                                contentDescription = stringResource(R.string.rustore),
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .clickable {
-                                        val openURL = Intent(Intent.ACTION_VIEW)
-                                        openURL.data = Uri.parse(ruStoreLink)
-                                        context.startActivity(openURL)
-                                    },
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
-                }
-            }
-
-            Row {
-                ListItem(
-                    modifier = Modifier
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable {
-                            navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route) {
-                                popUpTo(Destinations.User.route) {
-                                    saveState = true
+                                IconButton(
+                                    onClick = { },
+                                    modifier = Modifier
+                                        .size(70.dp)
+                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                ) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.rustore2),
+                                        contentDescription = stringResource(R.string.rustore),
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .clickable {
+                                                val openURL = Intent(Intent.ACTION_VIEW)
+                                                openURL.data = Uri.parse(ruStoreLink)
+                                                context.startActivity(openURL)
+                                            },
+                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    )
                                 }
                             }
-                        },
-                    headlineContent = {
-                        Text(
-                            text = stringResource(R.string.privacy_policy),
-                            style = MaterialTheme.typography.titleMedium
+                        }
+                    }
+
+                    Row {
+                        ListItem(
+                            modifier = Modifier
+                                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable {
+                                    navigationState.navHostController.navigate(Destinations.PrivacyPolicy.route) {
+                                        popUpTo(Destinations.User.route) {
+                                            saveState = true
+                                        }
+                                    }
+                                },
+                            headlineContent = {
+                                Text(
+                                    text = stringResource(R.string.privacy_policy),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    text = stringResource(R.string.click_here_to_view_our_privacy_policy),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            },
+                            trailingContent = {},
+                            leadingContent = {
+                                Icon(
+                                    Icons.Outlined.PrivacyTip,
+                                    contentDescription = stringResource(R.string.privacy_policy),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            tonalElevation = 5.dp
                         )
-                    },
-                    supportingContent = {
-                        Text(
-                            text = stringResource(R.string.click_here_to_view_our_privacy_policy),
-                            style = MaterialTheme.typography.bodySmall
+                    }
+                    Row {
+                        ListItem(
+                            modifier = Modifier
+                                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { toContact = true },
+                            headlineContent = {
+                                Text(
+                                    text = stringResource(R.string.contact),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    text = stringResource(R.string.contact_the_author_by_email),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            },
+                            trailingContent = {},
+                            leadingContent = {
+                                Icon(
+                                    Icons.Outlined.Email,
+                                    contentDescription = stringResource(R.string.contact),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            tonalElevation = 5.dp
                         )
-                    },
-                    trailingContent = {},
-                    leadingContent = {
-                        Icon(
-                            Icons.Outlined.PrivacyTip,
-                            contentDescription = stringResource(R.string.privacy_policy),
-                            tint = MaterialTheme.colorScheme.primary
+                    }
+                    Row {
+                        ListItem(
+                            modifier = Modifier
+                                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { openDialogSignOut.value = true },
+                            headlineContent = {
+                                Text(
+                                    text = stringResource(R.string.signOut),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    text = stringResource(R.string.click_here_to_view_signOut),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            },
+                            trailingContent = {},
+                            leadingContent = {
+                                Icon(
+                                    Icons.AutoMirrored.Sharp.Logout,
+                                    contentDescription = stringResource(R.string.privacy_policy),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            tonalElevation = 5.dp
                         )
-                    },
-                    tonalElevation = 5.dp
-                )
-            }
-            Row {
-                ListItem(
-                    modifier = Modifier
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { toContact = true },
-                    headlineContent = {
-                        Text(
-                            text = stringResource(R.string.contact),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    },
-                    supportingContent = {
-                        Text(
-                            text = stringResource(R.string.contact_the_author_by_email),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
-                    trailingContent = {},
-                    leadingContent = {
-                        Icon(
-                            Icons.Outlined.Email,
-                            contentDescription = stringResource(R.string.contact),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    tonalElevation = 5.dp
-                )
-            }
-            Row {
-                ListItem(
-                    modifier = Modifier
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { openDialogSignOut.value = true },
-                    headlineContent = {
-                        Text(
-                            text = stringResource(R.string.signOut),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    },
-                    supportingContent = {
-                        Text(
-                            text = stringResource(R.string.click_here_to_view_signOut),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
-                    trailingContent = {},
-                    leadingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Sharp.Logout,
-                            contentDescription = stringResource(R.string.privacy_policy),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    tonalElevation = 5.dp
-                )
+                    }
+                }
+
             }
         }
+    )
 
-    }
+
 
     if (openDialogSignOut.value) {
         Dialog(

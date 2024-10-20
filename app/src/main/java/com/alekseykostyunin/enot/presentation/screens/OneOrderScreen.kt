@@ -445,6 +445,7 @@ fun OneOrderScreen(
             }
         },
         content = { innerPadding ->
+            innerPadding
             if (shouldShowCamera.value) {
                 CameraView(
                     outputDirectory = outputDirectory,
@@ -462,7 +463,7 @@ fun OneOrderScreen(
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.background)
                             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                            .padding(innerPadding),
+                            ,
                     ) {
                         Column(
                             modifier = Modifier.fillMaxSize()
@@ -475,6 +476,7 @@ fun OneOrderScreen(
                                 val dt = DateUtil.dateFormatter(order.dateAdd.toString())
                                 IconButton(
                                     onClick = {
+                                        ordersViewModel.updateOrders()
                                         navigationState.navigateTo(Destinations.AllOrders.route)
                                     }
                                 ) {

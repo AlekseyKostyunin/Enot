@@ -20,6 +20,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
@@ -140,7 +141,7 @@ fun AnalyticsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+            .padding(start = 16.dp, end = 16.dp)
     ) {
         Column {
             Row(
@@ -191,7 +192,6 @@ fun AnalyticsScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-
                     Text(
                         stringResource(R.string.count_orders, countAllOrdersAsPeriod),
                         fontSize = 16.sp

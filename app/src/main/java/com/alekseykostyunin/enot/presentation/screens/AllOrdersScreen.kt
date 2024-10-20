@@ -110,11 +110,11 @@ fun AllOrdersScreen(
             }
         },
         content = { innerPadding ->
+            innerPadding
             Box(
                 Modifier
                     .background(MaterialTheme.colorScheme.background)
                     .fillMaxSize()
-                    .padding(innerPadding)
             ) {
                 Column {
                     if (state is State.Loading) {
