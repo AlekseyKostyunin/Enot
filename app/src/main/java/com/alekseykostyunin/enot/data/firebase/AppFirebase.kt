@@ -20,12 +20,10 @@ import kotlinx.coroutines.launch
 
 object AppFirebase {
 
-    private var auth = Firebase.auth
-    private val user = auth.currentUser
-    private val database = Firebase.database.reference
-
     /* User*/
     fun currentUser(): Boolean {
+        val auth = Firebase.auth
+        val user = auth.currentUser
         Log.d("TEST_currentUser_MyFirebaseAuth1", user.toString())
         return if (user == null) {
             Log.d("TEST_currentUser_null", "not")
@@ -41,6 +39,7 @@ object AppFirebase {
         password: String,
         onResult: (Boolean) -> Unit
     ): Flow<Boolean> = callbackFlow {
+        val auth = Firebase.auth
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -62,11 +61,13 @@ object AppFirebase {
     }
 
     fun singOutUser() {
+        val auth = Firebase.auth
         auth.signOut()
         Log.d("TEST_singOutUser", "ok")
     }
 
     fun resetPassword(email: String, onResult: (Boolean) -> Unit) {
+        val auth = Firebase.auth
         auth.sendPasswordResetEmail(email)
             .addOnSuccessListener {
                 Log.d("TEST_resetPassword", "yes$it")
@@ -78,6 +79,8 @@ object AppFirebase {
     }
 
     fun reg(email: String, password: String, onResult: (Boolean) -> Unit) {
+        val auth = Firebase.auth
+        val database = Firebase.database.reference
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -101,6 +104,9 @@ object AppFirebase {
 
     /* Orders */
     fun getAllOrders(): Flow<List<Order>> = callbackFlow {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
 
@@ -120,6 +126,7 @@ object AppFirebase {
                     }
                     launch { send(orders.asReversed()) }
                 }
+
                 override fun onCancelled(error: DatabaseError) {
                     Log.d("TEST_snapshot_errorAllOrders", error.message)
                 }
@@ -133,6 +140,9 @@ object AppFirebase {
     }
 
     fun addOrder(order: Order) {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
             val idOrder = database.child("users")
@@ -146,6 +156,9 @@ object AppFirebase {
     }
 
     fun closeOrder(order: Order): Flow<Order> = callbackFlow {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
             val idOrder = order.id
@@ -221,6 +234,9 @@ object AppFirebase {
     }
 
     fun editOrder(order: Order) {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
             order.id?.let { idOrder ->
@@ -236,6 +252,9 @@ object AppFirebase {
     }
 
     fun addPhotoOrder(photoUri: String, order: Order): Flow<Order> = callbackFlow {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
             val idOrder = order.id
@@ -296,6 +315,9 @@ object AppFirebase {
     }
 
     fun addHistoryStep(order: Order, descStep: String): Flow<Order> = callbackFlow {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
             val idOrder = order.id
@@ -369,6 +391,9 @@ object AppFirebase {
 
     /* Clients */
     fun getAllClients(): Flow<List<Client>> = callbackFlow {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
             val db = database.child("users").child(userId).child("clients")
@@ -397,6 +422,9 @@ object AppFirebase {
     }
 
     fun addClient(name: String, phone: List<String>): Flow<Client> = callbackFlow {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
             val idClient = database
@@ -439,6 +467,9 @@ object AppFirebase {
     }
 
     fun editClient(id: String, name: String, phone: String): Flow<Client> = callbackFlow {
+        val auth = Firebase.auth
+        val user = auth.currentUser
+        val database = Firebase.database.reference
         if (user != null) {
             val userId = user.uid
             val clientUpdate = Client(

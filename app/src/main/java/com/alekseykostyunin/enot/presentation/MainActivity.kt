@@ -111,6 +111,7 @@ class MainActivity : ComponentActivity() {
         }
     )
 
+
     /* Permissions */
     private val launcherCamera = registerForActivityResult(
         ActivityResultContracts.RequestPermission()

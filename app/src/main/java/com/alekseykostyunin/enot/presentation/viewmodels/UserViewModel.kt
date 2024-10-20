@@ -9,6 +9,7 @@ import com.alekseykostyunin.enot.domain.usecase.users.RegUserUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.ResetPasswordUseCase
 import com.alekseykostyunin.enot.domain.usecase.users.SingOutUserUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -21,18 +22,19 @@ class UserViewModel(
     private val singOutUserUseCase: SingOutUserUseCase,
 ) : ViewModel() {
 
-    var isAuthorized = MutableStateFlow(false)
+    private var _isAuthorized = MutableStateFlow(AppFirebase.currentUser())
+    val isAuthorized: StateFlow<Boolean> = _isAuthorized
 
     init {
         updateCurrentUser()
     }
 
     private fun updateCurrentUser(){
-        isAuthorized.value = AppFirebase.currentUser()
+        _isAuthorized.value = AppFirebase.currentUser()
     }
 
     fun setStatusAuthorized(newStatus: Boolean) {
-        isAuthorized.value = newStatus
+        _isAuthorized.value = newStatus
     }
 
     fun regUser(email: String, password: String, onResult: (Boolean) -> Unit) {
@@ -49,7 +51,7 @@ class UserViewModel(
                 Log.e("TEST_auth", "State.Loading")
             }.onEach { statusAuth ->
                 updateCurrentUser()
-                isAuthorized.value = statusAuth
+                _isAuthorized.value = statusAuth
                 Log.e("TEST_auth", "State.Success")
                 Log.e("TEST_authSuc", statusAuth.toString())
             }.catch {
@@ -59,7 +61,7 @@ class UserViewModel(
 
     fun signOut() {
         singOutUserUseCase.singOutUser()
-        isAuthorized.value = false
+        _isAuthorized.value = false
     }
 
 }

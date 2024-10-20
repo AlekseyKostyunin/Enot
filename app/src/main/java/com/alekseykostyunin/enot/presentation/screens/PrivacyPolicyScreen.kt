@@ -73,7 +73,7 @@ fun PrivacyPolicyScreen(
                 .padding(horizontal = 24.dp)
                 .padding(it),
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             PrivacyNoticeText()
         }
     }

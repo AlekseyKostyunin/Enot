@@ -49,6 +49,7 @@ import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.UserViewModel
 import kotlinx.coroutines.launch
 
+
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AuthScreen(

@@ -13,13 +13,6 @@ import com.alekseykostyunin.enot.domain.usecase.orders.AllOrdersUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.CloseOrderUseCase
 import com.alekseykostyunin.enot.domain.usecase.orders.EditOrderUseCase
 import com.alekseykostyunin.enot.presentation.navigation.State
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -65,7 +58,6 @@ class OrdersViewModel(
     }
 
     fun updateOrders() {
-        getAllOrdersUser()
         allOrders()
     }
 
@@ -87,40 +79,6 @@ class OrdersViewModel(
                 _state.value = State.Error(ERROR_LOAD)
                 Log.e("TEST_allOrders", it.message.toString())
             }.launchIn(viewModelScope)
-    }
-
-    private fun getAllOrdersUser() {
-        _state.value = State.Loading
-        val auth: FirebaseAuth = Firebase.auth
-        val database = Firebase.database.reference
-        val user = auth.currentUser
-        val ordersDB = mutableListOf<Order>()
-        if (user != null) {
-            val userId = user.uid
-            val db = database.child("users").child(userId).child("orders")
-            db.addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for (i in snapshot.children) {
-                        val order = i.getValue(Order::class.java)
-                        if (order != null) {
-                            ordersDB.add(order)
-                        }
-                    }
-                    val ordersRevers = ordersDB.asReversed()
-                    _orders.value = ordersRevers
-                    val countActiveOrders = ordersDB.filter {
-                        it.status == StatusOrder.OPEN || it.status == StatusOrder.PAUSED
-                    }.size
-                    _countActiveOrders.value = countActiveOrders
-                    _state.value = State.Success
-                    Log.d("TEST_snapshot_countActiveOrders", _countActiveOrders.value.toString())
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("TEST_snapshot_error", error.message)
-                }
-            })
-        }
     }
 
     fun showBottomBar() {
