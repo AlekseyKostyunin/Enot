@@ -443,8 +443,7 @@ fun OneOrderScreen(
                 }
             }
         },
-        content = { innerPadding ->
-            innerPadding
+        content = { it ->
             if (shouldShowCamera.value) {
                 CameraView(
                     outputDirectory = outputDirectory,
@@ -462,7 +461,7 @@ fun OneOrderScreen(
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.background)
                             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                            ,
+                            .padding(it),
                     ) {
                         Column(
                             modifier = Modifier.fillMaxSize()
