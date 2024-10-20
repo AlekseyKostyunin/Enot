@@ -76,7 +76,7 @@ fun UserScreen(
         toContact = false
     }
 
-    val githubLink = "https://github.com/AlekseyKostyunin/Enot"
+    val githubLink = "https://cloud.mail.ru/public/14Jh/Te7dk2fFa"
     val ruStoreLink = "https://www.rustore.ru/"
 
     Box(Modifier.fillMaxSize()) {
