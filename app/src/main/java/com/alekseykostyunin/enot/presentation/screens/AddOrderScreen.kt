@@ -50,6 +50,7 @@ import com.alekseykostyunin.enot.domain.entities.Order
 import com.alekseykostyunin.enot.domain.entities.StatusOrder
 import com.alekseykostyunin.enot.presentation.navigation.Destinations
 import com.alekseykostyunin.enot.presentation.navigation.NavigationState
+import com.alekseykostyunin.enot.presentation.navigation.State
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 
@@ -63,10 +64,15 @@ fun AddOrderScreen(
     requestContactsPermission: () -> Unit
 ) {
     clientsViewModel.updateClients()
+    val state = clientsViewModel.state.collectAsStateWithLifecycle().value
     val clientOfDb = remember { mutableStateOf(Client()) }
     val context = LocalContext.current
     fun sendToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
+    if (state is State.Error) {
+        sendToast(state.textError)
+        clientsViewModel.resetState()
     }
 
     Box(
