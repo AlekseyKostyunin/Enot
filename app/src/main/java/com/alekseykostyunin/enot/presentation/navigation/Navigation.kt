@@ -129,7 +129,9 @@ fun StartNavigation(
                     AddOrderScreen(
                         navigationState,
                         ordersViewModel,
-                        clientsViewModel
+                        clientsViewModel,
+                        getContact,
+                        requestContactsPermission
                     )
                 },
                 oneOrderScreenContent = {

@@ -20,6 +20,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
@@ -57,7 +58,9 @@ import com.alekseykostyunin.enot.presentation.viewmodels.OrdersViewModel
 fun AddOrderScreen(
     navigationState: NavigationState,
     ordersViewModel: OrdersViewModel,
-    clientsViewModel: ClientsViewModel
+    clientsViewModel: ClientsViewModel,
+    getContact: () -> Unit,
+    requestContactsPermission: () -> Unit
 ) {
     clientsViewModel.updateClients()
     val clientOfDb = remember { mutableStateOf(Client()) }
@@ -139,6 +142,15 @@ fun AddOrderScreen(
                             expandedClient.value = false
                         }
                     ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(stringResource(R.string.add_new_client), color = MaterialTheme.colorScheme.primary)
+                            },
+                            onClick = {
+                                requestContactsPermission()
+                                getContact()
+                            }
+                        )
                         clients.forEach { selectionOption ->
                             DropdownMenuItem(
                                 text = {

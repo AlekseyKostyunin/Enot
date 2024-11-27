@@ -209,7 +209,12 @@ class MainActivity : ComponentActivity() {
                 val phoneProjection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 val phoneSelection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=?"
                 val phone = mutableListOf<String>()
-                contentResolver.query(uri, contactProjection, null, null, null)?.use { cursor ->
+                contentResolver.query(
+                    uri,
+                    contactProjection,
+                    null,
+                    null,
+                    null)?.use { cursor ->
                     val idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID)
                     val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
                     val hasPhoneIndex =
