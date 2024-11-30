@@ -1,12 +1,18 @@
 package com.alekseykostyunin.enot.presentation.viewmodels
 
+import android.app.Activity
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alekseykostyunin.enot.domain.entities.Client
 import com.alekseykostyunin.enot.domain.usecase.clients.AddClientUseCase
 import com.alekseykostyunin.enot.domain.usecase.clients.AllClientsUseCase
 import com.alekseykostyunin.enot.domain.usecase.clients.EditClientUseCase
+import com.alekseykostyunin.enot.presentation.MainActivity
 import com.alekseykostyunin.enot.presentation.navigation.State
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -86,6 +92,10 @@ class ClientsViewModel(
                     state.value = State.Error(ERROR_LOAD)
                 }.launchIn(viewModelScope)
         }
+
+    }
+
+    companion object {
 
     }
 

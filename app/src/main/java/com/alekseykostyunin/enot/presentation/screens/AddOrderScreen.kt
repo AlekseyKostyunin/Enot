@@ -63,7 +63,7 @@ fun AddOrderScreen(
     getContact: () -> Unit,
     requestContactsPermission: () -> Unit
 ) {
-    clientsViewModel.updateClients()
+    //clientsViewModel.updateClients()
     val state = clientsViewModel.state.collectAsStateWithLifecycle().value
     val clientOfDb = remember { mutableStateOf(Client()) }
     val context = LocalContext.current
@@ -74,13 +74,15 @@ fun AddOrderScreen(
         sendToast(state.textError)
         clientsViewModel.resetState()
     }
-
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
+
+
         Column {
             Row {
                 IconButton(onClick = {
@@ -381,5 +383,3 @@ fun AddOrderScreen(
         }
     }
 }
-
-
