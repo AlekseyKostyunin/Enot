@@ -23,9 +23,14 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +48,7 @@ import com.alekseykostyunin.enot.presentation.navigation.NavigationState
 import com.alekseykostyunin.enot.presentation.viewmodels.ClientsViewModel
 import com.alekseykostyunin.enot.presentation.navigation.State
 import com.alekseykostyunin.enot.ui.theme.gradient
+import java.util.Locale
 
 @Composable
 fun AllClientsScreen(
@@ -62,6 +68,13 @@ fun AllClientsScreen(
         sendToast(state.textError)
         clientsViewModel.resetState()
     }
+
+    var text by remember { mutableStateOf("") }
+    val filteredClients = clients.asSequence().filter {
+        it.name?.lowercase(Locale.getDefault())?.contains(
+            text.lowercase(Locale.getDefault())
+        ) ?: false
+    }.toList()
 
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
@@ -103,9 +116,18 @@ fun AllClientsScreen(
                                 )
                             }
                         } else {
+                            OutlinedTextField(
+                                value = text,
+                                onValueChange = { text = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                label = { Text("Поиск") },
+                            )
+
                             LazyColumn {
                                 items(
-                                    items = clients,
+                                    items = filteredClients,
                                     key = { client ->
                                         client.id.toString()
                                     },
